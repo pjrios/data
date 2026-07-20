@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Detectives</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">15–20 Minute Data Cleaning Practice</p>
+      <h1>Data Detectives</h1>
+      <p>Find data problems, make careful corrections, and explain your decisions.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="card instructions">
+      <div class="section-heading">
+        <div>
+          <h2>Your mission</h2>
+          <p class="hint">Work through all four stages. Aim for careful decisions, not speed.</p>
+        </div>
+        <div class="timer" aria-label="Suggested activity time">Suggested time: 15–20 min</div>
+      </div>
+      <ol>
+        <li><strong>Inspect:</strong> Read the entire dataset before changing anything.</li>
+        <li><strong>Clean:</strong> Fix blank cells, repeated rows, impossible numbers, spelling differences, and missing units.</li>
+        <li><strong>Document:</strong> Select the issue and save each corrected row.</li>
+        <li><strong>Review:</strong> Check the cleaned dataset and complete the reflection.</li>
+      </ol>
+      <div class="rules"><strong>Data-care rule:</strong> Never invent a missing answer. Use <em>Not provided</em> when the correct value is unknown.</div>
+    </section>
+
+    <section class="card">
+      <div class="section-heading">
+        <div><p class="step">Stage 1 · About 10 minutes</p><h2>Clean the dataset</h2></div>
+        <button id="resetBtn" class="secondary" type="button">Reset activity</button>
+      </div>
+      <p class="hint">You may edit several rows before saving. Your unfinished edits will remain when another row is saved.</p>
+      <div class="progress-track" aria-hidden="true"><div id="progressBar"></div></div>
+      <p id="progressText" class="progress-text" aria-live="polite"></p>
+
+      <div class="table-scroll">
+        <table id="dataTable">
+          <thead><tr><th>Row</th><th>Student</th><th>Study Time</th><th>Favorite Subject</th><th>Issue Found</th><th>Action</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <p class="step">Stage 2 · About 3 minutes</p>
+      <h2>Review the change log</h2>
+      <p class="hint">Confirm that every correction has a clear reason. You should record eight problem rows.</p>
+      <div class="table-scroll">
+        <table id="logTable">
+          <thead><tr><th>Row</th><th>Column</th><th>Original Value</th><th>New Value</th><th>Reason</th></tr></thead>
+          <tbody><tr class="empty-row"><td colspan="5">No changes recorded yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <p class="step">Stage 3 · About 3 minutes</p>
+      <h2>Data-care questions</h2>
+      <div class="question-grid">
+        <label>1. Why should a blank answer not be guessed?
+          <textarea data-question rows="3" placeholder="Explain in one sentence..."></textarea>
+        </label>
+        <label>2. Which correction required the most careful decision?
+          <textarea data-question rows="3" placeholder="Name the row and explain..."></textarea>
+        </label>
+        <label>3. How can repeated data affect results?
+          <textarea data-question rows="3" placeholder="Explain in one sentence..."></textarea>
+        </label>
+      </div>
+    </section>
+
+    <section class="card">
+      <p class="step">Stage 4 · About 3 minutes</p>
+      <h2>Teamwork and responsibility check</h2>
+      <div class="check-grid">
+        <label><input type="checkbox" /> We shared the work.</label>
+        <label><input type="checkbox" /> We spoke respectfully.</label>
+        <label><input type="checkbox" /> We explained our corrections.</label>
+        <label><input type="checkbox" /> We protected the accuracy of the data.</label>
+        <label><input type="checkbox" /> We kept trying when a problem was difficult.</label>
+      </div>
+      <label class="reflection">One responsible decision our group made:
+        <textarea id="reflection" rows="4" placeholder="Write one or two sentences..."></textarea>
+      </label>
+      <button id="checkBtn" type="button">Check our work</button>
+      <div id="result" class="result" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <footer><div class="wrap">Data Detectives · Practice before the graded checklist</div></footer>
+  <script src="script.js"></script>
+</body>
+</html>

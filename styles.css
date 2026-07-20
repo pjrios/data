@@ -1,0 +1,106 @@
+:root {
+  --bg: #f5f7fb;
+  --surface: #ffffff;
+  --text: #1d2433;
+  --muted: #667085;
+  --primary: #3157d5;
+  --primary-dark: #2444ad;
+  --border: #d8deea;
+  --soft: #edf2ff;
+  --success: #176b43;
+  --warning: #8a4b08;
+  --radius: 16px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.5;
+}
+
+.wrap { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+
+.hero {
+  background: linear-gradient(135deg, #203b9f, #5376eb);
+  color: white;
+  padding: 48px 0 44px;
+}
+
+.hero h1 { margin: 4px 0 8px; font-size: clamp(2.2rem, 7vw, 4rem); line-height: 1; }
+.hero p { max-width: 700px; margin: 0; font-size: 1.08rem; }
+.eyebrow, .step { text-transform: uppercase; letter-spacing: .12em; font-weight: 800; font-size: .78rem; }
+
+main { padding: 28px 0 50px; }
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 22px;
+  box-shadow: 0 12px 35px rgba(31, 48, 91, .07);
+}
+
+.card h2 { margin: 0 0 10px; }
+.instructions ol { padding-left: 22px; }
+.rules { background: var(--soft); border-radius: 12px; padding: 14px 16px; }
+.section-heading { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
+.step { color: var(--primary); margin: 0 0 4px; }
+.hint, .progress-text { color: var(--muted); }
+.table-scroll { overflow-x: auto; margin-top: 16px; }
+
+table { width: 100%; border-collapse: collapse; min-width: 820px; }
+th, td { border-bottom: 1px solid var(--border); padding: 12px 10px; text-align: left; vertical-align: middle; }
+th { background: #f8faff; font-size: .86rem; }
+input[type="text"], select, textarea {
+  width: 100%;
+  border: 1px solid #bcc6d8;
+  border-radius: 9px;
+  padding: 9px 10px;
+  font: inherit;
+  background: white;
+}
+input[type="text"]:focus, select:focus, textarea:focus { outline: 3px solid rgba(49, 87, 213, .18); border-color: var(--primary); }
+
+button {
+  border: 0;
+  border-radius: 10px;
+  padding: 10px 15px;
+  background: var(--primary);
+  color: white;
+  font-weight: 750;
+  cursor: pointer;
+}
+button:hover { background: var(--primary-dark); }
+button.secondary { background: #e9edfa; color: #293450; }
+button.secondary:hover { background: #dfe5f6; }
+button:disabled { opacity: .55; cursor: not-allowed; }
+
+.changed { background: #f0fbf5; }
+.empty-row td { text-align: center; color: var(--muted); padding: 24px; }
+.check-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 16px 0 20px; }
+.check-grid label { display: flex; gap: 10px; align-items: flex-start; background: #f8faff; border: 1px solid var(--border); padding: 13px; border-radius: 10px; }
+.reflection { display: block; font-weight: 700; margin-bottom: 16px; }
+.reflection textarea { margin-top: 8px; font-weight: 400; resize: vertical; }
+.result { margin-top: 16px; padding: 0; border-radius: 10px; }
+.result.success { background: #eaf8f0; color: var(--success); padding: 14px; }
+.result.warning { background: #fff4e7; color: var(--warning); padding: 14px; }
+footer { color: var(--muted); padding: 0 0 30px; text-align: center; }
+
+@media (max-width: 700px) {
+  .card { padding: 18px; }
+  .section-heading { flex-direction: column; }
+  .check-grid { grid-template-columns: 1fr; }
+  button { width: 100%; }
+}
+
+.timer { background: var(--soft); color: var(--primary-dark); padding: 10px 14px; border-radius: 999px; font-weight: 750; white-space: nowrap; }
+.progress-track { height: 10px; background: #e7ebf3; border-radius: 999px; overflow: hidden; margin-top: 18px; }
+#progressBar { height: 100%; width: 0; background: var(--primary); transition: width .25s ease; }
+.question-grid { display: grid; gap: 16px; margin-top: 16px; }
+.question-grid label { font-weight: 700; }
+.question-grid textarea { margin-top: 8px; font-weight: 400; resize: vertical; }
+@media (max-width: 700px) { .timer { white-space: normal; width: 100%; text-align: center; } }
