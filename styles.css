@@ -35,6 +35,7 @@ body {
 .eyebrow, .step { text-transform: uppercase; letter-spacing: .12em; font-weight: 800; font-size: .78rem; }
 
 main { padding: 28px 0 50px; }
+[hidden] { display: none !important; }
 .card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -47,6 +48,21 @@ main { padding: 28px 0 50px; }
 .card h2 { margin: 0 0 10px; }
 .instructions ol { padding-left: 22px; }
 .rules { background: var(--soft); border-radius: 12px; padding: 14px 16px; }
+.concept-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin: 22px 0 26px; }
+.concept-card { position: relative; background: #f8faff; border: 1px solid var(--border); border-radius: 13px; padding: 18px; }
+.concept-card h3 { margin: 2px 0 7px; font-size: 1.03rem; }
+.concept-card p { margin: 0; color: #465168; }
+.concept-number { display: grid; place-items: center; width: 30px; height: 30px; margin-bottom: 12px; border-radius: 50%; background: var(--primary); color: white; font-weight: 800; }
+.examples-title { margin: 0 0 12px; }
+.error-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+.error-card { border: 1px solid var(--border); border-left: 4px solid var(--primary); border-radius: 10px; padding: 13px 15px; }
+.error-card h4 { margin: 0 0 5px; color: var(--primary-dark); }
+.error-card p { margin: 4px 0; font-size: .94rem; }
+.bad-example { color: #9b2c2c; text-decoration: line-through; text-decoration-thickness: 1px; }
+.lesson-rule { margin-top: 18px; }
+.lesson-actions { display: flex; gap: 14px; align-items: center; margin-top: 18px; }
+.lesson-actions p { margin: 0; color: var(--muted); font-size: .92rem; }
+#practiceSection { scroll-margin-top: 18px; }
 .section-heading { display: flex; justify-content: space-between; gap: 18px; align-items: flex-start; }
 .step { color: var(--primary); margin: 0 0 4px; }
 .hint, .progress-text { color: var(--muted); }
@@ -95,9 +111,12 @@ footer { color: var(--muted); padding: 0 0 30px; text-align: center; }
 @media (max-width: 700px) {
   .card { padding: 18px; }
   .section-heading { flex-direction: column; }
+  .concept-grid, .error-grid { grid-template-columns: 1fr; }
   .check-grid { grid-template-columns: 1fr; }
   button { width: 100%; }
   .action-row { width: 100%; }
+  .lesson-actions { flex-direction: column; align-items: stretch; }
+  .lesson-actions p { text-align: center; }
 }
 
 .timer { background: var(--soft); color: var(--primary-dark); padding: 10px 14px; border-radius: 999px; font-weight: 750; white-space: nowrap; }

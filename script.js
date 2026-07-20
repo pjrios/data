@@ -18,18 +18,22 @@ const storageKey = "dataDetectivesStateV1";
 let rows = structuredClone(originalRows);
 let changes = [];
 let selectedIssues = {};
+let introComplete = false;
 
 const tbody = document.querySelector("#dataTable tbody");
 const logBody = document.querySelector("#logTable tbody");
 const progressText = document.querySelector("#progressText");
 const progressBar = document.querySelector("#progressBar");
 const result = document.querySelector("#result");
+const learnSection = document.querySelector("#learnSection");
+const practiceSection = document.querySelector("#practiceSection");
 
 function persistState() {
   const state = {
     rows,
     changes,
     selectedIssues,
+    introComplete,
     questions: [...document.querySelectorAll("[data-question]")].map(question => question.value),
     checklist: [...document.querySelectorAll('.check-grid input[type="checkbox"]')].map(box => box.checked),
     reflection: document.querySelector("#reflection").value
@@ -53,6 +57,8 @@ function restoreState() {
 
   if (!saved || typeof saved !== "object") return;
 
+  introComplete = saved.introComplete === true;
+
   if (Array.isArray(saved.rows) && saved.rows.length === originalRows.length) {
     const validRows = saved.rows.every(row => row && ["student", "time", "subject"].every(key => typeof row[key] === "string"));
     if (validRows) rows = saved.rows;
@@ -75,6 +81,27 @@ function restoreState() {
   }
 
   if (typeof saved.reflection === "string") document.querySelector("#reflection").value = saved.reflection;
+}
+
+function renderActivityView() {
+  learnSection.hidden = introComplete;
+  practiceSection.hidden = !introComplete;
+}
+
+function startPractice() {
+  introComplete = true;
+  persistState();
+  renderActivityView();
+  const practiceTitle = document.querySelector("#practiceTitle");
+  practiceTitle.focus({ preventScroll: true });
+  practiceSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function reviewBasics() {
+  learnSection.hidden = false;
+  practiceSection.hidden = true;
+  document.querySelector("#learnTitle").focus({ preventScroll: true });
+  learnSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function renderTable() {
@@ -170,12 +197,12 @@ function checkWork() {
   const changedRows = new Set(changes.map(change => change.row));
   const allLogged = problemRows.every(row => changedRows.has(row));
 
-  if (allLogged && checked === 5 && reflection.length >= 10 && questions === 3) {
+  if (allLogged && checked === 5 && reflection.length >= 10 && questions === 2) {
     showMessage("Excellent work! You cleaned and documented eight problem rows, answered the data-care questions, and completed the teamwork reflection.", "success");
   } else {
     const needs = [];
     if (!allLogged) needs.push("record all eight problem rows");
-    if (questions < 3) needs.push("answer all three data-care questions");
+    if (questions < 2) needs.push("answer both data-care questions");
     if (checked < 5) needs.push("complete every teamwork statement");
     if (reflection.length < 10) needs.push("write the final reflection");
     showMessage(`Almost finished: ${needs.join(", ")}.`, "warning");
@@ -186,6 +213,7 @@ function resetActivity() {
   rows = structuredClone(originalRows);
   changes = [];
   selectedIssues = {};
+  introComplete = false;
   document.querySelectorAll('input[type="checkbox"]').forEach(box => box.checked = false);
   document.querySelectorAll("textarea").forEach(area => area.value = "");
   result.textContent = "";
@@ -193,6 +221,8 @@ function resetActivity() {
   try { localStorage.removeItem(storageKey); } catch {}
   renderLog();
   renderTable();
+  renderActivityView();
+  learnSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function downloadPdf() {
@@ -285,9 +315,8 @@ function downloadPdf() {
 
   y = sectionTitle("Data-care Questions", doc.lastAutoTable.finalY + 12);
   const questionPrompts = [
-    "1. Why should a blank answer not be guessed?",
-    "2. Which correction required the most careful decision?",
-    "3. How can repeated data affect results?"
+    "1. Why should an unknown blank be marked as Not provided instead of guessed?",
+    "2. Which correction required the most careful decision?"
   ];
   questionPrompts.forEach((prompt, index) => {
     y = paragraph(prompt, y, { bold: true });
@@ -327,8 +356,11 @@ tbody.addEventListener("change", preserveDraft);
 document.querySelectorAll("[data-question], #reflection").forEach(field => field.addEventListener("input", persistState));
 document.querySelectorAll('.check-grid input[type="checkbox"]').forEach(box => box.addEventListener("change", persistState));
 restoreState();
+renderActivityView();
 renderTable();
 renderLog();
+document.querySelector("#startPracticeBtn").addEventListener("click", startPractice);
+document.querySelector("#reviewBasicsBtn").addEventListener("click", reviewBasics);
 document.querySelector("#checkBtn").addEventListener("click", checkWork);
 document.querySelector("#downloadPdfBtn").addEventListener("click", downloadPdf);
 document.querySelector("#resetBtn").addEventListener("click", resetActivity);

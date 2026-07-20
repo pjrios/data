@@ -9,20 +9,93 @@
 <body>
   <header class="hero">
     <div class="wrap">
-      <p class="eyebrow">15–20 Minute Data Cleaning Practice</p>
+      <p class="eyebrow">Learn First · Practice Second · 15–20 Minutes</p>
       <h1>Data Detectives</h1>
-      <p>Find data problems, make careful corrections, and explain your decisions.</p>
+      <p>Learn how responsible data cleaning works, then investigate a dataset and explain your decisions.</p>
     </div>
   </header>
 
   <main class="wrap">
-    <section class="card instructions">
+    <section id="learnSection" class="card learn-section" aria-labelledby="learnTitle">
       <div class="section-heading">
         <div>
-          <h2>Your mission</h2>
+          <p class="step">Part 1 · Learn · About 4 minutes</p>
+          <h2 id="learnTitle" tabindex="-1">Learn before you clean</h2>
+          <p class="hint">Read these ideas and examples. They will help you make safe corrections during the investigation.</p>
+        </div>
+        <div class="timer" aria-label="Part 1 suggested time">About 4 min</div>
+      </div>
+
+      <div class="concept-grid">
+        <article class="concept-card">
+          <span class="concept-number" aria-hidden="true">1</span>
+          <h3>Why clean data?</h3>
+          <p>Incorrect or inconsistent data can produce misleading results and unfair decisions.</p>
+        </article>
+        <article class="concept-card">
+          <span class="concept-number" aria-hidden="true">2</span>
+          <h3>What should you notice?</h3>
+          <p>Look for blanks, repeated rows, impossible values, spelling differences, and inconsistent units or formats.</p>
+        </article>
+        <article class="concept-card">
+          <span class="concept-number" aria-hidden="true">3</span>
+          <h3>How should you correct it?</h3>
+          <p>Use evidence, make values consistent, and record every change. Never invent missing information.</p>
+        </article>
+      </div>
+
+      <h3 class="examples-title">Common errors and safe corrections</h3>
+      <div class="error-grid">
+        <article class="error-card">
+          <h4>Blank cell</h4>
+          <p><strong>Example:</strong> an empty study time</p>
+          <p><strong>Safe action:</strong> write <em>Not provided</em> when the answer is unknown.</p>
+        </article>
+        <article class="error-card">
+          <h4>Repeated row</h4>
+          <p><strong>Example:</strong> the same student, time, and subject appear twice</p>
+          <p><strong>Safe action:</strong> mark the repeated row so it is not counted twice.</p>
+        </article>
+        <article class="error-card">
+          <h4>Impossible number</h4>
+          <p><strong>Example:</strong> <span class="bad-example">-20 min</span> or <span class="bad-example">900 hours</span></p>
+          <p><strong>Safe action:</strong> use <em>Not provided</em> unless a source confirms the correct value.</p>
+        </article>
+        <article class="error-card">
+          <h4>Spelling or case</h4>
+          <p><strong>Example:</strong> <span class="bad-example">Scince</span> or <span class="bad-example">math</span></p>
+          <p><strong>Safe action:</strong> standardize them to <em>Science</em> and <em>Math</em>.</p>
+        </article>
+        <article class="error-card">
+          <h4>Missing unit</h4>
+          <p><strong>Example:</strong> <span class="bad-example">45</span> in a study-time column</p>
+          <p><strong>Safe action:</strong> add the expected unit when the table makes it clear, such as <em>45 min</em>.</p>
+        </article>
+        <article class="error-card">
+          <h4>Format difference</h4>
+          <p><strong>Example:</strong> <span class="bad-example">1 hour</span> among values written in minutes</p>
+          <p><strong>Safe action:</strong> use one consistent format, such as <em>60 min</em>.</p>
+        </article>
+      </div>
+
+      <div class="rules lesson-rule">
+        <strong>Remember:</strong> inspect the whole row, correct only what the evidence supports, and document what changed and why.
+      </div>
+      <div class="lesson-actions">
+        <button id="startPracticeBtn" type="button" aria-controls="practiceSection">Start Practice</button>
+        <p>Your progress will be saved automatically in this browser.</p>
+      </div>
+    </section>
+
+    <div id="practiceSection" hidden>
+    <section class="card instructions" aria-labelledby="practiceTitle">
+      <div class="section-heading">
+        <div>
+          <p class="step">Part 2 · Practice · About 13–16 minutes</p>
+          <h2 id="practiceTitle" tabindex="-1">Your mission</h2>
           <p class="hint">Work through all four stages. Aim for careful decisions, not speed.</p>
         </div>
-        <div class="timer" aria-label="Suggested activity time">Suggested time: 15–20 min</div>
+        <button id="reviewBasicsBtn" class="secondary" type="button" aria-controls="learnSection">Review Basics</button>
       </div>
       <ol>
         <li><strong>Inspect:</strong> Read the entire dataset before changing anything.</li>
@@ -35,7 +108,7 @@
 
     <section class="card">
       <div class="section-heading">
-        <div><p class="step">Stage 1 · About 10 minutes</p><h2>Clean the dataset</h2></div>
+        <div><p class="step">Stage 1 · About 8–10 minutes</p><h2>Clean the dataset</h2></div>
         <button id="resetBtn" class="secondary" type="button">Reset activity</button>
       </div>
       <p class="hint">You may edit several rows before saving. Your work is saved automatically in this browser until you reset the activity.</p>
@@ -51,7 +124,7 @@
     </section>
 
     <section class="card">
-      <p class="step">Stage 2 · About 3 minutes</p>
+      <p class="step">Stage 2 · About 2 minutes</p>
       <h2>Review the change log</h2>
       <p class="hint">Confirm that every correction has a clear reason. You should record eight problem rows.</p>
       <div class="table-scroll">
@@ -63,23 +136,20 @@
     </section>
 
     <section class="card">
-      <p class="step">Stage 3 · About 3 minutes</p>
+      <p class="step">Stage 3 · About 2 minutes</p>
       <h2>Data-care questions</h2>
       <div class="question-grid">
-        <label>1. Why should a blank answer not be guessed?
+        <label>1. Why should an unknown blank be marked as Not provided instead of guessed?
           <textarea data-question rows="3" placeholder="Explain in one sentence..."></textarea>
         </label>
         <label>2. Which correction required the most careful decision?
           <textarea data-question rows="3" placeholder="Name the row and explain..."></textarea>
         </label>
-        <label>3. How can repeated data affect results?
-          <textarea data-question rows="3" placeholder="Explain in one sentence..."></textarea>
-        </label>
       </div>
     </section>
 
     <section class="card">
-      <p class="step">Stage 4 · About 3 minutes</p>
+      <p class="step">Stage 4 · About 2 minutes</p>
       <h2>Teamwork and responsibility check</h2>
       <div class="check-grid">
         <label><input type="checkbox" /> We shared the work.</label>
@@ -98,6 +168,7 @@
       <p class="hint export-hint">The PDF includes your current cleaned dataset, change log, answers, checklist, and reflection.</p>
       <div id="result" class="result" aria-live="polite"></div>
     </section>
+    </div>
   </main>
 
   <footer><div class="wrap">Data Detectives · Practice before the graded checklist</div></footer>
