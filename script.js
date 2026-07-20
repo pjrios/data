@@ -105,8 +105,9 @@ function restoreState() {
 }
 
 function renderActivityView() {
-  learnSection.hidden = introComplete;
+  learnSection.hidden = false;
   practiceSection.hidden = !introComplete;
+  document.querySelector("#startPracticeBtn").textContent = introComplete ? "Return to Practice" : "Start Practice";
 }
 
 function startPractice() {
@@ -120,7 +121,6 @@ function startPractice() {
 
 function reviewBasics() {
   learnSection.hidden = false;
-  practiceSection.hidden = true;
   document.querySelector("#learnTitle").focus({ preventScroll: true });
   learnSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
