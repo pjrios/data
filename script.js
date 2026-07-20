@@ -14,6 +14,7 @@ const originalRows = [
 ];
 
 const problemRows = [2, 3, 4, 5, 7, 8, 9, 10];
+const storageKey = "dataDetectivesStateV1";
 let rows = structuredClone(originalRows);
 let changes = [];
 let selectedIssues = {};
@@ -23,6 +24,58 @@ const logBody = document.querySelector("#logTable tbody");
 const progressText = document.querySelector("#progressText");
 const progressBar = document.querySelector("#progressBar");
 const result = document.querySelector("#result");
+
+function persistState() {
+  const state = {
+    rows,
+    changes,
+    selectedIssues,
+    questions: [...document.querySelectorAll("[data-question]")].map(question => question.value),
+    checklist: [...document.querySelectorAll('.check-grid input[type="checkbox"]')].map(box => box.checked),
+    reflection: document.querySelector("#reflection").value
+  };
+
+  try {
+    localStorage.setItem(storageKey, JSON.stringify(state));
+  } catch {
+    showMessage("Your work could not be saved in this browser. Keep this tab open until you download the PDF.", "warning");
+  }
+}
+
+function restoreState() {
+  let saved;
+  try {
+    saved = JSON.parse(localStorage.getItem(storageKey));
+  } catch {
+    try { localStorage.removeItem(storageKey); } catch {}
+    return;
+  }
+
+  if (!saved || typeof saved !== "object") return;
+
+  if (Array.isArray(saved.rows) && saved.rows.length === originalRows.length) {
+    const validRows = saved.rows.every(row => row && ["student", "time", "subject"].every(key => typeof row[key] === "string"));
+    if (validRows) rows = saved.rows;
+  }
+  if (Array.isArray(saved.changes)) {
+    const validChanges = saved.changes.every(change => change && Number.isInteger(change.row)
+      && ["column", "original", "updated", "reason"].every(key => typeof change[key] === "string"));
+    if (validChanges) changes = saved.changes;
+  }
+  if (saved.selectedIssues && typeof saved.selectedIssues === "object") selectedIssues = saved.selectedIssues;
+
+  const questions = [...document.querySelectorAll("[data-question]")];
+  if (Array.isArray(saved.questions)) {
+    questions.forEach((question, index) => question.value = typeof saved.questions[index] === "string" ? saved.questions[index] : "");
+  }
+
+  const checklist = [...document.querySelectorAll('.check-grid input[type="checkbox"]')];
+  if (Array.isArray(saved.checklist)) {
+    checklist.forEach((box, index) => box.checked = saved.checklist[index] === true);
+  }
+
+  if (typeof saved.reflection === "string") document.querySelector("#reflection").value = saved.reflection;
+}
 
 function renderTable() {
   tbody.innerHTML = "";
@@ -56,6 +109,7 @@ function preserveDraft(event) {
   if (target.matches("[data-issue-row]")) {
     selectedIssues[rowIndexKey(Number(target.dataset.issueRow))] = target.value;
   }
+  persistState();
 }
 
 function saveRow(event) {
@@ -85,6 +139,7 @@ function saveRow(event) {
   event.currentTarget.textContent = "Update";
   renderLog();
   updateProgress();
+  persistState();
   showMessage(`Row ${rowNumber} was recorded. Your other unfinished edits were kept.`, "success");
 }
 
@@ -135,6 +190,7 @@ function resetActivity() {
   document.querySelectorAll("textarea").forEach(area => area.value = "");
   result.textContent = "";
   result.className = "result";
+  try { localStorage.removeItem(storageKey); } catch {}
   renderLog();
   renderTable();
 }
@@ -143,6 +199,8 @@ function downloadPdf() {
   if (!window.jspdf?.jsPDF) {
     return showMessage("The PDF tool could not load. Check your connection and try again.", "warning");
   }
+
+  persistState();
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -266,6 +324,9 @@ function showMessage(message, type) { result.textContent = message; result.class
 
 tbody.addEventListener("input", preserveDraft);
 tbody.addEventListener("change", preserveDraft);
+document.querySelectorAll("[data-question], #reflection").forEach(field => field.addEventListener("input", persistState));
+document.querySelectorAll('.check-grid input[type="checkbox"]').forEach(box => box.addEventListener("change", persistState));
+restoreState();
 renderTable();
 renderLog();
 document.querySelector("#checkBtn").addEventListener("click", checkWork);
