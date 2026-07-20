@@ -91,12 +91,18 @@
       <label class="reflection">One responsible decision our group made:
         <textarea id="reflection" rows="4" placeholder="Write one or two sentences..."></textarea>
       </label>
-      <button id="checkBtn" type="button">Check our work</button>
+      <div class="action-row">
+        <button id="checkBtn" type="button">Check our work</button>
+        <button id="downloadPdfBtn" class="secondary" type="button">Download PDF</button>
+      </div>
+      <p class="hint export-hint">The PDF includes your current cleaned dataset, change log, answers, checklist, and reflection.</p>
       <div id="result" class="result" aria-live="polite"></div>
     </section>
   </main>
 
   <footer><div class="wrap">Data Detectives · Practice before the graded checklist</div></footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

@@ -139,6 +139,126 @@ function resetActivity() {
   renderTable();
 }
 
+function downloadPdf() {
+  if (!window.jspdf?.jsPDF) {
+    return showMessage("The PDF tool could not load. Check your connection and try again.", "warning");
+  }
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const contentWidth = pageWidth - (margin * 2);
+  const blue = [49, 87, 213];
+  const dark = [29, 36, 51];
+  const muted = [102, 112, 133];
+  const questions = [...document.querySelectorAll("[data-question]")];
+  const checklist = [...document.querySelectorAll('.check-grid input[type="checkbox"]')];
+  const checklistLabels = checklist.map(box => box.parentElement.textContent.trim());
+  const reflection = document.querySelector("#reflection").value.trim();
+
+  function ensureSpace(y, needed = 18) {
+    if (y + needed <= pageHeight - 16) return y;
+    doc.addPage();
+    return 18;
+  }
+
+  function sectionTitle(title, y) {
+    y = ensureSpace(y, 15);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...blue);
+    doc.text(title, margin, y);
+    doc.setDrawColor(216, 222, 234);
+    doc.line(margin, y + 2, pageWidth - margin, y + 2);
+    return y + 8;
+  }
+
+  function paragraph(text, y, options = {}) {
+    const safeText = text || "Not completed";
+    const lines = doc.splitTextToSize(safeText, contentWidth);
+    y = ensureSpace(y, (lines.length * 5) + 3);
+    doc.setFont("helvetica", options.bold ? "bold" : "normal");
+    doc.setFontSize(options.size || 10);
+    doc.setTextColor(...(options.color || dark));
+    doc.text(lines, margin, y);
+    return y + (lines.length * 5) + 3;
+  }
+
+  doc.setFillColor(...blue);
+  doc.rect(0, 0, pageWidth, 32, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  doc.text("Data Detectives", margin, 15);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text("Data Cleaning Activity Report", margin, 23);
+  doc.text(new Date().toLocaleDateString(), pageWidth - margin, 23, { align: "right" });
+
+  let y = sectionTitle("Cleaned Dataset", 43);
+  doc.autoTable({
+    startY: y,
+    head: [["Row", "Student", "Study Time", "Favorite Subject"]],
+    body: rows.map((row, index) => [String(index + 1), row.student || "(blank)", row.time || "(blank)", row.subject || "(blank)"]),
+    margin: { left: margin, right: margin },
+    theme: "grid",
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 2.4, textColor: dark },
+    headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [248, 250, 255] },
+    columnStyles: { 0: { cellWidth: 13, halign: "center" } }
+  });
+
+  y = sectionTitle("Change Log", doc.lastAutoTable.finalY + 12);
+  doc.autoTable({
+    startY: y,
+    head: [["Row", "Column", "Original Value", "New Value", "Reason"]],
+    body: changes.length
+      ? [...changes].sort((a, b) => a.row - b.row).map(change => [String(change.row), change.column, change.original, change.updated, change.reason])
+      : [["-", "-", "No changes recorded", "-", "-"]],
+    margin: { left: margin, right: margin },
+    theme: "grid",
+    styles: { font: "helvetica", fontSize: 8, cellPadding: 2.2, textColor: dark, overflow: "linebreak" },
+    headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" },
+    alternateRowStyles: { fillColor: [248, 250, 255] },
+    columnStyles: { 0: { cellWidth: 11, halign: "center" } }
+  });
+
+  y = sectionTitle("Data-care Questions", doc.lastAutoTable.finalY + 12);
+  const questionPrompts = [
+    "1. Why should a blank answer not be guessed?",
+    "2. Which correction required the most careful decision?",
+    "3. How can repeated data affect results?"
+  ];
+  questionPrompts.forEach((prompt, index) => {
+    y = paragraph(prompt, y, { bold: true });
+    y = paragraph(questions[index].value.trim(), y);
+  });
+
+  y = sectionTitle("Teamwork and Responsibility", y + 2);
+  checklistLabels.forEach((label, index) => {
+    y = paragraph(`${checklist[index].checked ? "[Yes]" : "[No]"} ${label}`, y);
+  });
+  y = paragraph("One responsible decision our group made:", y + 2, { bold: true });
+  paragraph(reflection, y);
+
+  const pageCount = doc.getNumberOfPages();
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(216, 222, 234);
+    doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...muted);
+    doc.text("Data Detectives", margin, pageHeight - 7);
+    doc.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 7, { align: "right" });
+  }
+
+  doc.save("data-detectives-report.pdf");
+  showMessage("Your PDF was downloaded.", "success");
+}
+
 function rowIndexKey(index) { return String(index); }
 function labelFor(key) { return { student: "Student", time: "Study Time", subject: "Favorite Subject" }[key]; }
 function escapeHtml(value) { return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
@@ -149,4 +269,5 @@ tbody.addEventListener("change", preserveDraft);
 renderTable();
 renderLog();
 document.querySelector("#checkBtn").addEventListener("click", checkWork);
+document.querySelector("#downloadPdfBtn").addEventListener("click", downloadPdf);
 document.querySelector("#resetBtn").addEventListener("click", resetActivity);

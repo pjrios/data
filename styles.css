@@ -85,6 +85,8 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .check-grid label { display: flex; gap: 10px; align-items: flex-start; background: #f8faff; border: 1px solid var(--border); padding: 13px; border-radius: 10px; }
 .reflection { display: block; font-weight: 700; margin-bottom: 16px; }
 .reflection textarea { margin-top: 8px; font-weight: 400; resize: vertical; }
+.action-row { display: flex; flex-wrap: wrap; gap: 10px; }
+.export-hint { margin: 10px 0 0; font-size: .92rem; }
 .result { margin-top: 16px; padding: 0; border-radius: 10px; }
 .result.success { background: #eaf8f0; color: var(--success); padding: 14px; }
 .result.warning { background: #fff4e7; color: var(--warning); padding: 14px; }
@@ -95,6 +97,7 @@ footer { color: var(--muted); padding: 0 0 30px; text-align: center; }
   .section-heading { flex-direction: column; }
   .check-grid { grid-template-columns: 1fr; }
   button { width: 100%; }
+  .action-row { width: 100%; }
 }
 
 .timer { background: var(--soft); color: var(--primary-dark); padding: 10px 14px; border-radius: 999px; font-weight: 750; white-space: nowrap; }
