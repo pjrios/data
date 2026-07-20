@@ -19,6 +19,7 @@ let rows = structuredClone(originalRows);
 let changes = [];
 let selectedIssues = {};
 let introComplete = false;
+let submissionDetails = { group: "", date: getLocalDateValue(), members: ["", ""] };
 
 const tbody = document.querySelector("#dataTable tbody");
 const logBody = document.querySelector("#logTable tbody");
@@ -27,6 +28,9 @@ const progressBar = document.querySelector("#progressBar");
 const result = document.querySelector("#result");
 const learnSection = document.querySelector("#learnSection");
 const practiceSection = document.querySelector("#practiceSection");
+const groupDialog = document.querySelector("#groupDialog");
+const groupForm = document.querySelector("#groupForm");
+const memberFields = document.querySelector("#memberFields");
 
 function persistState() {
   const state = {
@@ -34,6 +38,7 @@ function persistState() {
     changes,
     selectedIssues,
     introComplete,
+    submissionDetails,
     questions: [...document.querySelectorAll("[data-question]")].map(question => question.value),
     checklist: [...document.querySelectorAll('.check-grid input[type="checkbox"]')].map(box => box.checked),
     reflection: document.querySelector("#reflection").value
@@ -58,6 +63,22 @@ function restoreState() {
   if (!saved || typeof saved !== "object") return;
 
   introComplete = saved.introComplete === true;
+
+  if (saved.submissionDetails && typeof saved.submissionDetails === "object") {
+    const savedMembers = saved.submissionDetails.members;
+    if (typeof saved.submissionDetails.group === "string"
+      && /^\d{4}-\d{2}-\d{2}$/.test(saved.submissionDetails.date)
+      && Array.isArray(savedMembers)
+      && savedMembers.length >= 1
+      && savedMembers.length <= 8
+      && savedMembers.every(name => typeof name === "string")) {
+      submissionDetails = {
+        group: saved.submissionDetails.group,
+        date: saved.submissionDetails.date,
+        members: savedMembers
+      };
+    }
+  }
 
   if (Array.isArray(saved.rows) && saved.rows.length === originalRows.length) {
     const validRows = saved.rows.every(row => row && ["student", "time", "subject"].every(key => typeof row[key] === "string"));
@@ -102,6 +123,56 @@ function reviewBasics() {
   practiceSection.hidden = true;
   document.querySelector("#learnTitle").focus({ preventScroll: true });
   learnSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderMemberFields(names = []) {
+  const requestedCount = Number(document.querySelector("#memberCount").value);
+  if (!Number.isInteger(requestedCount) || requestedCount < 1 || requestedCount > 8) {
+    memberFields.innerHTML = "";
+    return;
+  }
+
+  const currentNames = [...memberFields.querySelectorAll("[data-member-name]")].map(input => input.value);
+  const values = names.length ? names : currentNames;
+  memberFields.innerHTML = "";
+
+  for (let index = 0; index < requestedCount; index += 1) {
+    const label = document.createElement("label");
+    label.textContent = `Member ${index + 1}`;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 60;
+    input.required = true;
+    input.placeholder = "Full name";
+    input.dataset.memberName = String(index);
+    input.value = values[index] || "";
+    label.appendChild(input);
+    memberFields.appendChild(label);
+  }
+}
+
+function openGroupDialog() {
+  document.querySelector("#groupName").value = submissionDetails.group;
+  document.querySelector("#activityDate").value = submissionDetails.date || getLocalDateValue();
+  document.querySelector("#memberCount").value = String(submissionDetails.members.length || 2);
+  renderMemberFields(submissionDetails.members);
+  groupDialog.showModal();
+}
+
+function closeGroupDialog() {
+  groupDialog.close();
+}
+
+function submitGroupDetails(event) {
+  event.preventDefault();
+  submissionDetails = {
+    group: document.querySelector("#groupName").value.trim(),
+    date: document.querySelector("#activityDate").value,
+    members: [...memberFields.querySelectorAll("[data-member-name]")].map(input => input.value.trim())
+  };
+  persistState();
+  closeGroupDialog();
+  downloadPdf();
 }
 
 function renderTable() {
@@ -214,6 +285,7 @@ function resetActivity() {
   changes = [];
   selectedIssues = {};
   introComplete = false;
+  submissionDetails = { group: "", date: getLocalDateValue(), members: ["", ""] };
   document.querySelectorAll('input[type="checkbox"]').forEach(box => box.checked = false);
   document.querySelectorAll("textarea").forEach(area => area.value = "");
   result.textContent = "";
@@ -283,9 +355,21 @@ function downloadPdf() {
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
   doc.text("Data Cleaning Activity Report", margin, 23);
-  doc.text(new Date().toLocaleDateString(), pageWidth - margin, 23, { align: "right" });
+  doc.text(formatActivityDate(submissionDetails.date), pageWidth - margin, 23, { align: "right" });
 
-  let y = sectionTitle("Cleaned Dataset", 43);
+  let y = sectionTitle("Group Details", 43);
+  doc.autoTable({
+    startY: y,
+    head: [["Group / Class", "Activity Date", "Members"]],
+    body: [[submissionDetails.group, formatActivityDate(submissionDetails.date), submissionDetails.members.join(", ")]],
+    margin: { left: margin, right: margin },
+    theme: "grid",
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 2.8, textColor: dark, overflow: "linebreak" },
+    headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 34 } }
+  });
+
+  y = sectionTitle("Cleaned Dataset", doc.lastAutoTable.finalY + 12);
   doc.autoTable({
     startY: y,
     head: [["Row", "Student", "Study Time", "Favorite Subject"]],
@@ -319,8 +403,12 @@ function downloadPdf() {
     "2. Which correction required the most careful decision?"
   ];
   questionPrompts.forEach((prompt, index) => {
+    const answer = questions[index].value.trim() || "Not completed";
+    const promptLines = doc.splitTextToSize(prompt, contentWidth);
+    const answerLines = doc.splitTextToSize(answer, contentWidth);
+    y = ensureSpace(y, ((promptLines.length + answerLines.length) * 5) + 6);
     y = paragraph(prompt, y, { bold: true });
-    y = paragraph(questions[index].value.trim(), y);
+    y = paragraph(answer, y);
   });
 
   y = sectionTitle("Teamwork and Responsibility", y + 2);
@@ -342,10 +430,22 @@ function downloadPdf() {
     doc.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 7, { align: "right" });
   }
 
-  doc.save("data-detectives-report.pdf");
+  const safeGroupName = submissionDetails.group.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  doc.save(`data-detectives-${safeGroupName || "group"}.pdf`);
   showMessage("Your PDF was downloaded.", "success");
 }
 
+function getLocalDateValue() {
+  const now = new Date();
+  const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+  return localDate.toISOString().slice(0, 10);
+}
+function formatActivityDate(value) {
+  const [year, month, day] = value.split("-").map(Number);
+  if (!year || !month || !day) return value || "Not provided";
+  return new Date(year, month - 1, day).toLocaleDateString();
+}
 function rowIndexKey(index) { return String(index); }
 function labelFor(key) { return { student: "Student", time: "Study Time", subject: "Favorite Subject" }[key]; }
 function escapeHtml(value) { return String(value).replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;"); }
@@ -362,5 +462,9 @@ renderLog();
 document.querySelector("#startPracticeBtn").addEventListener("click", startPractice);
 document.querySelector("#reviewBasicsBtn").addEventListener("click", reviewBasics);
 document.querySelector("#checkBtn").addEventListener("click", checkWork);
-document.querySelector("#downloadPdfBtn").addEventListener("click", downloadPdf);
+document.querySelector("#downloadPdfBtn").addEventListener("click", openGroupDialog);
 document.querySelector("#resetBtn").addEventListener("click", resetActivity);
+document.querySelector("#memberCount").addEventListener("input", () => renderMemberFields());
+document.querySelector("#closeGroupDialogBtn").addEventListener("click", closeGroupDialog);
+document.querySelector("#cancelGroupDialogBtn").addEventListener("click", closeGroupDialog);
+groupForm.addEventListener("submit", submitGroupDetails);

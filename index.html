@@ -165,11 +165,46 @@
         <button id="checkBtn" type="button">Check our work</button>
         <button id="downloadPdfBtn" class="secondary" type="button">Download PDF</button>
       </div>
-      <p class="hint export-hint">The PDF includes your current cleaned dataset, change log, answers, checklist, and reflection.</p>
+      <p class="hint export-hint">Add your group details when you download. The PDF includes the member names, cleaned dataset, change log, answers, checklist, and reflection.</p>
       <div id="result" class="result" aria-live="polite"></div>
     </section>
     </div>
   </main>
+
+  <dialog id="groupDialog" class="group-dialog" aria-labelledby="groupDialogTitle">
+    <form id="groupForm">
+      <div class="dialog-heading">
+        <div>
+          <p class="step">PDF details</p>
+          <h2 id="groupDialogTitle">Who completed this activity?</h2>
+        </div>
+        <button id="closeGroupDialogBtn" class="icon-button" type="button" aria-label="Close group details">×</button>
+      </div>
+      <p class="hint">Add the information that should appear at the top of the downloaded report.</p>
+
+      <div class="group-details-grid">
+        <label>Group or class
+          <input id="groupName" type="text" maxlength="60" placeholder="Example: 6A · Group 2" required />
+        </label>
+        <label>Activity date
+          <input id="activityDate" type="date" required />
+        </label>
+        <label>Number of members
+          <input id="memberCount" type="number" min="1" max="8" value="2" required />
+        </label>
+      </div>
+
+      <fieldset class="member-fieldset">
+        <legend>Member names</legend>
+        <div id="memberFields" class="member-fields"></div>
+      </fieldset>
+
+      <div class="dialog-actions">
+        <button id="cancelGroupDialogBtn" class="secondary" type="button">Cancel</button>
+        <button type="submit">Download PDF</button>
+      </div>
+    </form>
+  </dialog>
 
   <footer><div class="wrap">Data Detectives · Practice before the graded checklist</div></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
