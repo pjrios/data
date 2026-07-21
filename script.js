@@ -19,6 +19,7 @@ let rows = structuredClone(originalRows);
 let changes = [];
 let selectedIssues = {};
 let introComplete = false;
+let currentView = "learn";
 let submissionDetails = { group: "", date: getLocalDateValue(), members: ["", ""] };
 
 const tbody = document.querySelector("#dataTable tbody");
@@ -105,24 +106,43 @@ function restoreState() {
 }
 
 function renderActivityView() {
-  learnSection.hidden = false;
-  practiceSection.hidden = !introComplete;
-  document.querySelector("#startPracticeBtn").textContent = introComplete ? "Return to Practice" : "Start Practice";
+  const showPractice = currentView === "practice" && introComplete;
+  learnSection.hidden = showPractice;
+  practiceSection.hidden = !showPractice;
+  document.querySelector("#startPracticeBtn").textContent = introComplete ? "Return to Part 2" : "Start Practice";
+}
+
+function activityUrl(view) {
+  const baseUrl = `${window.location.pathname}${window.location.search}`;
+  return view === "practice" ? `${baseUrl}#practice` : baseUrl;
+}
+
+function showActivityView(view, historyMode = "push") {
+  currentView = view === "practice" && introComplete ? "practice" : "learn";
+  window.history[`${historyMode}State`]({ activityView: currentView }, "", activityUrl(currentView));
+  renderActivityView();
+
+  const target = currentView === "practice" ? practiceSection : learnSection;
+  const heading = currentView === "practice" ? document.querySelector("#practiceTitle") : document.querySelector("#learnTitle");
+  heading.focus({ preventScroll: true });
+  target.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function handleHistoryNavigation() {
+  currentView = window.location.hash === "#practice" && introComplete ? "practice" : "learn";
+  renderActivityView();
+  const target = currentView === "practice" ? practiceSection : learnSection;
+  target.scrollIntoView({ block: "start" });
 }
 
 function startPractice() {
   introComplete = true;
   persistState();
-  renderActivityView();
-  const practiceTitle = document.querySelector("#practiceTitle");
-  practiceTitle.focus({ preventScroll: true });
-  practiceSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  showActivityView("practice");
 }
 
 function reviewBasics() {
-  learnSection.hidden = false;
-  document.querySelector("#learnTitle").focus({ preventScroll: true });
-  learnSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  showActivityView("learn");
 }
 
 function renderMemberFields(names = []) {
@@ -293,8 +313,7 @@ function resetActivity() {
   try { localStorage.removeItem(storageKey); } catch {}
   renderLog();
   renderTable();
-  renderActivityView();
-  learnSection.scrollIntoView({ behavior: "smooth", block: "start" });
+  showActivityView("learn", "replace");
 }
 
 function downloadPdf() {
@@ -456,9 +475,12 @@ tbody.addEventListener("change", preserveDraft);
 document.querySelectorAll("[data-question], #reflection").forEach(field => field.addEventListener("input", persistState));
 document.querySelectorAll('.check-grid input[type="checkbox"]').forEach(box => box.addEventListener("change", persistState));
 restoreState();
+currentView = window.location.hash === "#practice" && introComplete ? "practice" : "learn";
+window.history.replaceState({ activityView: currentView }, "", activityUrl(currentView));
 renderActivityView();
 renderTable();
 renderLog();
+window.addEventListener("popstate", handleHistoryNavigation);
 document.querySelector("#startPracticeBtn").addEventListener("click", startPractice);
 document.querySelector("#reviewBasicsBtn").addEventListener("click", reviewBasics);
 document.querySelector("#checkBtn").addEventListener("click", checkWork);
