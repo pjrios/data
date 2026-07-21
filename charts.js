@@ -1,12 +1,20 @@
 const chartStorageKey = "chartPracticeStateV1";
-const correctMatches = { compare: "bar", trend: "line", whole: "pie", relationship: "scatter", exact: "table" };
+const correctJudgments = { barCategories: "yes", lineCategories: "no", pieTrend: "no", scatterRelationship: "yes", tableExact: "yes" };
+const judgmentExplanations = {
+  barCategories: "Yes. Bars make the four club totals easy to compare.",
+  lineCategories: "No. Favorite colors are separate categories, not points in an ordered trend. A bar chart is clearer.",
+  pieTrend: "No. A pie chart shows parts of one whole. A line chart is better for daily change across two weeks.",
+  scatterRelationship: "Yes. Each point can pair one study-hours value with one quiz-score value.",
+  tableExact: "Yes. A table makes each student’s exact score easy to find."
+};
 const sentenceKeys = ["pattern", "comparison", "outlier", "conclusion"];
 const chartColors = ["#3157d5", "#2c7f8f", "#df8a3d", "#7b61b3", "#3b9b68", "#c85367", "#6b7280", "#a66b2b"];
 
 function defaultChartState() {
   return {
-    matches: {},
-    matchesCorrect: false,
+    examplesReviewed: false,
+    judgments: {},
+    judgmentsCorrect: false,
     chartType: "bar",
     title: "Practice scores by week",
     xAxisLabel: "Week",
@@ -34,7 +42,9 @@ function loadChartState() {
     chartState = {
       ...defaults,
       ...saved,
-      matches: saved.matches && typeof saved.matches === "object" ? saved.matches : {},
+      examplesReviewed: saved.examplesReviewed === true,
+      judgments: saved.judgments && typeof saved.judgments === "object" ? saved.judgments : {},
+      judgmentsCorrect: saved.judgmentsCorrect === true,
       rows: Array.isArray(saved.rows) && saved.rows.length >= 2 && saved.rows.length <= 8 ? saved.rows : defaults.rows,
       sentences: saved.sentences && typeof saved.sentences === "object" ? { ...defaults.sentences, ...saved.sentences } : defaults.sentences
     };
@@ -49,48 +59,83 @@ function saveChartState() {
 
 function updateClassProgress() {
   const completed = [
-    chartState.matchesCorrect,
+    chartState.examplesReviewed,
+    chartState.judgmentsCorrect,
     chartState.chartCreated,
     sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10),
     Boolean(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())
   ].filter(Boolean).length;
-  document.querySelector("#classProgressBar").style.width = `${(completed / 4) * 100}%`;
-  document.querySelector("#classProgressText").textContent = `${completed} of 4 class sections complete.`;
+  document.querySelector("#classProgressBar").style.width = `${(completed / 5) * 100}%`;
+  document.querySelector("#classProgressText").textContent = `${completed} of 5 class sections complete.`;
+}
+
+function setupExamples() {
+  const action = document.querySelector(".review-examples-action");
+  const button = document.querySelector("#examplesReviewedBtn");
+  const message = document.querySelector("#examplesReviewedMessage");
+  const render = () => {
+    action.classList.toggle("reviewed", chartState.examplesReviewed);
+    button.textContent = chartState.examplesReviewed ? "Examples reviewed ✓" : "I reviewed all five examples";
+    message.textContent = chartState.examplesReviewed ? "Good. Use these examples while answering the questions below." : "";
+  };
+  button.addEventListener("click", () => {
+    chartState.examplesReviewed = true;
+    saveChartState();
+    render();
+    updateClassProgress();
+  });
+  render();
 }
 
 function setupMatching() {
-  document.querySelectorAll("[data-match]").forEach(select => {
-    select.value = chartState.matches[select.dataset.match] || "";
-    if (chartState.matchesCorrect) select.closest(".match-row").classList.add("correct");
-    select.addEventListener("change", () => {
-      chartState.matches[select.dataset.match] = select.value;
-      chartState.matchesCorrect = false;
-      select.closest(".match-row").classList.remove("correct", "incorrect");
+  document.querySelectorAll("[data-judgment]").forEach(radio => {
+    radio.checked = chartState.judgments[radio.dataset.judgment] === radio.value;
+    radio.addEventListener("change", () => {
+      chartState.judgments[radio.dataset.judgment] = radio.value;
+      chartState.judgmentsCorrect = false;
+      const card = radio.closest(".judgment-card");
+      card.classList.remove("correct", "incorrect");
+      card.querySelector(".judgment-feedback").textContent = "";
+      document.querySelector("#matchResult").textContent = "";
       saveChartState();
       updateClassProgress();
     });
   });
 
-  if (chartState.matchesCorrect) {
+  if (chartState.judgmentsCorrect) {
     const result = document.querySelector("#matchResult");
-    result.textContent = "Excellent—every chart type matches its best use.";
+    result.textContent = "Excellent—each display fits the question it is being used to answer.";
     result.className = "result success";
+    renderJudgmentFeedback();
   }
 
   document.querySelector("#checkMatchesBtn").addEventListener("click", () => {
     let score = 0;
-    document.querySelectorAll("[data-match]").forEach(select => {
-      const correct = select.value === correctMatches[select.dataset.match];
-      select.closest(".match-row").classList.toggle("correct", correct);
-      select.closest(".match-row").classList.toggle("incorrect", !correct);
+    Object.keys(correctJudgments).forEach(key => {
+      const correct = chartState.judgments[key] === correctJudgments[key];
+      const card = document.querySelector(`[data-judgment-card="${key}"]`);
+      card.classList.toggle("correct", correct);
+      card.classList.toggle("incorrect", !correct);
+      card.querySelector(".judgment-feedback").textContent = chartState.judgments[key]
+        ? judgmentExplanations[key]
+        : "Choose Yes or No, then check again.";
       if (correct) score += 1;
     });
-    chartState.matchesCorrect = score === 5;
+    chartState.judgmentsCorrect = score === 5;
     saveChartState();
     const result = document.querySelector("#matchResult");
-    result.textContent = score === 5 ? "Excellent—every chart type matches its best use." : `${score} of 5 matches are correct. Review the highlighted choices and try again.`;
+    result.textContent = score === 5 ? "Excellent—each display fits the question it is being used to answer." : `${score} of 5 choices are correct. Read each explanation, compare it with the examples, and try again.`;
     result.className = `result ${score === 5 ? "success" : "warning"}`;
     updateClassProgress();
+  });
+}
+
+function renderJudgmentFeedback() {
+  Object.keys(correctJudgments).forEach(key => {
+    const card = document.querySelector(`[data-judgment-card="${key}"]`);
+    card.classList.add("correct");
+    card.classList.remove("incorrect");
+    card.querySelector(".judgment-feedback").textContent = judgmentExplanations[key];
   });
 }
 
@@ -372,6 +417,7 @@ function formatNumber(value) { return Number.isInteger(value) ? String(value) : 
 function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 
 loadChartState();
+setupExamples();
 setupMatching();
 setupChartBuilder();
 setupSentences();

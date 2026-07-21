@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chart Lab · Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260721b" />
-  <link rel="stylesheet" href="charts.css?v=20260721b" />
+  <link rel="stylesheet" href="styles.css?v=20260721c" />
+  <link rel="stylesheet" href="charts.css?v=20260721c" />
 </head>
 <body>
   <header class="hero chart-hero">
@@ -16,7 +16,7 @@
       </nav>
       <p class="eyebrow">Extended Class · About 80–90 Minutes</p>
       <h1>Chart Lab</h1>
-      <p>Match charts with their purposes, build and revise a chart, and practice evidence-based interpretation.</p>
+      <p>Study real chart examples, decide when each display is useful, build a chart, and practice evidence-based interpretation.</p>
     </div>
   </header>
 
@@ -25,7 +25,7 @@
       <div class="section-heading">
         <div>
           <p class="step">Today’s pathway</p>
-          <h2>Match, create, explain, highlight</h2>
+          <h2>Explore, decide, create, explain, highlight</h2>
           <p class="hint">Work in order, but return to any section when you need to revise your evidence.</p>
         </div>
         <div class="timer">80–90 min</div>
@@ -33,50 +33,125 @@
       <div class="progress-track" aria-hidden="true"><div id="classProgressBar"></div></div>
       <p id="classProgressText" class="progress-text" aria-live="polite"></p>
       <nav class="activity-jumps" aria-label="Activity sections">
-        <a href="#matching">1. Match chart uses</a>
-        <a href="#builder">2. Build a chart</a>
-        <a href="#interpret">3. Interpret</a>
-        <a href="#evidence">4. Strongest evidence</a>
+        <a href="#examples">1. Explore examples</a>
+        <a href="#matching">2. Check chart uses</a>
+        <a href="#builder">3. Build a chart</a>
+        <a href="#interpret">4. Interpret</a>
+        <a href="#evidence">5. Strongest evidence</a>
       </nav>
     </section>
 
-    <section id="matching" class="card anchor-card">
-      <p class="step">Pre-activities · About 10–15 minutes</p>
-      <h2>Match chart types with their uses</h2>
-      <p class="hint">Choose the best display for each purpose. Each chart type is used once.</p>
-      <div class="matching-grid">
-        <label class="match-row">Compare values across categories
-          <select data-match="compare">
-            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
-          </select>
-        </label>
-        <label class="match-row">Show change across time
-          <select data-match="trend">
-            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
-          </select>
-        </label>
-        <label class="match-row">Show parts of one whole
-          <select data-match="whole">
-            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
-          </select>
-        </label>
-        <label class="match-row">Look for a relationship between two numerical values
-          <select data-match="relationship">
-            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
-          </select>
-        </label>
-        <label class="match-row">Find and compare exact values
-          <select data-match="exact">
-            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
-          </select>
-        </label>
+    <section id="examples" class="card anchor-card">
+      <p class="step">Pre-activities · Part 1 · About 15 minutes</p>
+      <h2>Explore five ways to display data</h2>
+      <p class="hint">Study each example. Notice its title, labels, visual shape, and the question it helps answer.</p>
+      <div class="example-grid">
+        <article class="example-card">
+          <div class="example-heading"><span class="chart-number">1</span><h3>Bar chart</h3></div>
+          <svg class="example-svg" viewBox="0 0 260 165" role="img" aria-label="Bar chart comparing books read by four groups">
+            <text x="130" y="18" text-anchor="middle" class="example-title">Books read by group</text>
+            <line x1="38" y1="32" x2="38" y2="132"/><line x1="38" y1="132" x2="244" y2="132"/>
+            <rect x="54" y="82" width="34" height="50"/><rect x="101" y="52" width="34" height="80"/><rect x="148" y="67" width="34" height="65"/><rect x="195" y="37" width="34" height="95"/>
+            <text x="71" y="148" text-anchor="middle">A</text><text x="118" y="148" text-anchor="middle">B</text><text x="165" y="148" text-anchor="middle">C</text><text x="212" y="148" text-anchor="middle">D</text>
+          </svg>
+          <p><strong>Use it to:</strong> compare amounts across separate categories.</p>
+          <p class="example-question"><strong>It answers:</strong> Which group read the most books?</p>
+        </article>
+
+        <article class="example-card">
+          <div class="example-heading"><span class="chart-number">2</span><h3>Line chart</h3></div>
+          <svg class="example-svg" viewBox="0 0 260 165" role="img" aria-label="Line chart showing temperature changing from Monday through Friday">
+            <text x="130" y="18" text-anchor="middle" class="example-title">Temperature by day</text>
+            <line x1="38" y1="32" x2="38" y2="132"/><line x1="38" y1="132" x2="244" y2="132"/>
+            <polyline points="50,110 96,84 142,92 188,55 232,42"/>
+            <circle cx="50" cy="110" r="5"/><circle cx="96" cy="84" r="5"/><circle cx="142" cy="92" r="5"/><circle cx="188" cy="55" r="5"/><circle cx="232" cy="42" r="5"/>
+            <text x="50" y="148" text-anchor="middle">M</text><text x="96" y="148" text-anchor="middle">T</text><text x="142" y="148" text-anchor="middle">W</text><text x="188" y="148" text-anchor="middle">Th</text><text x="232" y="148" text-anchor="middle">F</text>
+          </svg>
+          <p><strong>Use it to:</strong> show change or a trend in an ordered sequence, often time.</p>
+          <p class="example-question"><strong>It answers:</strong> How did temperature change during the week?</p>
+        </article>
+
+        <article class="example-card">
+          <div class="example-heading"><span class="chart-number">3</span><h3>Pie chart</h3></div>
+          <div class="example-pie-wrap" role="img" aria-label="Pie chart showing how class time is divided into practice, discussion, and reflection">
+            <p class="example-title">How class time is used</p>
+            <div class="example-pie"></div>
+            <div class="example-legend"><span><i class="practice-key"></i>Practice 50%</span><span><i class="discussion-key"></i>Discussion 30%</span><span><i class="reflection-key"></i>Reflection 20%</span></div>
+          </div>
+          <p><strong>Use it to:</strong> show how one whole is divided into a few parts.</p>
+          <p class="example-question"><strong>It answers:</strong> What share of class time is practice?</p>
+        </article>
+
+        <article class="example-card">
+          <div class="example-heading"><span class="chart-number">4</span><h3>Scatter plot</h3></div>
+          <svg class="example-svg" viewBox="0 0 260 165" role="img" aria-label="Scatter plot comparing study time and quiz score">
+            <text x="130" y="18" text-anchor="middle" class="example-title">Study time and quiz score</text>
+            <line x1="38" y1="32" x2="38" y2="132"/><line x1="38" y1="132" x2="244" y2="132"/>
+            <circle cx="58" cy="118" r="6"/><circle cx="83" cy="104" r="6"/><circle cx="111" cy="109" r="6"/><circle cx="137" cy="80" r="6"/><circle cx="173" cy="69" r="6"/><circle cx="201" cy="48" r="6"/><circle cx="226" cy="41" r="6"/>
+            <text x="142" y="153" text-anchor="middle">Study hours</text><text x="12" y="82" text-anchor="middle" transform="rotate(-90 12 82)">Score</text>
+          </svg>
+          <p><strong>Use it to:</strong> look for a relationship between two numerical variables.</p>
+          <p class="example-question"><strong>It answers:</strong> Do scores tend to rise as study time rises?</p>
+        </article>
+
+        <article class="example-card">
+          <div class="example-heading"><span class="chart-number">5</span><h3>Table</h3></div>
+          <div class="example-table-wrap">
+            <table class="example-table"><caption>Quiz results</caption><thead><tr><th>Student</th><th>Score</th></tr></thead><tbody><tr><td>Ana</td><td>88</td></tr><tr><td>Leo</td><td>92</td></tr><tr><td>Mia</td><td>85</td></tr></tbody></table>
+          </div>
+          <p><strong>Use it to:</strong> organize information and find exact values.</p>
+          <p class="example-question"><strong>It answers:</strong> What exact score did Leo receive?</p>
+        </article>
       </div>
-      <button id="checkMatchesBtn" type="button">Check matches</button>
+      <div class="review-examples-action">
+        <p>Compare all five examples before continuing.</p>
+        <button id="examplesReviewedBtn" type="button">I reviewed all five examples</button>
+        <p id="examplesReviewedMessage" class="mini-progress" aria-live="polite"></p>
+      </div>
+    </section>
+
+    <section id="matching" class="card anchor-card">
+      <p class="step">Pre-activities · Part 2 · About 10 minutes</p>
+      <h2>Is this the correct use?</h2>
+      <p class="hint">Use the examples above. Decide whether each display is a good choice for the question.</p>
+      <div class="judgment-grid">
+        <fieldset class="judgment-card" data-judgment-card="barCategories">
+          <legend><span class="chart-chip">Bar chart</span> We want to compare the number of students in four clubs. Is a bar chart a good choice?</legend>
+          <label><input type="radio" name="barCategories" value="yes" data-judgment="barCategories"> Yes</label>
+          <label><input type="radio" name="barCategories" value="no" data-judgment="barCategories"> No</label>
+          <p class="judgment-feedback" aria-live="polite"></p>
+        </fieldset>
+        <fieldset class="judgment-card" data-judgment-card="lineCategories">
+          <legend><span class="chart-chip">Line chart</span> We want to compare favorite colors, which have no time order. Is a line chart the best choice?</legend>
+          <label><input type="radio" name="lineCategories" value="yes" data-judgment="lineCategories"> Yes</label>
+          <label><input type="radio" name="lineCategories" value="no" data-judgment="lineCategories"> No</label>
+          <p class="judgment-feedback" aria-live="polite"></p>
+        </fieldset>
+        <fieldset class="judgment-card" data-judgment-card="pieTrend">
+          <legend><span class="chart-chip">Pie chart</span> We want to show how temperature changes each day for two weeks. Is a pie chart a good choice?</legend>
+          <label><input type="radio" name="pieTrend" value="yes" data-judgment="pieTrend"> Yes</label>
+          <label><input type="radio" name="pieTrend" value="no" data-judgment="pieTrend"> No</label>
+          <p class="judgment-feedback" aria-live="polite"></p>
+        </fieldset>
+        <fieldset class="judgment-card" data-judgment-card="scatterRelationship">
+          <legend><span class="chart-chip">Scatter plot</span> We want to see whether study hours and quiz scores are related. Is a scatter plot a good choice?</legend>
+          <label><input type="radio" name="scatterRelationship" value="yes" data-judgment="scatterRelationship"> Yes</label>
+          <label><input type="radio" name="scatterRelationship" value="no" data-judgment="scatterRelationship"> No</label>
+          <p class="judgment-feedback" aria-live="polite"></p>
+        </fieldset>
+        <fieldset class="judgment-card" data-judgment-card="tableExact">
+          <legend><span class="chart-chip">Table</span> We need to find each student’s exact score. Is a table a good choice?</legend>
+          <label><input type="radio" name="tableExact" value="yes" data-judgment="tableExact"> Yes</label>
+          <label><input type="radio" name="tableExact" value="no" data-judgment="tableExact"> No</label>
+          <p class="judgment-feedback" aria-live="polite"></p>
+        </fieldset>
+      </div>
+      <button id="checkMatchesBtn" type="button">Check my choices</button>
       <div id="matchResult" class="result" aria-live="polite"></div>
     </section>
 
     <section id="builder" class="card anchor-card">
-      <p class="step">While activities · Part 1 · About 40–45 minutes</p>
+      <p class="step">While activities · Part 1 · About 30–35 minutes</p>
       <h2>Create a practice chart</h2>
       <p class="hint">Choose a chart type, edit the sample data, add clear labels, and generate the display. Revise it until the chart communicates the data accurately.</p>
 
@@ -121,7 +196,7 @@
     </section>
 
     <section id="interpret" class="card anchor-card">
-      <p class="step">While activities · Part 2 · About 20 minutes</p>
+      <p class="step">While activities · Part 2 · About 15–20 minutes</p>
       <h2>Draft interpretation sentences</h2>
       <p class="hint">Use specific labels or values from your chart. Write one complete evidence sentence for each purpose.</p>
       <div class="interpretation-grid">
@@ -159,6 +234,6 @@
   </main>
 
   <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
-  <script src="charts.js?v=20260721b"></script>
+  <script src="charts.js?v=20260721c"></script>
 </body>
 </html>
