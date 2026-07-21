@@ -1,4 +1,15 @@
 const chartStorageKey = "chartPracticeStateV1";
+const lessonSteps = [
+  { id: "video", name: "Watch the video" },
+  { id: "examples", name: "Explore chart examples" },
+  { id: "identify", name: "Identify chart types" },
+  { id: "matching", name: "Choose the correct use" },
+  { id: "builder", name: "Build a chart" },
+  { id: "interpret", name: "Interpret the chart" },
+  { id: "evidence", name: "Highlight strong evidence" }
+];
+const correctIdentifications = { bars: "bar", line: "line", pie: "pie", scatter: "scatter", table: "table" };
+const identificationNames = { bar: "bar chart", line: "line chart", pie: "pie chart", scatter: "scatter plot", table: "table" };
 const correctJudgments = { barCategories: "yes", lineCategories: "no", pieTrend: "no", scatterRelationship: "yes", tableExact: "yes" };
 const judgmentExplanations = {
   barCategories: "Yes. Bars make the four club totals easy to compare.",
@@ -12,9 +23,14 @@ const chartColors = ["#3157d5", "#2c7f8f", "#df8a3d", "#7b61b3", "#3b9b68", "#c8
 
 function defaultChartState() {
   return {
+    videoWatched: false,
     examplesReviewed: false,
+    identifications: {},
+    identificationsCorrect: false,
     judgments: {},
     judgmentsCorrect: false,
+    currentStep: "video",
+    lessonFinished: false,
     chartType: "bar",
     title: "Practice scores by week",
     xAxisLabel: "Week",
@@ -42,9 +58,14 @@ function loadChartState() {
     chartState = {
       ...defaults,
       ...saved,
+      videoWatched: saved.videoWatched === true,
       examplesReviewed: saved.examplesReviewed === true,
+      identifications: saved.identifications && typeof saved.identifications === "object" ? saved.identifications : {},
+      identificationsCorrect: saved.identificationsCorrect === true,
       judgments: saved.judgments && typeof saved.judgments === "object" ? saved.judgments : {},
       judgmentsCorrect: saved.judgmentsCorrect === true,
+      currentStep: lessonSteps.some(step => step.id === saved.currentStep) ? saved.currentStep : "video",
+      lessonFinished: saved.lessonFinished === true,
       rows: Array.isArray(saved.rows) && saved.rows.length >= 2 && saved.rows.length <= 8 ? saved.rows : defaults.rows,
       sentences: saved.sentences && typeof saved.sentences === "object" ? { ...defaults.sentences, ...saved.sentences } : defaults.sentences
     };
@@ -59,32 +80,68 @@ function saveChartState() {
 
 function updateClassProgress() {
   const completed = [
+    chartState.videoWatched,
     chartState.examplesReviewed,
+    chartState.identificationsCorrect,
     chartState.judgmentsCorrect,
     chartState.chartCreated,
     sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10),
     Boolean(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())
   ].filter(Boolean).length;
-  document.querySelector("#classProgressBar").style.width = `${(completed / 5) * 100}%`;
-  document.querySelector("#classProgressText").textContent = `${completed} of 5 class sections complete.`;
+  document.querySelector("#classProgressBar").style.width = `${(completed / 7) * 100}%`;
+  document.querySelector("#classProgressText").textContent = `${completed} of 7 steps complete.`;
 }
 
-function setupExamples() {
-  const action = document.querySelector(".review-examples-action");
-  const button = document.querySelector("#examplesReviewedBtn");
-  const message = document.querySelector("#examplesReviewedMessage");
-  const render = () => {
-    action.classList.toggle("reviewed", chartState.examplesReviewed);
-    button.textContent = chartState.examplesReviewed ? "Examples reviewed ✓" : "I reviewed all five examples";
-    message.textContent = chartState.examplesReviewed ? "Good. Use these examples while answering the questions below." : "";
-  };
-  button.addEventListener("click", () => {
-    chartState.examplesReviewed = true;
-    saveChartState();
-    render();
-    updateClassProgress();
+function setupIdentification() {
+  document.querySelectorAll("[data-identification]").forEach(select => {
+    select.value = chartState.identifications[select.dataset.identification] || "";
+    select.addEventListener("change", () => {
+      chartState.identifications[select.dataset.identification] = select.value;
+      chartState.identificationsCorrect = false;
+      const card = select.closest(".identify-card");
+      card.classList.remove("correct", "incorrect");
+      card.querySelector(".identify-feedback").textContent = "";
+      document.querySelector("#identifyResult").textContent = "";
+      saveChartState();
+      updateClassProgress();
+    });
   });
-  render();
+  if (chartState.identificationsCorrect) renderIdentificationFeedback();
+}
+
+function checkIdentifications() {
+  let score = 0;
+  Object.keys(correctIdentifications).forEach(key => {
+    const correct = chartState.identifications[key] === correctIdentifications[key];
+    const card = document.querySelector(`[data-identify-card="${key}"]`);
+    card.classList.toggle("correct", correct);
+    card.classList.toggle("incorrect", !correct);
+    card.querySelector(".identify-feedback").textContent = !chartState.identifications[key]
+      ? "Choose a chart type."
+      : correct
+        ? `Correct: ${identificationNames[correctIdentifications[key]]}.`
+        : `Look at the shape again. This is a ${identificationNames[correctIdentifications[key]]}.`;
+    if (correct) score += 1;
+  });
+  chartState.identificationsCorrect = score === 5;
+  saveChartState();
+  const result = document.querySelector("#identifyResult");
+  result.textContent = score === 5 ? "Excellent—you recognized all five displays." : `${score} of 5 are correct. Review the highlighted displays and try again.`;
+  result.className = `result ${score === 5 ? "success" : "warning"}`;
+  updateClassProgress();
+  return chartState.identificationsCorrect;
+}
+
+function renderIdentificationFeedback() {
+  Object.keys(correctIdentifications).forEach(key => {
+    const card = document.querySelector(`[data-identify-card="${key}"]`);
+    card.classList.add("correct");
+    card.classList.remove("incorrect");
+    card.querySelector(".identify-feedback").textContent = `Correct: ${identificationNames[correctIdentifications[key]]}.`;
+  });
+  const result = document.querySelector("#identifyResult");
+  result.textContent = "Excellent—you recognized all five displays.";
+  result.className = "result success";
 }
 
 function setupMatching() {
@@ -109,25 +166,27 @@ function setupMatching() {
     renderJudgmentFeedback();
   }
 
-  document.querySelector("#checkMatchesBtn").addEventListener("click", () => {
-    let score = 0;
-    Object.keys(correctJudgments).forEach(key => {
-      const correct = chartState.judgments[key] === correctJudgments[key];
-      const card = document.querySelector(`[data-judgment-card="${key}"]`);
-      card.classList.toggle("correct", correct);
-      card.classList.toggle("incorrect", !correct);
-      card.querySelector(".judgment-feedback").textContent = chartState.judgments[key]
-        ? judgmentExplanations[key]
-        : "Choose Yes or No, then check again.";
-      if (correct) score += 1;
-    });
-    chartState.judgmentsCorrect = score === 5;
-    saveChartState();
-    const result = document.querySelector("#matchResult");
-    result.textContent = score === 5 ? "Excellent—each display fits the question it is being used to answer." : `${score} of 5 choices are correct. Read each explanation, compare it with the examples, and try again.`;
-    result.className = `result ${score === 5 ? "success" : "warning"}`;
-    updateClassProgress();
+}
+
+function checkJudgments() {
+  let score = 0;
+  Object.keys(correctJudgments).forEach(key => {
+    const correct = chartState.judgments[key] === correctJudgments[key];
+    const card = document.querySelector(`[data-judgment-card="${key}"]`);
+    card.classList.toggle("correct", correct);
+    card.classList.toggle("incorrect", !correct);
+    card.querySelector(".judgment-feedback").textContent = chartState.judgments[key]
+      ? judgmentExplanations[key]
+      : "Choose Yes or No, then continue again.";
+    if (correct) score += 1;
   });
+  chartState.judgmentsCorrect = score === 5;
+  saveChartState();
+  const result = document.querySelector("#matchResult");
+  result.textContent = score === 5 ? "Excellent—each display fits the question it is being used to answer." : `${score} of 5 choices are correct. Read each explanation, compare it with the examples, and try again.`;
+  result.className = `result ${score === 5 ? "success" : "warning"}`;
+  updateClassProgress();
+  return chartState.judgmentsCorrect;
 }
 
 function renderJudgmentFeedback() {
@@ -393,9 +452,103 @@ function renderStrongestEvidence() {
   output.innerHTML = sentence ? `<p><strong>Strongest evidence:</strong><br><mark>${escapeHtml(sentence)}</mark></p>` : "<p>Choose your strongest sentence to highlight it here.</p>";
 }
 
+function setupLessonNavigation() {
+  const previousButton = document.querySelector("#previousStepBtn");
+  const nextButton = document.querySelector("#nextStepBtn");
+  previousButton.addEventListener("click", () => {
+    const currentIndex = lessonSteps.findIndex(step => step.id === chartState.currentStep);
+    if (currentIndex > 0) showLessonStep(currentIndex - 1, "push");
+  });
+  nextButton.addEventListener("click", () => {
+    const currentIndex = lessonSteps.findIndex(step => step.id === chartState.currentStep);
+    if (!validateLessonStep(lessonSteps[currentIndex].id)) return;
+    if (currentIndex < lessonSteps.length - 1) {
+      showLessonStep(currentIndex + 1, "push");
+    } else {
+      chartState.lessonFinished = true;
+      saveChartState();
+      updateLessonNavigation(currentIndex);
+      document.querySelector("#navigationMessage").textContent = "Chart Lab complete—your work is saved in this browser.";
+    }
+  });
+
+  window.addEventListener("popstate", () => {
+    const hashIndex = lessonSteps.findIndex(step => `#${step.id}` === window.location.hash);
+    showLessonStep(hashIndex >= 0 ? hashIndex : 0, "none");
+  });
+
+  const hashIndex = lessonSteps.findIndex(step => `#${step.id}` === window.location.hash);
+  const savedIndex = lessonSteps.findIndex(step => step.id === chartState.currentStep);
+  showLessonStep(hashIndex >= 0 ? hashIndex : Math.max(savedIndex, 0), "replace", false);
+}
+
+function validateLessonStep(stepId) {
+  const message = document.querySelector("#navigationMessage");
+  message.textContent = "";
+  if (stepId === "video") chartState.videoWatched = true;
+  if (stepId === "examples") chartState.examplesReviewed = true;
+  if (stepId === "identify" && !checkIdentifications()) {
+    message.textContent = "Review the highlighted displays before continuing.";
+    return false;
+  }
+  if (stepId === "matching" && !checkJudgments()) {
+    message.textContent = "Read the explanations and correct your choices before continuing.";
+    return false;
+  }
+  if (stepId === "builder" && !chartState.chartCreated) {
+    showChartMessage("Create the chart and check its title, labels, and values before continuing.", "warning");
+    message.textContent = "Create or update your chart first.";
+    return false;
+  }
+  if (stepId === "interpret" && !sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10)) {
+    message.textContent = "Write all four evidence sentences before continuing.";
+    return false;
+  }
+  if (stepId === "evidence" && !(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())) {
+    message.textContent = "Select your strongest evidence sentence before finishing.";
+    return false;
+  }
+  saveChartState();
+  updateClassProgress();
+  return true;
+}
+
+function showLessonStep(index, historyMode = "push", scroll = true) {
+  const safeIndex = Math.max(0, Math.min(index, lessonSteps.length - 1));
+  const active = lessonSteps[safeIndex];
+  document.querySelectorAll("[data-lesson-step]").forEach(section => {
+    section.hidden = section.dataset.lessonStep !== active.id;
+  });
+  chartState.currentStep = active.id;
+  saveChartState();
+  document.querySelector("#stepCount").textContent = `Step ${safeIndex + 1} of ${lessonSteps.length}`;
+  document.querySelector("#stepName").textContent = active.name;
+  document.querySelector("#navigationMessage").textContent = "Your work saves automatically.";
+  updateLessonNavigation(safeIndex);
+  const nextUrl = `${window.location.pathname}#${active.id}`;
+  if (historyMode === "push") window.history.pushState({ chartStep: active.id }, "", nextUrl);
+  if (historyMode === "replace") window.history.replaceState({ chartStep: active.id }, "", nextUrl);
+  if (scroll) document.querySelector(".chart-main").scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function updateLessonNavigation(index) {
+  const previousButton = document.querySelector("#previousStepBtn");
+  const nextButton = document.querySelector("#nextStepBtn");
+  const nextNames = ["Explore examples", "Identify chart types", "Answer use questions", "Build a chart", "Interpret the chart", "Choose strongest evidence"];
+  previousButton.disabled = index === 0;
+  if (index === lessonSteps.length - 1) {
+    nextButton.textContent = chartState.lessonFinished ? "Activity complete ✓" : "Finish activity ✓";
+    nextButton.disabled = chartState.lessonFinished;
+  } else {
+    nextButton.textContent = `Next: ${nextNames[index]} →`;
+    nextButton.disabled = false;
+  }
+}
+
 function resetChartActivity() {
   chartState = defaultChartState();
   try { localStorage.removeItem(chartStorageKey); } catch {}
+  window.history.replaceState(null, "", window.location.pathname);
   window.location.reload();
 }
 
@@ -417,9 +570,10 @@ function formatNumber(value) { return Number.isInteger(value) ? String(value) : 
 function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 
 loadChartState();
-setupExamples();
+setupIdentification();
 setupMatching();
 setupChartBuilder();
 setupSentences();
 updateClassProgress();
+setupLessonNavigation();
 document.querySelector("#resetChartActivityBtn").addEventListener("click", resetChartActivity);
