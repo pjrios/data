@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Chart Lab · Data Detectives</title>
+  <link rel="stylesheet" href="styles.css?v=20260721" />
+  <link rel="stylesheet" href="charts.css?v=20260721" />
+</head>
+<body>
+  <header class="hero chart-hero">
+    <div class="wrap">
+      <nav class="site-nav" aria-label="Class activities">
+        <a href="index.html">Data Cleaning</a>
+        <a class="active" href="charts.html" aria-current="page">Chart Practice</a>
+      </nav>
+      <p class="eyebrow">Extended Class · About 80–90 Minutes</p>
+      <h1>Chart Lab</h1>
+      <p>Review chart vocabulary, match charts with their purposes, build a chart, and practice evidence-based interpretation.</p>
+    </div>
+  </header>
+
+  <main class="wrap chart-main">
+    <section class="card chart-overview">
+      <div class="section-heading">
+        <div>
+          <p class="step">Today’s pathway</p>
+          <h2>Finish, review, create, explain</h2>
+          <p class="hint">Work in order, but return to any section when you need to revise your evidence.</p>
+        </div>
+        <div class="timer">80–90 min</div>
+      </div>
+      <div class="progress-track" aria-hidden="true"><div id="classProgressBar"></div></div>
+      <p id="classProgressText" class="progress-text" aria-live="polite"></p>
+      <nav class="activity-jumps" aria-label="Activity sections">
+        <a href="#finish">1. Finish previous work</a>
+        <a href="#vocabulary">2. Vocabulary</a>
+        <a href="#matching">3. Match chart uses</a>
+        <a href="#builder">4. Build a chart</a>
+        <a href="#interpret">5. Interpret</a>
+        <a href="#evidence">6. Strongest evidence</a>
+      </nav>
+    </section>
+
+    <section id="finish" class="card anchor-card">
+      <div class="section-heading">
+        <div>
+          <p class="step">Opening · 10–15 minutes</p>
+          <h2>Finish the previous class</h2>
+          <p class="hint">Complete any unfinished data-cleaning corrections, answers, reflection, or PDF download first.</p>
+        </div>
+        <a class="button-link secondary-link" href="index.html#practice">Open Data Cleaning</a>
+      </div>
+      <div id="previousStatus" class="previous-status" aria-live="polite"></div>
+      <button id="refreshPreviousBtn" class="secondary" type="button">Refresh previous-class status</button>
+    </section>
+
+    <section id="vocabulary" class="card anchor-card">
+      <p class="step">Pre-activities · Part 1 · About 7 minutes</p>
+      <h2>Review Week 7 vocabulary</h2>
+      <p class="hint">Predict each meaning, then reveal the definition. Review all six terms before matching.</p>
+      <div class="vocab-grid">
+        <article class="vocab-card">
+          <button type="button" data-vocab="chart" aria-expanded="false">chart <span>Reveal</span></button>
+          <p hidden>A visual way to show data.</p>
+        </article>
+        <article class="vocab-card">
+          <button type="button" data-vocab="bar" aria-expanded="false">bar chart <span>Reveal</span></button>
+          <p hidden>A chart that compares values using bars.</p>
+        </article>
+        <article class="vocab-card">
+          <button type="button" data-vocab="line" aria-expanded="false">line chart <span>Reveal</span></button>
+          <p hidden>A chart that shows change or trends, often over time.</p>
+        </article>
+        <article class="vocab-card">
+          <button type="button" data-vocab="scatter" aria-expanded="false">scatter plot <span>Reveal</span></button>
+          <p hidden>A chart that uses points to show the relationship between two numerical values.</p>
+        </article>
+        <article class="vocab-card">
+          <button type="button" data-vocab="pie" aria-expanded="false">pie chart <span>Reveal</span></button>
+          <p hidden>A chart that shows how a whole is divided into parts.</p>
+        </article>
+        <article class="vocab-card">
+          <button type="button" data-vocab="table" aria-expanded="false">table <span>Reveal</span></button>
+          <p hidden>An organized display that makes exact values easy to find in rows and columns.</p>
+        </article>
+      </div>
+      <p id="vocabProgress" class="mini-progress" aria-live="polite"></p>
+    </section>
+
+    <section id="matching" class="card anchor-card">
+      <p class="step">Pre-activities · Part 2 · About 8–10 minutes</p>
+      <h2>Match chart types with their uses</h2>
+      <p class="hint">Choose the best display for each purpose. Each chart type is used once.</p>
+      <div class="matching-grid">
+        <label class="match-row">Compare values across categories
+          <select data-match="compare">
+            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
+          </select>
+        </label>
+        <label class="match-row">Show change across time
+          <select data-match="trend">
+            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
+          </select>
+        </label>
+        <label class="match-row">Show parts of one whole
+          <select data-match="whole">
+            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
+          </select>
+        </label>
+        <label class="match-row">Look for a relationship between two numerical values
+          <select data-match="relationship">
+            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
+          </select>
+        </label>
+        <label class="match-row">Find and compare exact values
+          <select data-match="exact">
+            <option value="">Choose a chart</option><option value="bar">Bar chart</option><option value="line">Line chart</option><option value="pie">Pie chart</option><option value="scatter">Scatter plot</option><option value="table">Table</option>
+          </select>
+        </label>
+      </div>
+      <button id="checkMatchesBtn" type="button">Check matches</button>
+      <div id="matchResult" class="result" aria-live="polite"></div>
+    </section>
+
+    <section id="builder" class="card anchor-card">
+      <p class="step">While activities · Part 1 · About 25–30 minutes</p>
+      <h2>Create a practice chart</h2>
+      <p class="hint">Choose a chart type, edit the sample data, add clear labels, and generate the display. Revise it until the chart communicates the data accurately.</p>
+
+      <div class="builder-controls">
+        <label>Chart title
+          <input id="chartTitle" type="text" maxlength="80" placeholder="Example: Practice scores by week" />
+        </label>
+        <label>Chart type
+          <select id="chartType">
+            <option value="bar">Bar chart</option>
+            <option value="line">Line chart</option>
+            <option value="pie">Pie chart</option>
+            <option value="scatter">Scatter plot</option>
+            <option value="table">Table</option>
+          </select>
+        </label>
+        <label>X-axis or category label
+          <input id="xAxisLabel" type="text" maxlength="50" value="Week" />
+        </label>
+        <label>Y-axis or value label
+          <input id="yAxisLabel" type="text" maxlength="50" value="Practice score" />
+        </label>
+      </div>
+
+      <div class="chart-tip" id="chartTypeTip" aria-live="polite"></div>
+      <div class="table-scroll data-editor-scroll">
+        <table class="data-editor">
+          <thead><tr><th>Label</th><th class="x-value-column">X value</th><th>Value / Y</th><th>Action</th></tr></thead>
+          <tbody id="chartDataBody"></tbody>
+        </table>
+      </div>
+      <div class="action-row chart-actions">
+        <button id="addDataRowBtn" class="secondary" type="button">Add data row</button>
+        <button id="createChartBtn" type="button">Create or update chart</button>
+      </div>
+      <div id="chartMessage" class="result" aria-live="polite"></div>
+      <section class="chart-preview-card" aria-labelledby="previewTitle">
+        <h3 id="previewTitle">Chart preview</h3>
+        <div id="chartPreview" class="chart-preview"><p class="empty-preview">Your chart will appear here.</p></div>
+        <p id="chartSummary" class="sr-only" aria-live="polite"></p>
+      </section>
+    </section>
+
+    <section id="interpret" class="card anchor-card">
+      <p class="step">While activities · Part 2 · About 15–20 minutes</p>
+      <h2>Draft interpretation sentences</h2>
+      <p class="hint">Use specific labels or values from your chart. Write one complete evidence sentence for each purpose.</p>
+      <div class="interpretation-grid">
+        <label><span>Pattern</span><small>Describe an overall pattern or trend.</small>
+          <textarea data-sentence="pattern" rows="3" placeholder="The overall pattern shows..."></textarea>
+        </label>
+        <label><span>Comparison</span><small>Compare two labels, groups, or values.</small>
+          <textarea data-sentence="comparison" rows="3" placeholder="Compared with..., ..."></textarea>
+        </label>
+        <label><span>Outlier or limitation</span><small>Identify something unusual or something the chart cannot prove.</small>
+          <textarea data-sentence="outlier" rows="3" placeholder="One unusual value or limitation is..."></textarea>
+        </label>
+        <label><span>Conclusion</span><small>State a careful conclusion supported by the chart.</small>
+          <textarea data-sentence="conclusion" rows="3" placeholder="Overall, the data suggests..."></textarea>
+        </label>
+      </div>
+      <p id="sentenceProgress" class="mini-progress" aria-live="polite"></p>
+    </section>
+
+    <section id="evidence" class="card anchor-card">
+      <p class="step">Post activities · About 10 minutes</p>
+      <h2>Highlight the strongest practice evidence</h2>
+      <p class="hint">Choose the sentence that uses the clearest and most accurate evidence from your chart.</p>
+      <fieldset class="evidence-choices">
+        <legend>Select one sentence</legend>
+        <div id="evidenceChoices"></div>
+      </fieldset>
+      <div id="strongestEvidence" class="strongest-evidence" aria-live="polite">
+        <p>Choose your strongest sentence to highlight it here.</p>
+      </div>
+      <div class="lesson-rule rules"><strong>Final check:</strong> Your strongest sentence should name evidence, avoid guessing, and match what the chart actually shows.</div>
+      <button id="resetChartActivityBtn" class="secondary reset-chart" type="button">Reset chart activity</button>
+      <p class="hint save-note">This page saves your work automatically in this browser.</p>
+    </section>
+  </main>
+
+  <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
+  <script src="charts.js?v=20260721"></script>
+</body>
+</html>

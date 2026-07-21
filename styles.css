@@ -23,6 +23,9 @@ body {
 }
 
 .wrap { width: min(1100px, calc(100% - 32px)); margin: 0 auto; }
+.site-nav { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 26px; }
+.site-nav a { padding: 8px 12px; border: 1px solid rgba(255, 255, 255, .45); border-radius: 999px; color: white; text-decoration: none; font-weight: 750; font-size: .9rem; }
+.site-nav a:hover, .site-nav a.active { background: white; color: var(--primary-dark); }
 
 .hero {
   background: linear-gradient(135deg, #203b9f, #5376eb);
