@@ -1,12 +1,10 @@
 const chartStorageKey = "chartPracticeStateV1";
-const vocabularyTerms = ["chart", "bar", "line", "scatter", "pie", "table"];
 const correctMatches = { compare: "bar", trend: "line", whole: "pie", relationship: "scatter", exact: "table" };
 const sentenceKeys = ["pattern", "comparison", "outlier", "conclusion"];
 const chartColors = ["#3157d5", "#2c7f8f", "#df8a3d", "#7b61b3", "#3b9b68", "#c85367", "#6b7280", "#a66b2b"];
 
 function defaultChartState() {
   return {
-    reviewed: [],
     matches: {},
     matchesCorrect: false,
     chartType: "bar",
@@ -36,7 +34,6 @@ function loadChartState() {
     chartState = {
       ...defaults,
       ...saved,
-      reviewed: Array.isArray(saved.reviewed) ? saved.reviewed.filter(term => vocabularyTerms.includes(term)) : [],
       matches: saved.matches && typeof saved.matches === "object" ? saved.matches : {},
       rows: Array.isArray(saved.rows) && saved.rows.length >= 2 && saved.rows.length <= 8 ? saved.rows : defaults.rows,
       sentences: saved.sentences && typeof saved.sentences === "object" ? { ...defaults.sentences, ...saved.sentences } : defaults.sentences
@@ -50,61 +47,15 @@ function saveChartState() {
   try { localStorage.setItem(chartStorageKey, JSON.stringify(chartState)); } catch {}
 }
 
-function previousClassStatus() {
-  const status = document.querySelector("#previousStatus");
-  try {
-    const previous = JSON.parse(localStorage.getItem("dataDetectivesStateV1"));
-    if (!previous || typeof previous !== "object") throw new Error("No saved activity");
-    const correctedRows = new Set((previous.changes || []).map(change => change.row));
-    const corrections = [2, 3, 4, 5, 7, 8, 9, 10].filter(row => correctedRows.has(row)).length;
-    const questions = (previous.questions || []).filter(answer => typeof answer === "string" && answer.trim().length >= 10).length;
-    const checklist = (previous.checklist || []).filter(Boolean).length;
-    const reflectionReady = typeof previous.reflection === "string" && previous.reflection.trim().length >= 10;
-    const complete = corrections === 8 && questions >= 2 && checklist === 5 && reflectionReady;
-    status.className = `previous-status${complete ? " complete" : ""}`;
-    status.innerHTML = complete
-      ? "<strong>Previous practice appears complete.</strong>Your eight corrected rows, two answers, teamwork check, and reflection are saved. Download the PDF if you have not submitted it yet."
-      : `<strong>Previous practice still needs attention.</strong>${corrections}/8 problem rows, ${questions}/2 answers, ${checklist}/5 teamwork checks, and ${reflectionReady ? "a completed" : "an unfinished"} reflection are saved.`;
-    return complete;
-  } catch {
-    status.className = "previous-status";
-    status.innerHTML = "<strong>No saved previous-class work was found in this browser.</strong>Open Data Cleaning to complete or check the earlier activity.";
-    return false;
-  }
-}
-
 function updateClassProgress() {
   const completed = [
-    previousClassStatus(),
-    chartState.reviewed.length === vocabularyTerms.length,
     chartState.matchesCorrect,
     chartState.chartCreated,
     sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10),
     Boolean(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())
   ].filter(Boolean).length;
-  document.querySelector("#classProgressBar").style.width = `${(completed / 6) * 100}%`;
-  document.querySelector("#classProgressText").textContent = `${completed} of 6 class sections complete.`;
-}
-
-function setupVocabulary() {
-  document.querySelectorAll("[data-vocab]").forEach(button => {
-    button.addEventListener("click", () => {
-      const definition = button.parentElement.querySelector("p");
-      const willOpen = definition.hidden;
-      definition.hidden = !willOpen;
-      button.setAttribute("aria-expanded", String(willOpen));
-      button.querySelector("span").textContent = willOpen ? "Hide" : "Reveal";
-      if (!chartState.reviewed.includes(button.dataset.vocab)) chartState.reviewed.push(button.dataset.vocab);
-      saveChartState();
-      updateVocabProgress();
-      updateClassProgress();
-    });
-  });
-  updateVocabProgress();
-}
-
-function updateVocabProgress() {
-  document.querySelector("#vocabProgress").textContent = `${chartState.reviewed.length} of ${vocabularyTerms.length} vocabulary terms reviewed.`;
+  document.querySelector("#classProgressBar").style.width = `${(completed / 4) * 100}%`;
+  document.querySelector("#classProgressText").textContent = `${completed} of 4 class sections complete.`;
 }
 
 function setupMatching() {
@@ -421,11 +372,8 @@ function formatNumber(value) { return Number.isInteger(value) ? String(value) : 
 function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 
 loadChartState();
-setupVocabulary();
 setupMatching();
 setupChartBuilder();
 setupSentences();
-previousClassStatus();
 updateClassProgress();
-document.querySelector("#refreshPreviousBtn").addEventListener("click", updateClassProgress);
 document.querySelector("#resetChartActivityBtn").addEventListener("click", resetChartActivity);

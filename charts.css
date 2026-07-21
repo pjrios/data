@@ -6,16 +6,6 @@
 .activity-jumps a { padding: 10px 12px; border: 1px solid var(--border); border-radius: 9px; color: var(--primary-dark); background: #f8faff; text-decoration: none; font-weight: 700; }
 .activity-jumps a:hover { background: var(--soft); }
 #classProgressBar { height: 100%; width: 0; background: #2c7f8f; transition: width .25s ease; }
-.button-link { display: inline-block; border-radius: 10px; padding: 10px 15px; text-decoration: none; font-weight: 750; white-space: nowrap; }
-.secondary-link { background: #e9edfa; color: #293450; }
-.previous-status { margin: 18px 0 12px; padding: 14px 16px; border: 1px solid var(--border); border-radius: 11px; background: #f8faff; }
-.previous-status.complete { border-color: #9bd1b4; background: #eefaf3; color: var(--success); }
-.previous-status strong { display: block; margin-bottom: 3px; }
-.vocab-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-top: 18px; }
-.vocab-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #f8faff; }
-.vocab-card button { width: 100%; display: flex; justify-content: space-between; gap: 10px; border-radius: 0; text-align: left; text-transform: capitalize; }
-.vocab-card button span { font-weight: 500; font-size: .84rem; }
-.vocab-card p { margin: 0; padding: 14px; }
 .mini-progress { color: var(--muted); font-weight: 700; margin: 13px 0 0; }
 .matching-grid { display: grid; gap: 10px; margin: 18px 0; }
 .match-row { display: grid; grid-template-columns: 1.6fr 1fr; align-items: center; gap: 18px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-weight: 700; }
@@ -61,12 +51,12 @@
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 
 @media (max-width: 800px) {
-  .activity-jumps, .vocab-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .activity-jumps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .builder-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 @media (max-width: 600px) {
-  .activity-jumps, .vocab-grid, .builder-controls, .interpretation-grid { grid-template-columns: 1fr; }
+  .activity-jumps, .builder-controls, .interpretation-grid { grid-template-columns: 1fr; }
   .match-row { grid-template-columns: 1fr; gap: 8px; }
   .pie-layout { grid-template-columns: 1fr; }
   .save-note { display: block; margin: 10px 0 0; text-align: center; }
