@@ -72,11 +72,29 @@ const chartLessons = {
   }
 };
 const chartLessonOrder = ["column", "horizontal", "stacked", "histogram", "pie", "scatter", "line"];
+const chartPracticePresets = {
+  column: { chartType: "bar", title: "Books read by class", xAxisLabel: "Class", yAxisLabel: "Books", task: "Enter 16 books for Class 9C, then create the column chart.", rows: [["9A", "12"], ["9B", "18"], ["9C", ""], ["9D", "22"]] },
+  horizontal: { chartType: "horizontalBar", title: "Most popular clubs", xAxisLabel: "Club", yAxisLabel: "Students", task: "Enter 19 students for Art, then create the ranking chart.", rows: [["Robotics", "24"], ["Art", ""], ["Chess", "14"], ["Drama", "9"]] },
+  stacked: { chartType: "stackedBar", title: "Project tasks by group", xAxisLabel: "Group", yAxisLabel: "Tasks", seriesOneLabel: "Completed", seriesTwoLabel: "Remaining", task: "Enter 5 remaining tasks for Group B, then create the stacked chart.", rows: [["Group A", "12", "8"], ["Group B", "15", ""], ["Group C", "18", "2"]] },
+  histogram: { chartType: "histogram", title: "Quiz score distribution", xAxisLabel: "Score range", yAxisLabel: "Students", task: "Enter a frequency of 8 for the 70–79 range, then create the histogram.", rows: [["50–59", "2"], ["60–69", "5"], ["70–79", ""], ["80–89", "6"], ["90–99", "3"]] },
+  pie: { chartType: "pie", title: "How class time is used", xAxisLabel: "Activity", yAxisLabel: "Percent", task: "Enter 30% for Discussion so the parts total 100%, then create the pie chart.", rows: [["Practice", "50"], ["Discussion", ""], ["Reflection", "20"]] },
+  scatter: { chartType: "scatter", title: "Study time and quiz score", xAxisLabel: "Study hours", yAxisLabel: "Quiz score", task: "Enter a quiz score of 75 for Student C at 3 study hours, then create the scatter chart.", rows: [["Student A", "60", "", "1"], ["Student B", "68", "", "2"], ["Student C", "", "", "3"], ["Student D", "82", "", "4"], ["Student E", "90", "", "5"]] },
+  line: { chartType: "line", title: "Temperature by day", xAxisLabel: "Day", yAxisLabel: "Temperature (°C)", task: "Enter 23°C for Wednesday, then create the line chart.", rows: [["Mon", "22"], ["Tue", "24"], ["Wed", ""], ["Thu", "27"], ["Fri", "29"]] }
+};
+const practiceRequiredValues = {
+  column: { row: 2, key: "value", value: 16 },
+  horizontal: { row: 1, key: "value", value: 19 },
+  stacked: { row: 1, key: "value2", value: 5 },
+  histogram: { row: 2, key: "value", value: 8 },
+  pie: { row: 1, key: "value", value: 30 },
+  scatter: { row: 2, key: "value", value: 75 },
+  line: { row: 2, key: "value", value: 23 }
+};
 const lessonSteps = chartLessonOrder.flatMap(key => [
   { id: `${key}-learn`, name: `Learn: ${chartLessons[key].shortTitle}`, screen: "microLearn", chartKey: key, phase: "learn" },
-  { id: `${key}-check`, name: `Check: ${chartLessons[key].shortTitle}`, screen: "microCheck", chartKey: key, phase: "check" }
+  { id: `${key}-check`, name: `Check: ${chartLessons[key].shortTitle}`, screen: "microCheck", chartKey: key, phase: "check" },
+  { id: `${key}-try`, name: `Try: ${chartLessons[key].shortTitle}`, screen: "builder", chartKey: key, phase: "try" }
 ]).concat([
-  { id: "builder", name: "Build a chart", screen: "builder" },
   { id: "interpret", name: "Interpret the chart", screen: "interpret" },
   { id: "evidence", name: "Highlight strong evidence", screen: "evidence" }
 ]);
@@ -91,6 +109,9 @@ function defaultChartState() {
     videoWatchSeconds: {},
     lessonAnswers: {},
     lessonChecks: {},
+    chartBuilds: {},
+    chartInterpretations: {},
+    interpretChartKey: "line",
     currentStep: "column-learn",
     lessonFinished: false,
     chartType: "bar",
@@ -117,6 +138,8 @@ let segmentPlayer = null;
 let segmentWatchTimer = null;
 let activeVideoChartKey = null;
 let lastVideoTime = null;
+let activeBuilderChartKey = null;
+let activeInterpretChartKey = null;
 
 function loadChartState() {
   try {
@@ -131,6 +154,9 @@ function loadChartState() {
       videoWatchSeconds: saved.videoWatchSeconds && typeof saved.videoWatchSeconds === "object" ? saved.videoWatchSeconds : {},
       lessonAnswers: saved.lessonAnswers && typeof saved.lessonAnswers === "object" ? saved.lessonAnswers : {},
       lessonChecks: saved.lessonChecks && typeof saved.lessonChecks === "object" ? saved.lessonChecks : {},
+      chartBuilds: saved.chartBuilds && typeof saved.chartBuilds === "object" ? saved.chartBuilds : {},
+      chartInterpretations: saved.chartInterpretations && typeof saved.chartInterpretations === "object" ? saved.chartInterpretations : {},
+      interpretChartKey: chartLessonOrder.includes(saved.interpretChartKey) ? saved.interpretChartKey : defaults.interpretChartKey,
       chartType: builderChartTypes.includes(saved.chartType) ? saved.chartType : defaults.chartType,
       currentStep: lessonSteps.some(step => step.id === saved.currentStep) ? saved.currentStep : defaults.currentStep,
       lessonFinished: saved.lessonFinished === true,
@@ -145,13 +171,38 @@ function loadChartState() {
 }
 
 function saveChartState() {
+  syncActiveChartBuild();
+  syncActiveInterpretation();
   try { localStorage.setItem(chartStorageKey, JSON.stringify(chartState)); } catch {}
+}
+
+function syncActiveChartBuild() {
+  if (!activeBuilderChartKey) return;
+  chartState.chartBuilds[activeBuilderChartKey] = {
+    chartType: chartState.chartType,
+    title: chartState.title,
+    xAxisLabel: chartState.xAxisLabel,
+    yAxisLabel: chartState.yAxisLabel,
+    seriesOneLabel: chartState.seriesOneLabel,
+    seriesTwoLabel: chartState.seriesTwoLabel,
+    rows: chartState.rows.map(row => ({ ...row })),
+    chartCreated: chartState.chartCreated
+  };
+}
+
+function syncActiveInterpretation() {
+  if (!activeInterpretChartKey) return;
+  chartState.chartInterpretations[activeInterpretChartKey] = {
+    sentences: { ...chartState.sentences },
+    strongest: chartState.strongest
+  };
 }
 
 function updateClassProgress() {
   const completedChecks = chartLessonOrder.filter(key => chartState.lessonChecks[key]).length;
+  const completedBuilds = chartLessonOrder.filter(key => chartState.chartBuilds[key]?.chartCreated).length;
   const completedActivities = completedChecks
-    + Number(chartState.chartCreated)
+    + completedBuilds
     + Number(sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10))
     + Number(Boolean(chartState.strongest && chartState.sentences[chartState.strongest]?.trim()));
   document.body.dataset.completedActivities = String(completedActivities);
@@ -336,6 +387,58 @@ function microExampleMarkup(chartKey) {
   return examples[chartKey];
 }
 
+function buildFromPreset(chartKey) {
+  const preset = chartPracticePresets[chartKey];
+  return {
+    chartType: preset.chartType,
+    title: preset.title,
+    xAxisLabel: preset.xAxisLabel,
+    yAxisLabel: preset.yAxisLabel,
+    seriesOneLabel: preset.seriesOneLabel || "Series 1",
+    seriesTwoLabel: preset.seriesTwoLabel || "Series 2",
+    rows: preset.rows.map((row, index) => ({ label: row[0], value: row[1], value2: row[2] ?? "0", x: row[3] ?? String(index + 1) })),
+    chartCreated: false
+  };
+}
+
+function activateChartBuild(chartKey) {
+  syncActiveChartBuild();
+  const build = chartState.chartBuilds[chartKey] || buildFromPreset(chartKey);
+  activeBuilderChartKey = null;
+  chartState.chartType = build.chartType;
+  chartState.title = build.title;
+  chartState.xAxisLabel = build.xAxisLabel;
+  chartState.yAxisLabel = build.yAxisLabel;
+  chartState.seriesOneLabel = build.seriesOneLabel;
+  chartState.seriesTwoLabel = build.seriesTwoLabel;
+  chartState.rows = build.rows.map(row => ({ ...row }));
+  chartState.chartCreated = build.chartCreated === true;
+  activeBuilderChartKey = chartKey;
+}
+
+function renderTryLesson(chartKey, stepIndex) {
+  activateChartBuild(chartKey);
+  const lesson = chartLessons[chartKey];
+  document.querySelector("#builderStep").textContent = `Step ${stepIndex + 1} of ${lessonSteps.length} · Try it`;
+  document.querySelector("#builderTitle").textContent = `Try it: create a ${lesson.title.toLowerCase()}`;
+  document.querySelector("#builderHint").textContent = "Complete the missing value, create the chart, and check how the data appears.";
+  document.querySelector("#builderTask").innerHTML = `<strong>Your task:</strong> ${escapeHtml(chartPracticePresets[chartKey].task)}`;
+  document.querySelector("#chartType").disabled = true;
+  document.querySelector("#chartTitle").value = chartState.title;
+  document.querySelector("#chartType").value = chartState.chartType;
+  document.querySelector("#xAxisLabel").value = chartState.xAxisLabel;
+  document.querySelector("#yAxisLabel").value = chartState.yAxisLabel;
+  document.querySelector("#seriesOneLabel").value = chartState.seriesOneLabel;
+  document.querySelector("#seriesTwoLabel").value = chartState.seriesTwoLabel;
+  document.querySelector("#chartMessage").textContent = "";
+  document.querySelector("#chartMessage").className = "result";
+  renderDataRows();
+  const preview = document.querySelector("#chartPreview");
+  preview.innerHTML = '<p class="empty-preview">Complete the task and create your chart.</p>';
+  document.querySelector("#chartSummary").textContent = "";
+  if (chartState.chartCreated) renderChart();
+}
+
 function renderDataRows() {
   const body = document.querySelector("#chartDataBody");
   body.innerHTML = "";
@@ -423,10 +526,14 @@ function updateChartTypeUI() {
 
 function createChart() {
   const title = chartState.title.trim();
+  const requiredEntry = practiceRequiredValues[activeBuilderChartKey];
   const rowsReady = chartState.rows.every(row => row.label.trim() && row.value !== "" && Number.isFinite(Number(row.value)) && Number(row.value) >= 0);
   const xReady = chartState.chartType !== "scatter" || chartState.rows.every(row => row.x !== "" && Number.isFinite(Number(row.x)));
   const secondSeriesReady = chartState.chartType !== "stackedBar" || chartState.rows.every(row => row.value2 !== "" && Number.isFinite(Number(row.value2)) && Number(row.value2) >= 0);
   if (!title) return showChartMessage("Add a clear chart title before creating the chart.", "warning");
+  if (requiredEntry && Number(chartState.rows[requiredEntry.row]?.[requiredEntry.key]) !== requiredEntry.value) {
+    return showChartMessage(`Follow the task carefully: ${chartPracticePresets[activeBuilderChartKey].task}`, "warning");
+  }
   if (!rowsReady) return showChartMessage("Every row needs a label and a non-negative numerical value.", "warning");
   if (!xReady) return showChartMessage("Every scatter point needs a numerical X value.", "warning");
   if (!secondSeriesReady) return showChartMessage("Every stacked-bar row needs a non-negative value for both series.", "warning");
@@ -439,8 +546,7 @@ function createChart() {
   updateClassProgress();
 }
 
-function renderChart() {
-  const preview = document.querySelector("#chartPreview");
+function renderChart(preview = document.querySelector("#chartPreview"), summary = document.querySelector("#chartSummary")) {
   preview.innerHTML = "";
   if (chartState.chartType === "pie") renderPieChart(preview);
   else if (chartState.chartType === "horizontalBar") renderHorizontalBarChart(preview);
@@ -448,7 +554,45 @@ function renderChart() {
   const rowSummary = chartState.rows.map(row => chartState.chartType === "stackedBar"
     ? `${row.label}: ${chartState.seriesOneLabel} ${row.value}, ${chartState.seriesTwoLabel} ${row.value2}`
     : `${row.label}: ${row.value}`).join("; ");
-  document.querySelector("#chartSummary").textContent = `${chartState.title}. ${chartState.chartType} chart. ${rowSummary}.`;
+  if (summary) summary.textContent = `${chartState.title}. ${chartState.chartType} chart. ${rowSummary}.`;
+}
+
+function setupInterpretChartPicker() {
+  document.querySelector("#interpretChartSelect").addEventListener("change", event => {
+    activateInterpretation(event.target.value);
+    renderSelectedInterpretChart();
+    saveChartState();
+  });
+}
+
+function renderInterpretChartPicker() {
+  syncActiveChartBuild();
+  const completedKeys = chartLessonOrder.filter(key => chartState.chartBuilds[key]?.chartCreated);
+  const select = document.querySelector("#interpretChartSelect");
+  select.innerHTML = completedKeys.map(key => `<option value="${key}">${escapeHtml(chartLessons[key].title)}</option>`).join("");
+  if (!completedKeys.includes(chartState.interpretChartKey)) chartState.interpretChartKey = completedKeys.at(-1) || "line";
+  select.value = chartState.interpretChartKey;
+  activateInterpretation(chartState.interpretChartKey);
+  renderSelectedInterpretChart();
+}
+
+function activateInterpretation(chartKey) {
+  syncActiveInterpretation();
+  chartState.interpretChartKey = chartKey;
+  const saved = chartState.chartInterpretations[chartKey] || { sentences: { pattern: "", comparison: "", outlier: "", conclusion: "" }, strongest: "" };
+  chartState.sentences = { pattern: "", comparison: "", outlier: "", conclusion: "", ...saved.sentences };
+  chartState.strongest = saved.strongest || "";
+  activeInterpretChartKey = chartKey;
+  document.querySelectorAll("[data-sentence]").forEach(area => { area.value = chartState.sentences[area.dataset.sentence] || ""; });
+  updateSentenceProgress();
+  renderEvidenceChoices();
+}
+
+function renderSelectedInterpretChart() {
+  const key = chartState.interpretChartKey;
+  if (!chartState.chartBuilds[key]?.chartCreated) return;
+  activateChartBuild(key);
+  renderChart(document.querySelector("#interpretChartPreview"), null);
 }
 
 function renderSvgChart(preview) {
@@ -708,9 +852,9 @@ function validateLessonStep(step) {
     message.textContent = "Correct all three answers before continuing.";
     return false;
   }
-  if (step.id === "builder" && !chartState.chartCreated) {
+  if (step.phase === "try" && !chartState.chartBuilds[step.chartKey]?.chartCreated) {
     showChartMessage("Create the chart and check its title, labels, and values before continuing.", "warning");
-    message.textContent = "Create or update your chart first.";
+    message.textContent = `Complete the ${chartLessons[step.chartKey].title.toLowerCase()} practice before continuing.`;
     return false;
   }
   if (step.id === "interpret" && !sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10)) {
@@ -734,7 +878,13 @@ function showLessonStep(index, historyMode = "push", scroll = true) {
   });
   if (active.phase === "learn") renderMicroLearn(active.chartKey, safeIndex);
   else if (active.phase === "check") renderMicroCheck(active.chartKey, safeIndex);
-  else destroySegmentPlayer();
+  else if (active.phase === "try") {
+    destroySegmentPlayer();
+    renderTryLesson(active.chartKey, safeIndex);
+  } else {
+    destroySegmentPlayer();
+    if (active.id === "interpret") renderInterpretChartPicker();
+  }
   chartState.currentStep = active.id;
   saveChartState();
   document.querySelector("#navigationMessage").textContent = `Step ${safeIndex + 1} of ${lessonSteps.length} · Your work saves automatically.`;
@@ -756,7 +906,8 @@ function updateLessonNavigation(index) {
     const current = lessonSteps[index];
     const next = lessonSteps[index + 1];
     if (current.phase === "learn") nextButton.textContent = "Next: Answer 3 questions →";
-    else if (current.phase === "check" && next.phase === "learn") nextButton.textContent = `Next: Learn ${chartLessons[next.chartKey].shortTitle} →`;
+    else if (current.phase === "check") nextButton.textContent = `Next: Try ${chartLessons[current.chartKey].shortTitle} →`;
+    else if (current.phase === "try" && next.phase === "learn") nextButton.textContent = `Next: Learn ${chartLessons[next.chartKey].shortTitle} →`;
     else nextButton.textContent = `Next: ${next.name} →`;
     nextButton.disabled = false;
   }
@@ -790,6 +941,7 @@ function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").repla
 loadChartState();
 loadYouTubeApi();
 setupChartBuilder();
+setupInterpretChartPicker();
 setupSentences();
 updateClassProgress();
 setupLessonNavigation();

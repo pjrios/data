@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chart Lab · Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260722b" />
-  <link rel="stylesheet" href="charts.css?v=20260722b" />
+  <link rel="stylesheet" href="styles.css?v=20260722d" />
+  <link rel="stylesheet" href="charts.css?v=20260722d" />
 </head>
 <body>
   <header class="hero chart-hero">
@@ -232,9 +232,10 @@
     </section>
 
     <section id="builder" class="card lesson-step" data-lesson-screen="builder" hidden>
-      <p class="step">Step 15 of 17 · Create · About 25–30 minutes</p>
-      <h2>Create a practice chart</h2>
-      <p class="hint">Choose a chart type, edit the sample data, add clear labels, and generate the display. Revise it until the chart communicates the data accurately.</p>
+      <p id="builderStep" class="step">Try it</p>
+      <h2 id="builderTitle">Create a practice chart</h2>
+      <p id="builderHint" class="hint">Complete the guided chart-building task.</p>
+      <div id="builderTask" class="practice-task"></div>
 
       <div class="builder-controls">
         <label>Chart title
@@ -285,9 +286,15 @@
     </section>
 
     <section id="interpret" class="card lesson-step" data-lesson-screen="interpret" hidden>
-      <p class="step">Step 16 of 17 · Explain · About 15–20 minutes</p>
+      <p class="step">Step 22 of 23 · Explain · About 15–20 minutes</p>
       <h2>Draft interpretation sentences</h2>
-      <p class="hint">Use specific labels or values from your chart. Write one complete evidence sentence for each purpose.</p>
+      <p class="hint">Choose one of the charts you created. Use its specific labels or values in each evidence sentence.</p>
+      <div class="interpret-chart-picker">
+        <label>Chart to interpret
+          <select id="interpretChartSelect"></select>
+        </label>
+        <div id="interpretChartPreview" class="chart-preview interpret-chart-preview"></div>
+      </div>
       <div class="interpretation-grid">
         <label><span>Pattern</span><small>Describe an overall pattern or trend.</small>
           <textarea data-sentence="pattern" rows="3" placeholder="The overall pattern shows..."></textarea>
@@ -306,7 +313,7 @@
     </section>
 
     <section id="evidence" class="card lesson-step" data-lesson-screen="evidence" hidden>
-      <p class="step">Step 17 of 17 · Highlight · About 10 minutes</p>
+      <p class="step">Step 23 of 23 · Highlight · About 10 minutes</p>
       <h2>Highlight the strongest practice evidence</h2>
       <p class="hint">Choose the sentence that uses the clearest and most accurate evidence from your chart.</p>
       <fieldset class="evidence-choices">
@@ -329,6 +336,6 @@
   </main>
 
   <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
-  <script src="charts.js?v=20260722c"></script>
+  <script src="charts.js?v=20260722e"></script>
 </body>
 </html>
