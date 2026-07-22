@@ -90,6 +90,36 @@ const practiceRequiredValues = {
   scatter: { row: 2, key: "value", value: 75 },
   line: { row: 2, key: "value", value: 23 }
 };
+const practiceReadQuestions = {
+  column: [
+    { id: "data", prompt: "Which class read the most books?", options: [["9a", "Class 9A"], ["9b", "Class 9B"], ["9d", "Class 9D"]], correct: "9d", explanation: "Class 9D has the tallest column at 22 books." },
+    { id: "type", prompt: "Why is a column chart appropriate for these data?", options: [["categories", "It compares values across separate classes"], ["time", "It shows change over time"], ["whole", "It shows parts of one whole"]], correct: "categories", explanation: "Each separate column represents one class category." }
+  ],
+  horizontal: [
+    { id: "data", prompt: "Which club is ranked second?", options: [["robotics", "Robotics"], ["art", "Art"], ["chess", "Chess"]], correct: "art", explanation: "Art has 19 students, the second-highest value." },
+    { id: "type", prompt: "What does the horizontal layout make easy to see?", options: [["ranking", "The ranking and long club names"], ["distribution", "Continuous numerical ranges"], ["correlation", "A relationship between two variables"]], correct: "ranking", explanation: "Sorted horizontal bars make the ranking easy to scan." }
+  ],
+  stacked: [
+    { id: "data", prompt: "Which group completed the most tasks?", options: [["a", "Group A"], ["b", "Group B"], ["c", "Group C"]], correct: "c", explanation: "Group C completed 18 tasks, more than Groups A and B." },
+    { id: "type", prompt: "What do the two colored sections show?", options: [["parts", "Completed and remaining parts of each total"], ["dates", "Two dates in time order"], ["ranges", "Two continuous ranges"]], correct: "parts", explanation: "Each stack divides a group’s total into completed and remaining tasks." }
+  ],
+  histogram: [
+    { id: "data", prompt: "Which score range contains the most students?", options: [["60", "60–69"], ["70", "70–79"], ["80", "80–89"]], correct: "70", explanation: "The 70–79 range has the tallest bar with 8 students." },
+    { id: "type", prompt: "Why do the bars touch in this histogram?", options: [["continuous", "The score ranges are continuous"], ["ranking", "The categories are ranked"], ["whole", "The bars form 100%"]], correct: "continuous", explanation: "Each numerical range continues directly into the next range." }
+  ],
+  pie: [
+    { id: "data", prompt: "Which activity uses the largest share of class time?", options: [["practice", "Practice"], ["discussion", "Discussion"], ["reflection", "Reflection"]], correct: "practice", explanation: "Practice is the largest slice at 50%." },
+    { id: "type", prompt: "What do all three slices represent together?", options: [["whole", "100% of class time"], ["trend", "A trend over three days"], ["ranking", "A highest-to-lowest ranking"]], correct: "whole", explanation: "The three slices divide one complete whole: all class time." }
+  ],
+  scatter: [
+    { id: "data", prompt: "What relationship does the point pattern suggest?", options: [["positive", "Scores tend to rise as study time rises"], ["negative", "Scores fall as study time rises"], ["none", "There is no visible relationship"]], correct: "positive", explanation: "The points generally move upward as study hours increase." },
+    { id: "type", prompt: "What does one point represent?", options: [["pair", "One student’s study-hours and quiz-score pair"], ["slice", "One percentage of a whole"], ["range", "One continuous score range"]], correct: "pair", explanation: "Every point combines one X value and one Y value for a student." }
+  ],
+  line: [
+    { id: "data", prompt: "On which day is the temperature highest?", options: [["tuesday", "Tuesday"], ["thursday", "Thursday"], ["friday", "Friday"]], correct: "friday", explanation: "Friday is the highest point at 29°C." },
+    { id: "type", prompt: "What overall change does the line show?", options: [["increase", "Temperature generally increases across the week"], ["decrease", "Temperature steadily decreases"], ["whole", "The values form parts of one whole"]], correct: "increase", explanation: "Despite a small midweek dip, the temperature generally rises from Monday to Friday." }
+  ]
+};
 const lessonSteps = chartLessonOrder.flatMap(key => [
   { id: `${key}-learn`, name: `Learn: ${chartLessons[key].shortTitle}`, screen: "microLearn", chartKey: key, phase: "learn" },
   { id: `${key}-check`, name: `Check: ${chartLessons[key].shortTitle}`, screen: "microCheck", chartKey: key, phase: "check" },
@@ -128,6 +158,8 @@ function defaultChartState() {
       { label: "Week 5", x: "5", value: "86", value2: "24" }
     ],
     chartCreated: false,
+    practiceReadAnswers: {},
+    practiceReadCorrect: false,
     sentences: { pattern: "", comparison: "", outlier: "", conclusion: "" },
     strongest: ""
   };
@@ -186,7 +218,9 @@ function syncActiveChartBuild() {
     seriesOneLabel: chartState.seriesOneLabel,
     seriesTwoLabel: chartState.seriesTwoLabel,
     rows: chartState.rows.map(row => ({ ...row })),
-    chartCreated: chartState.chartCreated
+    chartCreated: chartState.chartCreated,
+    readAnswers: { ...chartState.practiceReadAnswers },
+    readCorrect: chartState.practiceReadCorrect
   };
 }
 
@@ -397,7 +431,9 @@ function buildFromPreset(chartKey) {
     seriesOneLabel: preset.seriesOneLabel || "Series 1",
     seriesTwoLabel: preset.seriesTwoLabel || "Series 2",
     rows: preset.rows.map((row, index) => ({ label: row[0], value: row[1], value2: row[2] ?? "0", x: row[3] ?? String(index + 1) })),
-    chartCreated: false
+    chartCreated: false,
+    readAnswers: {},
+    readCorrect: false
   };
 }
 
@@ -413,6 +449,8 @@ function activateChartBuild(chartKey) {
   chartState.seriesTwoLabel = build.seriesTwoLabel;
   chartState.rows = build.rows.map(row => ({ ...row }));
   chartState.chartCreated = build.chartCreated === true;
+  chartState.practiceReadAnswers = build.readAnswers && typeof build.readAnswers === "object" ? { ...build.readAnswers } : {};
+  chartState.practiceReadCorrect = build.readCorrect === true;
   activeBuilderChartKey = chartKey;
 }
 
@@ -421,7 +459,7 @@ function renderTryLesson(chartKey, stepIndex) {
   const lesson = chartLessons[chartKey];
   document.querySelector("#builderStep").textContent = `Step ${stepIndex + 1} of ${lessonSteps.length} · Try it`;
   document.querySelector("#builderTitle").textContent = `Try it: create a ${lesson.title.toLowerCase()}`;
-  document.querySelector("#builderHint").textContent = "Complete the missing value, create the chart, and check how the data appears.";
+  document.querySelector("#builderHint").textContent = "Complete the missing value, create the chart, and answer two questions about what it shows.";
   document.querySelector("#builderTask").innerHTML = `<strong>Your task:</strong> ${escapeHtml(chartPracticePresets[chartKey].task)}`;
   document.querySelector("#chartType").disabled = true;
   document.querySelector("#chartTitle").value = chartState.title;
@@ -430,13 +468,76 @@ function renderTryLesson(chartKey, stepIndex) {
   document.querySelector("#yAxisLabel").value = chartState.yAxisLabel;
   document.querySelector("#seriesOneLabel").value = chartState.seriesOneLabel;
   document.querySelector("#seriesTwoLabel").value = chartState.seriesTwoLabel;
+  ["chartTitle", "xAxisLabel", "yAxisLabel", "seriesOneLabel", "seriesTwoLabel"].forEach(id => {
+    document.querySelector(`#${id}`).readOnly = true;
+  });
   document.querySelector("#chartMessage").textContent = "";
   document.querySelector("#chartMessage").className = "result";
   renderDataRows();
+  lockGuidedPracticeInputs(chartKey);
   const preview = document.querySelector("#chartPreview");
   preview.innerHTML = '<p class="empty-preview">Complete the task and create your chart.</p>';
   document.querySelector("#chartSummary").textContent = "";
-  if (chartState.chartCreated) renderChart();
+  document.querySelector("#practiceReadCheck").hidden = !chartState.chartCreated;
+  if (chartState.chartCreated) {
+    renderChart();
+    renderPracticeReadCheck(chartKey);
+  }
+}
+
+function lockGuidedPracticeInputs(chartKey) {
+  const required = practiceRequiredValues[chartKey];
+  document.querySelectorAll("#chartDataBody [data-row-index]").forEach(input => {
+    input.readOnly = !(Number(input.dataset.rowIndex) === required.row && input.dataset.rowKey === required.key);
+  });
+  document.querySelectorAll("#chartDataBody [data-remove-row]").forEach(button => { button.disabled = true; });
+  document.querySelector("#addDataRowBtn").hidden = true;
+}
+
+function renderPracticeReadCheck(chartKey) {
+  const questions = practiceReadQuestions[chartKey];
+  const answers = chartState.practiceReadAnswers || {};
+  const container = document.querySelector("#practiceReadQuestions");
+  container.innerHTML = questions.map((question, index) => `
+    <fieldset class="practice-read-card" data-practice-read-card="${question.id}">
+      <legend>${index + 1}. ${escapeHtml(question.prompt)}</legend>
+      ${question.options.map(([value, label]) => `<label><input type="radio" name="practice-${chartKey}-${question.id}" data-practice-read-question="${question.id}" value="${value}"${answers[question.id] === value ? " checked" : ""}> <span>${escapeHtml(label)}</span></label>`).join("")}
+      <p class="practice-read-feedback" aria-live="polite"></p>
+    </fieldset>`).join("");
+  container.querySelectorAll("[data-practice-read-question]").forEach(radio => radio.addEventListener("change", () => {
+    chartState.practiceReadAnswers = { ...chartState.practiceReadAnswers, [radio.dataset.practiceReadQuestion]: radio.value };
+    chartState.practiceReadCorrect = false;
+    const card = radio.closest(".practice-read-card");
+    card.classList.remove("correct", "incorrect");
+    card.querySelector(".practice-read-feedback").textContent = "";
+    document.querySelector("#practiceReadResult").textContent = "";
+    saveChartState();
+  }));
+  document.querySelector("#practiceReadCheck").hidden = false;
+  const result = document.querySelector("#practiceReadResult");
+  result.textContent = "";
+  result.className = "result";
+  if (chartState.practiceReadCorrect) checkPracticeReadAnswers(chartKey);
+}
+
+function checkPracticeReadAnswers(chartKey = activeBuilderChartKey) {
+  const questions = practiceReadQuestions[chartKey];
+  let score = 0;
+  questions.forEach(question => {
+    const answer = chartState.practiceReadAnswers[question.id];
+    const correct = answer === question.correct;
+    const card = document.querySelector(`[data-practice-read-card="${question.id}"]`);
+    card.classList.toggle("correct", correct);
+    card.classList.toggle("incorrect", !correct);
+    card.querySelector(".practice-read-feedback").textContent = !answer ? "Choose an answer." : `${correct ? "Correct." : "Try again."} ${question.explanation}`;
+    if (correct) score += 1;
+  });
+  chartState.practiceReadCorrect = score === questions.length;
+  saveChartState();
+  const result = document.querySelector("#practiceReadResult");
+  result.textContent = chartState.practiceReadCorrect ? "Excellent—you built and read this graph correctly." : `${score} of ${questions.length} correct. Use the graph and try again.`;
+  result.className = `result ${chartState.practiceReadCorrect ? "success" : "warning"}`;
+  return chartState.practiceReadCorrect;
 }
 
 function renderDataRows() {
@@ -454,6 +555,7 @@ function renderDataRows() {
   body.querySelectorAll("[data-remove-row]").forEach(button => button.addEventListener("click", () => {
     chartState.rows.splice(Number(button.dataset.removeRow), 1);
     chartState.chartCreated = false;
+    chartState.practiceReadCorrect = false;
     saveChartState();
     renderDataRows();
     updateClassProgress();
@@ -475,6 +577,8 @@ function setupChartBuilder() {
     if (!input) return;
     chartState.rows[Number(input.dataset.rowIndex)][input.dataset.rowKey] = input.value;
     chartState.chartCreated = false;
+    chartState.practiceReadCorrect = false;
+    document.querySelector("#practiceReadCheck").hidden = true;
     saveChartState();
     updateClassProgress();
   });
@@ -484,6 +588,7 @@ function setupChartBuilder() {
       const key = { chartTitle: "title", chartType: "chartType", xAxisLabel: "xAxisLabel", yAxisLabel: "yAxisLabel", seriesOneLabel: "seriesOneLabel", seriesTwoLabel: "seriesTwoLabel" }[id];
       chartState[key] = event.target.value;
       chartState.chartCreated = false;
+      chartState.practiceReadCorrect = false;
       saveChartState();
       if (id === "chartType") updateChartTypeUI();
       updateClassProgress();
@@ -495,11 +600,13 @@ function setupChartBuilder() {
     const next = chartState.rows.length + 1;
     chartState.rows.push({ label: `Item ${next}`, x: String(next), value: "0", value2: "0" });
     chartState.chartCreated = false;
+    chartState.practiceReadCorrect = false;
     saveChartState();
     renderDataRows();
   });
 
   document.querySelector("#createChartBtn").addEventListener("click", createChart);
+  document.querySelector("#checkPracticeReadBtn").addEventListener("click", () => checkPracticeReadAnswers());
   if (chartState.chartCreated) renderChart();
 }
 
@@ -542,6 +649,7 @@ function createChart() {
   chartState.chartCreated = true;
   saveChartState();
   renderChart();
+  renderPracticeReadCheck(activeBuilderChartKey);
   showChartMessage("Chart created. Check the title, labels, scale, and whether this chart type fits the data.", "success");
   updateClassProgress();
 }
@@ -855,6 +963,11 @@ function validateLessonStep(step) {
   if (step.phase === "try" && !chartState.chartBuilds[step.chartKey]?.chartCreated) {
     showChartMessage("Create the chart and check its title, labels, and values before continuing.", "warning");
     message.textContent = `Complete the ${chartLessons[step.chartKey].title.toLowerCase()} practice before continuing.`;
+    return false;
+  }
+  if (step.phase === "try" && !chartState.chartBuilds[step.chartKey]?.readCorrect) {
+    checkPracticeReadAnswers(step.chartKey);
+    message.textContent = "Answer both Read your graph questions correctly before continuing.";
     return false;
   }
   if (step.id === "interpret" && !sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10)) {

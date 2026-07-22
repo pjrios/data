@@ -123,6 +123,7 @@
 .data-editor-scroll { margin-top: 0; }
 .data-editor { min-width: 620px; }
 .data-editor input { min-width: 120px; }
+.builder-controls input[readonly], .data-editor input[readonly] { background: #f1f3f7; color: #586174; }
 .data-editor .remove-row { background: #f5e9e9; color: #7d2d2d; }
 .data-editor .remove-row:hover { background: #eedada; }
 .chart-actions { margin-top: 14px; }
@@ -131,6 +132,16 @@
 .chart-preview { min-height: 370px; display: grid; place-items: center; overflow-x: auto; }
 .chart-preview svg { width: 100%; max-width: 760px; height: auto; }
 .empty-preview { color: var(--muted); }
+.practice-read-check { margin-top: 18px; padding: 18px; border: 1px solid #b8c7ee; border-radius: 13px; background: #f8faff; }
+.practice-read-check h3 { margin-top: 3px; }
+.practice-read-questions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin: 16px 0; }
+.practice-read-card { padding: 14px; border: 1px solid var(--border); border-radius: 11px; background: white; }
+.practice-read-card legend { padding: 0 6px; font-weight: 800; line-height: 1.45; }
+.practice-read-card label { display: flex; align-items: flex-start; gap: 8px; margin-top: 8px; padding: 8px 10px; border-radius: 8px; background: #f6f8fc; cursor: pointer; }
+.practice-read-card input { margin-top: 3px; }
+.practice-read-card.correct { border-color: #74b692; background: #eefaf3; }
+.practice-read-card.incorrect { border-color: #e2aa74; background: #fff7ed; }
+.practice-read-feedback { min-height: 24px; margin: 9px 0 0; color: var(--muted); font-weight: 650; }
 .pie-layout { width: 100%; display: grid; grid-template-columns: minmax(220px, 360px) 1fr; align-items: center; gap: 28px; }
 .pie-visual { width: min(320px, 80vw); aspect-ratio: 1; border-radius: 50%; margin: auto; border: 1px solid var(--border); }
 .chart-legend { display: grid; gap: 8px; }
@@ -166,6 +177,7 @@
   .interpret-chart-picker { grid-template-columns: 1fr; }
   .identify-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .builder-controls { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .practice-read-questions { grid-template-columns: 1fr; }
 }
 
 @media (max-width: 600px) {

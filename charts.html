@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chart Lab · Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260722d" />
-  <link rel="stylesheet" href="charts.css?v=20260722d" />
+  <link rel="stylesheet" href="styles.css?v=20260722f" />
+  <link rel="stylesheet" href="charts.css?v=20260722f" />
 </head>
 <body>
   <header class="hero chart-hero">
@@ -283,6 +283,14 @@
         <div id="chartPreview" class="chart-preview"><p class="empty-preview">Your chart will appear here.</p></div>
         <p id="chartSummary" class="sr-only" aria-live="polite"></p>
       </section>
+      <section id="practiceReadCheck" class="practice-read-check" aria-labelledby="practiceReadTitle" hidden>
+        <p class="step">Read your graph</p>
+        <h3 id="practiceReadTitle">What does your graph show?</h3>
+        <p class="hint">Use the chart you created to answer both questions.</p>
+        <div id="practiceReadQuestions" class="practice-read-questions"></div>
+        <button id="checkPracticeReadBtn" type="button">Check graph answers</button>
+        <div id="practiceReadResult" class="result" aria-live="polite"></div>
+      </section>
     </section>
 
     <section id="interpret" class="card lesson-step" data-lesson-screen="interpret" hidden>
@@ -336,6 +344,6 @@
   </main>
 
   <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
-  <script src="charts.js?v=20260722e"></script>
+  <script src="charts.js?v=20260722f"></script>
 </body>
 </html>
