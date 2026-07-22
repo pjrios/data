@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chart Lab · Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260722" />
-  <link rel="stylesheet" href="charts.css?v=20260722" />
+  <link rel="stylesheet" href="styles.css?v=20260722b" />
+  <link rel="stylesheet" href="charts.css?v=20260722b" />
 </head>
 <body>
   <header class="hero chart-hero">
@@ -41,10 +41,9 @@
         </article>
         <article class="micro-panel video-panel" aria-labelledby="videoPanelTitle">
           <div class="micro-panel-heading"><span id="microVideoTime">Video segment</span><h3 id="videoPanelTitle">Watch this section</h3></div>
-          <div class="segment-video-frame">
-            <iframe id="segmentVideo" title="Chart lesson video segment" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
-          </div>
-          <p class="segment-note">Watch only this chart’s section. The player stops at the end of the segment.</p>
+          <div id="segmentVideoFrame" class="segment-video-frame"><div id="segmentVideo"></div></div>
+          <p id="videoWatchStatus" class="video-watch-status" aria-live="polite">Loading the video segment…</p>
+          <p class="segment-note">Watch this chart’s complete section before continuing. Progress is recorded only in the player above.</p>
           <a id="segmentVideoLink" class="segment-link" href="https://www.youtube.com/watch?v=o7F-tbBl_hA" target="_blank" rel="noopener">Open this segment on YouTube</a>
         </article>
       </div>
@@ -330,6 +329,6 @@
   </main>
 
   <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
-  <script src="charts.js?v=20260722"></script>
+  <script src="charts.js?v=20260722c"></script>
 </body>
 </html>

@@ -87,6 +87,8 @@ const chartColors = ["#3157d5", "#2c7f8f", "#df8a3d", "#7b61b3", "#3b9b68", "#c8
 function defaultChartState() {
   return {
     lessonViewed: {},
+    videoWatched: {},
+    videoWatchSeconds: {},
     lessonAnswers: {},
     lessonChecks: {},
     currentStep: "column-learn",
@@ -111,6 +113,10 @@ function defaultChartState() {
 }
 
 let chartState = defaultChartState();
+let segmentPlayer = null;
+let segmentWatchTimer = null;
+let activeVideoChartKey = null;
+let lastVideoTime = null;
 
 function loadChartState() {
   try {
@@ -121,6 +127,8 @@ function loadChartState() {
       ...defaults,
       ...saved,
       lessonViewed: saved.lessonViewed && typeof saved.lessonViewed === "object" ? saved.lessonViewed : {},
+      videoWatched: saved.videoWatched && typeof saved.videoWatched === "object" ? saved.videoWatched : {},
+      videoWatchSeconds: saved.videoWatchSeconds && typeof saved.videoWatchSeconds === "object" ? saved.videoWatchSeconds : {},
       lessonAnswers: saved.lessonAnswers && typeof saved.lessonAnswers === "object" ? saved.lessonAnswers : {},
       lessonChecks: saved.lessonChecks && typeof saved.lessonChecks === "object" ? saved.lessonChecks : {},
       chartType: builderChartTypes.includes(saved.chartType) ? saved.chartType : defaults.chartType,
@@ -149,8 +157,104 @@ function updateClassProgress() {
   document.body.dataset.completedActivities = String(completedActivities);
 }
 
+function loadYouTubeApi() {
+  if (window.YT?.Player) return initializeCurrentSegmentPlayer();
+  if (document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) return;
+  const script = document.createElement("script");
+  script.src = "https://www.youtube.com/iframe_api";
+  document.head.appendChild(script);
+}
+
+window.onYouTubeIframeAPIReady = initializeCurrentSegmentPlayer;
+
+function initializeCurrentSegmentPlayer() {
+  const step = lessonSteps.find(item => item.id === chartState.currentStep);
+  if (!step || step.phase !== "learn" || !window.YT?.Player) return;
+  initializeSegmentPlayer(step.chartKey);
+}
+
+function initializeSegmentPlayer(chartKey) {
+  if (activeVideoChartKey !== chartKey || !document.querySelector("#segmentVideo")) return;
+  const lesson = chartLessons[chartKey];
+  segmentPlayer = new YT.Player("segmentVideo", {
+    width: "100%",
+    height: "100%",
+    videoId: "o7F-tbBl_hA",
+    playerVars: { start: lesson.start, end: lesson.end, rel: 0, modestbranding: 1, playsinline: 1 },
+    events: {
+      onReady: updateVideoWatchStatus,
+      onStateChange: event => {
+        if (event.data === YT.PlayerState.PLAYING) startSegmentWatchTracking(chartKey);
+        else stopSegmentWatchTracking();
+        if (event.data === YT.PlayerState.ENDED) recordSegmentWatchProgress(chartKey);
+      }
+    }
+  });
+}
+
+function startSegmentWatchTracking(chartKey) {
+  stopSegmentWatchTracking();
+  lastVideoTime = null;
+  segmentWatchTimer = window.setInterval(() => recordSegmentWatchProgress(chartKey), 500);
+}
+
+function stopSegmentWatchTracking() {
+  if (segmentWatchTimer) window.clearInterval(segmentWatchTimer);
+  segmentWatchTimer = null;
+  lastVideoTime = null;
+}
+
+function recordSegmentWatchProgress(chartKey) {
+  if (!segmentPlayer?.getCurrentTime || activeVideoChartKey !== chartKey || chartState.videoWatched[chartKey]) return;
+  const lesson = chartLessons[chartKey];
+  const currentTime = Number(segmentPlayer.getCurrentTime());
+  if (lastVideoTime !== null) {
+    const delta = currentTime - lastVideoTime;
+    if (delta > 0 && delta <= 1.5 && currentTime >= lesson.start - 1 && currentTime <= lesson.end + 1) {
+      const duration = lesson.end - lesson.start;
+      chartState.videoWatchSeconds[chartKey] = Math.min(duration, Number(chartState.videoWatchSeconds[chartKey] || 0) + delta);
+      if (chartState.videoWatchSeconds[chartKey] >= requiredWatchSeconds(chartKey)) {
+        chartState.videoWatched[chartKey] = true;
+        stopSegmentWatchTracking();
+      }
+      saveChartState();
+      updateVideoWatchStatus();
+    }
+  }
+  lastVideoTime = currentTime;
+}
+
+function requiredWatchSeconds(chartKey) {
+  return Math.max(1, (chartLessons[chartKey].end - chartLessons[chartKey].start) * .8);
+}
+
+function updateVideoWatchStatus() {
+  const status = document.querySelector("#videoWatchStatus");
+  if (!status || !activeVideoChartKey) return;
+  if (!chartState.videoWatched[activeVideoChartKey]
+      && Number(chartState.videoWatchSeconds[activeVideoChartKey] || 0) >= requiredWatchSeconds(activeVideoChartKey)) {
+    chartState.videoWatched[activeVideoChartKey] = true;
+    saveChartState();
+  }
+  const watched = chartState.videoWatched[activeVideoChartKey];
+  const required = Math.ceil(requiredWatchSeconds(activeVideoChartKey));
+  const seconds = Math.min(required, Math.floor(Number(chartState.videoWatchSeconds[activeVideoChartKey] || 0)));
+  status.textContent = watched ? "Video complete ✓ You may continue." : `Video required · ${seconds} of ${required} seconds watched.`;
+  status.classList.toggle("complete", Boolean(watched));
+}
+
+function destroySegmentPlayer() {
+  stopSegmentWatchTracking();
+  if (segmentPlayer?.destroy) {
+    try { segmentPlayer.destroy(); } catch {}
+  }
+  segmentPlayer = null;
+}
+
 function renderMicroLearn(chartKey, stepIndex) {
   const lesson = chartLessons[chartKey];
+  destroySegmentPlayer();
+  activeVideoChartKey = chartKey;
   document.querySelector("#microLearnStep").textContent = `Step ${stepIndex + 1} of ${lessonSteps.length} · Learn`;
   document.querySelector("#microLearnTitle").textContent = lesson.title;
   document.querySelector("#examplePanelTitle").textContent = `${lesson.title} example`;
@@ -158,9 +262,9 @@ function renderMicroLearn(chartKey, stepIndex) {
   document.querySelector("#microQuestion").textContent = lesson.exampleQuestion;
   document.querySelector("#microExample").innerHTML = microExampleMarkup(chartKey);
   document.querySelector("#microVideoTime").textContent = `${formatTimestamp(lesson.start)}–${formatTimestamp(lesson.end)}`;
-  const video = document.querySelector("#segmentVideo");
-  video.title = `${lesson.title} video segment`;
-  video.src = `https://www.youtube-nocookie.com/embed/o7F-tbBl_hA?start=${lesson.start}&end=${lesson.end}&rel=0&modestbranding=1`;
+  document.querySelector("#segmentVideoFrame").innerHTML = '<div id="segmentVideo"></div>';
+  updateVideoWatchStatus();
+  if (window.YT?.Player) initializeSegmentPlayer(chartKey);
   const videoLink = document.querySelector("#segmentVideoLink");
   videoLink.href = `https://www.youtube.com/watch?v=o7F-tbBl_hA&t=${lesson.start}s`;
   videoLink.textContent = `Open the ${formatTimestamp(lesson.start)} segment on YouTube`;
@@ -594,6 +698,11 @@ function setupLessonNavigation() {
 function validateLessonStep(step) {
   const message = document.querySelector("#navigationMessage");
   message.textContent = "";
+  if (step.phase === "learn" && !chartState.videoWatched[step.chartKey]) {
+    message.textContent = "Watch the complete video segment before continuing.";
+    updateVideoWatchStatus();
+    return false;
+  }
   if (step.phase === "learn") chartState.lessonViewed[step.chartKey] = true;
   if (step.phase === "check" && !checkMicroQuestions(step.chartKey)) {
     message.textContent = "Correct all three answers before continuing.";
@@ -623,10 +732,9 @@ function showLessonStep(index, historyMode = "push", scroll = true) {
   document.querySelectorAll("[data-lesson-screen]").forEach(section => {
     section.hidden = section.dataset.lessonScreen !== active.screen;
   });
-  const segmentVideo = document.querySelector("#segmentVideo");
   if (active.phase === "learn") renderMicroLearn(active.chartKey, safeIndex);
   else if (active.phase === "check") renderMicroCheck(active.chartKey, safeIndex);
-  else segmentVideo.removeAttribute("src");
+  else destroySegmentPlayer();
   chartState.currentStep = active.id;
   saveChartState();
   document.querySelector("#navigationMessage").textContent = `Step ${safeIndex + 1} of ${lessonSteps.length} · Your work saves automatically.`;
@@ -680,6 +788,7 @@ function formatTimestamp(seconds) { return `${Math.floor(seconds / 60)}:${String
 function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 
 loadChartState();
+loadYouTubeApi();
 setupChartBuilder();
 setupSentences();
 updateClassProgress();
