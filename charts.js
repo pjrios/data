@@ -1,38 +1,95 @@
 const chartStorageKey = "chartPracticeStateV1";
-const lessonSteps = [
-  { id: "video", name: "Watch the video" },
-  { id: "examples", name: "Explore chart examples" },
-  { id: "identify", name: "Identify chart types" },
-  { id: "matching", name: "Choose the correct use" },
-  { id: "builder", name: "Build a chart" },
-  { id: "interpret", name: "Interpret the chart" },
-  { id: "evidence", name: "Highlight strong evidence" }
-];
-const correctIdentifications = { barFamily: "bar", histogram: "histogram", pie: "pie", scatter: "scatter", line: "line" };
-const identificationNames = { bar: "bar chart", histogram: "histogram", pie: "pie chart", scatter: "scatter plot", line: "line chart" };
-const correctJudgments = { verticalComparison: "yes", horizontalRanking: "yes", stackedWhole: "yes", histogramDistribution: "yes", pieTrend: "no", scatterCorrelation: "yes", lineTime: "yes" };
-const builderChartTypes = ["bar", "horizontalBar", "stackedBar", "histogram", "pie", "scatter", "line"];
-const judgmentExplanations = {
-  verticalComparison: "Yes. Separate columns make values across product categories easy to compare.",
-  horizontalRanking: "Yes. Horizontal bars leave room for labels and make a highest-to-lowest ranking easy to scan.",
-  stackedWhole: "Yes. Each complete bar shows a class total, while its colored stacks show the groups inside that total.",
-  histogramDistribution: "Yes. A histogram groups numerical heights into continuous ranges and shows how often values occur.",
-  pieTrend: "No. A pie chart shows parts of one whole. A line chart is better for daily change across two weeks.",
-  scatterCorrelation: "Yes. Each point pairs one study-hours value with one quiz-score value so a possible correlation can be seen.",
-  lineTime: "Yes. Connecting monthly values makes change over time easy to follow."
+const chartLessons = {
+  column: {
+    title: "Vertical / column chart", shortTitle: "Column chart", start: 16, end: 54,
+    purpose: "compare numerical values across separate categories",
+    exampleQuestion: "Which category has the highest value?",
+    questions: [
+      { id: "purpose", prompt: "What is the best use of a vertical or column chart?", options: [["categories", "Compare values across categories"], ["distribution", "Show a numerical distribution"], ["correlation", "Look for correlation"]], correct: "categories", explanation: "Separate columns make category values easy to compare." },
+      { id: "shape", prompt: "What should appear along the horizontal axis in this example?", options: [["categories", "Separate categories"], ["percentages", "Only percentages"], ["pairs", "Pairs of numerical variables"]], correct: "categories", explanation: "Each column belongs to one category on the horizontal axis." },
+      { id: "gaps", prompt: "Should category columns normally have gaps between them?", options: [["yes", "Yes"], ["no", "No"]], correct: "yes", explanation: "Gaps show that the categories are separate rather than continuous ranges." }
+    ]
+  },
+  horizontal: {
+    title: "Horizontal bar chart", shortTitle: "Horizontal bars", start: 54, end: 73,
+    purpose: "show a ranking and make long category labels easy to read",
+    exampleQuestion: "What is the highest-to-lowest ranking?",
+    questions: [
+      { id: "purpose", prompt: "When is a horizontal bar chart especially useful?", options: [["ranking", "Showing a ranking"], ["time", "Showing change over time"], ["whole", "Showing one whole as slices"]], correct: "ranking", explanation: "Horizontal bars make a highest-to-lowest ranking easy to scan." },
+      { id: "labels", prompt: "Why can horizontal bars help when category names are long?", options: [["space", "There is more room for labels"], ["touch", "The bars must touch"], ["connect", "The bars are connected"]], correct: "space", explanation: "Labels can sit beside the bars with more horizontal space." },
+      { id: "order", prompt: "For a ranking, how should the bars usually be ordered?", options: [["ranked", "Highest to lowest or lowest to highest"], ["random", "Randomly"], ["time", "Only by date"]], correct: "ranked", explanation: "Sorting the bars reveals the ranking immediately." }
+    ]
+  },
+  stacked: {
+    title: "Stacked bar chart", shortTitle: "Stacked bars", start: 73, end: 113,
+    purpose: "compare totals while also showing the parts inside each total",
+    exampleQuestion: "Which total is largest, and how is it divided?",
+    questions: [
+      { id: "purpose", prompt: "What does a stacked bar chart show at the same time?", options: [["parts", "Totals and the parts inside them"], ["correlation", "Correlation between two variables"], ["distribution", "Only a distribution"]], correct: "parts", explanation: "The full bar shows the total and each colored segment shows one part." },
+      { id: "segments", prompt: "What does each colored segment represent?", options: [["part", "A part of the category total"], ["date", "A date on a timeline"], ["bin", "A numerical range"]], correct: "part", explanation: "Segments divide each category total into meaningful parts." },
+      { id: "compare", prompt: "Can stacked bars compare both total size and composition?", options: [["yes", "Yes"], ["no", "No"]], correct: "yes", explanation: "You can compare full bar lengths and the segments within them." }
+    ]
+  },
+  histogram: {
+    title: "Histogram", shortTitle: "Histogram", start: 113, end: 158,
+    purpose: "show how numerical data is distributed across continuous ranges",
+    exampleQuestion: "Which numerical range occurs most often?",
+    questions: [
+      { id: "purpose", prompt: "What is a histogram used to show?", options: [["distribution", "A numerical distribution"], ["ranking", "A category ranking"], ["whole", "Parts of one whole"]], correct: "distribution", explanation: "Histograms show how often numerical values fall into ranges." },
+      { id: "touch", prompt: "Why do histogram bars normally touch?", options: [["continuous", "The numerical ranges are continuous"], ["decoration", "It is only decorative"], ["ranking", "The values are ranked"]], correct: "continuous", explanation: "One range continues directly into the next, so the bars touch." },
+      { id: "axis", prompt: "What belongs along a histogram’s horizontal axis?", options: [["ranges", "Numerical ranges or bins"], ["names", "Unordered names"], ["percentOnly", "Only percentages"]], correct: "ranges", explanation: "The horizontal axis is divided into ordered numerical intervals." }
+    ]
+  },
+  pie: {
+    title: "Pie chart", shortTitle: "Pie chart", start: 158, end: 221,
+    purpose: "show how one whole is divided into a small number of parts",
+    exampleQuestion: "What percentage of the whole belongs to each part?",
+    questions: [
+      { id: "purpose", prompt: "What should all slices of a pie chart represent together?", options: [["whole", "One complete whole"], ["timeline", "A timeline"], ["correlation", "A correlation"]], correct: "whole", explanation: "Every slice is one part of the same complete whole." },
+      { id: "total", prompt: "What should all pie-chart percentages add up to?", options: [["100", "100%"], ["50", "50%"], ["any", "Any unrelated total"]], correct: "100", explanation: "The complete circle represents 100% of the whole." },
+      { id: "categories", prompt: "Is a pie chart clearest with a small number of meaningful slices?", options: [["yes", "Yes"], ["no", "No"]], correct: "yes", explanation: "Too many slices are difficult to compare and label clearly." }
+    ]
+  },
+  scatter: {
+    title: "Scatter chart", shortTitle: "Scatter chart", start: 221, end: 241,
+    purpose: "look for a relationship or correlation between two numerical variables",
+    exampleQuestion: "Do quiz scores tend to rise as study hours rise?",
+    questions: [
+      { id: "purpose", prompt: "What does a scatter chart help you investigate?", options: [["correlation", "A possible correlation"], ["whole", "Parts of one whole"], ["ranking", "A simple ranking"]], correct: "correlation", explanation: "The pattern of points can reveal a relationship between two variables." },
+      { id: "point", prompt: "What does one point represent?", options: [["pair", "A pair of numerical values"], ["slice", "A percentage slice"], ["total", "A stacked total"]], correct: "pair", explanation: "Each point has one x-value and one y-value." },
+      { id: "connect", prompt: "Should scatter points normally be connected in time order?", options: [["no", "No"], ["yes", "Yes"]], correct: "no", explanation: "Scatter points show paired observations, not a time sequence." }
+    ]
+  },
+  line: {
+    title: "Line chart", shortTitle: "Line chart", start: 241, end: 269,
+    purpose: "show change over time or another meaningful ordered sequence",
+    exampleQuestion: "How did the value change from one time period to the next?",
+    questions: [
+      { id: "purpose", prompt: "What is the best use of a line chart?", options: [["time", "Show change over time"], ["whole", "Show parts of one whole"], ["distribution", "Group values into ranges"]], correct: "time", explanation: "Connected points make a trend across time easy to follow." },
+      { id: "order", prompt: "Why are the points connected?", options: [["sequence", "They follow a meaningful order"], ["categories", "They are unrelated categories"], ["slices", "They form a whole"]], correct: "sequence", explanation: "The line connects consecutive positions in an ordered sequence." },
+      { id: "unordered", prompt: "Is a line chart usually the best choice for unrelated categories such as favorite colors?", options: [["no", "No"], ["yes", "Yes"]], correct: "no", explanation: "A bar chart is clearer for unrelated categories because a line suggests continuity." }
+    ]
+  }
 };
+const chartLessonOrder = ["column", "horizontal", "stacked", "histogram", "pie", "scatter", "line"];
+const lessonSteps = chartLessonOrder.flatMap(key => [
+  { id: `${key}-learn`, name: `Learn: ${chartLessons[key].shortTitle}`, screen: "microLearn", chartKey: key, phase: "learn" },
+  { id: `${key}-check`, name: `Check: ${chartLessons[key].shortTitle}`, screen: "microCheck", chartKey: key, phase: "check" }
+]).concat([
+  { id: "builder", name: "Build a chart", screen: "builder" },
+  { id: "interpret", name: "Interpret the chart", screen: "interpret" },
+  { id: "evidence", name: "Highlight strong evidence", screen: "evidence" }
+]);
+const builderChartTypes = ["bar", "horizontalBar", "stackedBar", "histogram", "pie", "scatter", "line"];
 const sentenceKeys = ["pattern", "comparison", "outlier", "conclusion"];
 const chartColors = ["#3157d5", "#2c7f8f", "#df8a3d", "#7b61b3", "#3b9b68", "#c85367", "#6b7280", "#a66b2b"];
 
 function defaultChartState() {
   return {
-    videoWatched: false,
-    examplesReviewed: false,
-    identifications: {},
-    identificationsCorrect: false,
-    judgments: {},
-    judgmentsCorrect: false,
-    currentStep: "video",
+    lessonViewed: {},
+    lessonAnswers: {},
+    lessonChecks: {},
+    currentStep: "column-learn",
     lessonFinished: false,
     chartType: "bar",
     title: "Practice scores by week",
@@ -63,14 +120,11 @@ function loadChartState() {
     chartState = {
       ...defaults,
       ...saved,
-      videoWatched: saved.videoWatched === true,
-      examplesReviewed: saved.examplesReviewed === true,
-      identifications: saved.identifications && typeof saved.identifications === "object" ? saved.identifications : {},
-      identificationsCorrect: Object.keys(correctIdentifications).every(key => saved.identifications?.[key] === correctIdentifications[key]),
-      judgments: saved.judgments && typeof saved.judgments === "object" ? saved.judgments : {},
-      judgmentsCorrect: Object.keys(correctJudgments).every(key => saved.judgments?.[key] === correctJudgments[key]),
+      lessonViewed: saved.lessonViewed && typeof saved.lessonViewed === "object" ? saved.lessonViewed : {},
+      lessonAnswers: saved.lessonAnswers && typeof saved.lessonAnswers === "object" ? saved.lessonAnswers : {},
+      lessonChecks: saved.lessonChecks && typeof saved.lessonChecks === "object" ? saved.lessonChecks : {},
       chartType: builderChartTypes.includes(saved.chartType) ? saved.chartType : defaults.chartType,
-      currentStep: lessonSteps.some(step => step.id === saved.currentStep) ? saved.currentStep : "video",
+      currentStep: lessonSteps.some(step => step.id === saved.currentStep) ? saved.currentStep : defaults.currentStep,
       lessonFinished: saved.lessonFinished === true,
       rows: Array.isArray(saved.rows) && saved.rows.length >= 2 && saved.rows.length <= 8
         ? saved.rows.map((row, index) => ({ ...row, value2: row.value2 ?? defaults.rows[index % defaults.rows.length].value2 }))
@@ -87,124 +141,95 @@ function saveChartState() {
 }
 
 function updateClassProgress() {
-  const completed = [
-    chartState.videoWatched,
-    chartState.examplesReviewed,
-    chartState.identificationsCorrect,
-    chartState.judgmentsCorrect,
-    chartState.chartCreated,
-    sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10),
-    Boolean(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())
-  ].filter(Boolean).length;
-  document.querySelector("#classProgressBar").style.width = `${(completed / 7) * 100}%`;
-  document.querySelector("#classProgressText").textContent = `${completed} of 7 steps complete.`;
+  const completedChecks = chartLessonOrder.filter(key => chartState.lessonChecks[key]).length;
+  const completedActivities = completedChecks
+    + Number(chartState.chartCreated)
+    + Number(sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10))
+    + Number(Boolean(chartState.strongest && chartState.sentences[chartState.strongest]?.trim()));
+  document.body.dataset.completedActivities = String(completedActivities);
 }
 
-function setupIdentification() {
-  document.querySelectorAll("[data-identification]").forEach(select => {
-    select.value = chartState.identifications[select.dataset.identification] || "";
-    select.addEventListener("change", () => {
-      chartState.identifications[select.dataset.identification] = select.value;
-      chartState.identificationsCorrect = false;
-      const card = select.closest(".identify-card");
-      card.classList.remove("correct", "incorrect");
-      card.querySelector(".identify-feedback").textContent = "";
-      document.querySelector("#identifyResult").textContent = "";
-      saveChartState();
-      updateClassProgress();
-    });
-  });
-  if (chartState.identificationsCorrect) renderIdentificationFeedback();
+function renderMicroLearn(chartKey, stepIndex) {
+  const lesson = chartLessons[chartKey];
+  document.querySelector("#microLearnStep").textContent = `Step ${stepIndex + 1} of ${lessonSteps.length} · Learn`;
+  document.querySelector("#microLearnTitle").textContent = lesson.title;
+  document.querySelector("#examplePanelTitle").textContent = `${lesson.title} example`;
+  document.querySelector("#microPurpose").textContent = lesson.purpose;
+  document.querySelector("#microQuestion").textContent = lesson.exampleQuestion;
+  document.querySelector("#microExample").innerHTML = microExampleMarkup(chartKey);
+  document.querySelector("#microVideoTime").textContent = `${formatTimestamp(lesson.start)}–${formatTimestamp(lesson.end)}`;
+  const video = document.querySelector("#segmentVideo");
+  video.title = `${lesson.title} video segment`;
+  video.src = `https://www.youtube-nocookie.com/embed/o7F-tbBl_hA?start=${lesson.start}&end=${lesson.end}&rel=0&modestbranding=1`;
+  const videoLink = document.querySelector("#segmentVideoLink");
+  videoLink.href = `https://www.youtube.com/watch?v=o7F-tbBl_hA&t=${lesson.start}s`;
+  videoLink.textContent = `Open the ${formatTimestamp(lesson.start)} segment on YouTube`;
 }
 
-function checkIdentifications() {
+function renderMicroCheck(chartKey, stepIndex) {
+  const lesson = chartLessons[chartKey];
+  const savedAnswers = chartState.lessonAnswers[chartKey] || {};
+  document.querySelector("#microCheckStep").textContent = `Step ${stepIndex + 1} of ${lessonSteps.length} · Check your understanding`;
+  document.querySelector("#microCheckTitle").textContent = `${lesson.title}: three quick questions`;
+  const list = document.querySelector("#microQuestionList");
+  list.innerHTML = lesson.questions.map((question, index) => `
+    <fieldset class="micro-question-card" data-micro-card="${question.id}">
+      <legend><span>${index + 1}</span>${escapeHtml(question.prompt)}</legend>
+      <div class="micro-options">${question.options.map(([value, label]) => `
+        <label><input type="radio" name="${chartKey}-${question.id}" data-micro-question="${question.id}" value="${value}"${savedAnswers[question.id] === value ? " checked" : ""}> <span>${escapeHtml(label)}</span></label>`).join("")}
+      </div>
+      <p class="micro-answer-feedback" aria-live="polite"></p>
+    </fieldset>`).join("");
+  list.querySelectorAll("[data-micro-question]").forEach(radio => radio.addEventListener("change", () => {
+    chartState.lessonAnswers[chartKey] = { ...(chartState.lessonAnswers[chartKey] || {}), [radio.dataset.microQuestion]: radio.value };
+    chartState.lessonChecks[chartKey] = false;
+    const card = radio.closest(".micro-question-card");
+    card.classList.remove("correct", "incorrect");
+    card.querySelector(".micro-answer-feedback").textContent = "";
+    const result = document.querySelector("#microCheckResult");
+    result.textContent = "";
+    result.className = "result";
+    saveChartState();
+    updateClassProgress();
+  }));
+  if (chartState.lessonChecks[chartKey]) checkMicroQuestions(chartKey);
+}
+
+function checkMicroQuestions(chartKey) {
+  const lesson = chartLessons[chartKey];
+  const answers = chartState.lessonAnswers[chartKey] || {};
   let score = 0;
-  Object.keys(correctIdentifications).forEach(key => {
-    const correct = chartState.identifications[key] === correctIdentifications[key];
-    const card = document.querySelector(`[data-identify-card="${key}"]`);
-    card.classList.toggle("correct", correct);
-    card.classList.toggle("incorrect", !correct);
-    card.querySelector(".identify-feedback").textContent = !chartState.identifications[key]
-      ? "Choose a chart type."
-      : correct
-        ? `Correct: ${identificationNames[correctIdentifications[key]]}.`
-        : `Look at the shape again. This is a ${identificationNames[correctIdentifications[key]]}.`;
-    if (correct) score += 1;
+  lesson.questions.forEach(question => {
+    const card = document.querySelector(`[data-micro-card="${question.id}"]`);
+    const isCorrect = answers[question.id] === question.correct;
+    card.classList.toggle("correct", isCorrect);
+    card.classList.toggle("incorrect", !isCorrect);
+    card.querySelector(".micro-answer-feedback").textContent = !answers[question.id]
+      ? "Choose an answer."
+      : `${isCorrect ? "Correct." : "Try again."} ${question.explanation}`;
+    if (isCorrect) score += 1;
   });
-  chartState.identificationsCorrect = score === 5;
+  const passed = score === lesson.questions.length;
+  chartState.lessonChecks[chartKey] = passed;
   saveChartState();
-  const result = document.querySelector("#identifyResult");
-  result.textContent = score === 5 ? "Excellent—you recognized all five displays." : `${score} of 5 are correct. Review the highlighted displays and try again.`;
-  result.className = `result ${score === 5 ? "success" : "warning"}`;
   updateClassProgress();
-  return chartState.identificationsCorrect;
+  const result = document.querySelector("#microCheckResult");
+  result.textContent = passed ? `Excellent—you understand the ${lesson.title.toLowerCase()}.` : `${score} of ${lesson.questions.length} correct. Review the feedback and try again.`;
+  result.className = `result ${passed ? "success" : "warning"}`;
+  return passed;
 }
 
-function renderIdentificationFeedback() {
-  Object.keys(correctIdentifications).forEach(key => {
-    const card = document.querySelector(`[data-identify-card="${key}"]`);
-    card.classList.add("correct");
-    card.classList.remove("incorrect");
-    card.querySelector(".identify-feedback").textContent = `Correct: ${identificationNames[correctIdentifications[key]]}.`;
-  });
-  const result = document.querySelector("#identifyResult");
-  result.textContent = "Excellent—you recognized all five displays.";
-  result.className = "result success";
-}
-
-function setupMatching() {
-  document.querySelectorAll("[data-judgment]").forEach(radio => {
-    radio.checked = chartState.judgments[radio.dataset.judgment] === radio.value;
-    radio.addEventListener("change", () => {
-      chartState.judgments[radio.dataset.judgment] = radio.value;
-      chartState.judgmentsCorrect = false;
-      const card = radio.closest(".judgment-card");
-      card.classList.remove("correct", "incorrect");
-      card.querySelector(".judgment-feedback").textContent = "";
-      document.querySelector("#matchResult").textContent = "";
-      saveChartState();
-      updateClassProgress();
-    });
-  });
-
-  if (chartState.judgmentsCorrect) {
-    const result = document.querySelector("#matchResult");
-    result.textContent = "Excellent—each display fits the question it is being used to answer.";
-    result.className = "result success";
-    renderJudgmentFeedback();
-  }
-
-}
-
-function checkJudgments() {
-  let score = 0;
-  const total = Object.keys(correctJudgments).length;
-  Object.keys(correctJudgments).forEach(key => {
-    const correct = chartState.judgments[key] === correctJudgments[key];
-    const card = document.querySelector(`[data-judgment-card="${key}"]`);
-    card.classList.toggle("correct", correct);
-    card.classList.toggle("incorrect", !correct);
-    card.querySelector(".judgment-feedback").textContent = chartState.judgments[key]
-      ? judgmentExplanations[key]
-      : "Choose Yes or No, then continue again.";
-    if (correct) score += 1;
-  });
-  chartState.judgmentsCorrect = score === total;
-  saveChartState();
-  const result = document.querySelector("#matchResult");
-  result.textContent = score === total ? "Excellent—each display fits the question it is being used to answer." : `${score} of ${total} choices are correct. Read each explanation, compare it with the examples, and try again.`;
-  result.className = `result ${score === total ? "success" : "warning"}`;
-  updateClassProgress();
-  return chartState.judgmentsCorrect;
-}
-
-function renderJudgmentFeedback() {
-  Object.keys(correctJudgments).forEach(key => {
-    const card = document.querySelector(`[data-judgment-card="${key}"]`);
-    card.classList.add("correct");
-    card.classList.remove("incorrect");
-    card.querySelector(".judgment-feedback").textContent = judgmentExplanations[key];
-  });
+function microExampleMarkup(chartKey) {
+  const examples = {
+    column: `<svg class="micro-svg" viewBox="0 0 480 300" role="img" aria-label="Column chart comparing books read by four classes"><text x="240" y="25" text-anchor="middle">Books read by class</text><line x1="58" y1="250" x2="450" y2="250"/><line x1="58" y1="48" x2="58" y2="250"/><g class="blue-fill"><rect x="90" y="160" width="52" height="90"/><rect x="180" y="105" width="52" height="145"/><rect x="270" y="135" width="52" height="115"/><rect x="360" y="72" width="52" height="178"/></g><g class="axis-label"><text x="116" y="273">9A</text><text x="206" y="273">9B</text><text x="296" y="273">9C</text><text x="386" y="273">9D</text></g></svg>`,
+    horizontal: `<svg class="micro-svg" viewBox="0 0 480 300" role="img" aria-label="Horizontal bar chart ranking four school clubs"><text x="240" y="25" text-anchor="middle">Most popular clubs</text><g class="teal-fill"><rect x="130" y="58" width="285" height="34"/><rect x="130" y="112" width="220" height="34"/><rect x="130" y="166" width="160" height="34"/><rect x="130" y="220" width="105" height="34"/></g><g class="left-label"><text x="120" y="80">Robotics</text><text x="120" y="134">Art</text><text x="120" y="188">Chess</text><text x="120" y="242">Drama</text></g></svg>`,
+    stacked: `<svg class="micro-svg" viewBox="0 0 480 300" role="img" aria-label="Stacked bars comparing completed and remaining tasks"><text x="240" y="25" text-anchor="middle">Project tasks</text><line x1="55" y1="250" x2="450" y2="250"/><g><rect x="92" y="118" width="62" height="132" fill="#3157d5"/><rect x="92" y="72" width="62" height="46" fill="#df8a3d"/><rect x="208" y="145" width="62" height="105" fill="#3157d5"/><rect x="208" y="96" width="62" height="49" fill="#df8a3d"/><rect x="324" y="92" width="62" height="158" fill="#3157d5"/><rect x="324" y="60" width="62" height="32" fill="#df8a3d"/></g><g class="axis-label"><text x="123" y="273">A</text><text x="239" y="273">B</text><text x="355" y="273">C</text></g></svg>`,
+    histogram: `<svg class="micro-svg" viewBox="0 0 480 300" role="img" aria-label="Histogram of quiz score ranges"><text x="240" y="25" text-anchor="middle">Quiz score distribution</text><line x1="55" y1="250" x2="450" y2="250"/><g class="blue-fill"><rect x="75" y="205" width="72" height="45"/><rect x="147" y="150" width="72" height="100"/><rect x="219" y="75" width="72" height="175"/><rect x="291" y="115" width="72" height="135"/><rect x="363" y="185" width="72" height="65"/></g><g class="small-label"><text x="111" y="273">50–59</text><text x="183" y="273">60–69</text><text x="255" y="273">70–79</text><text x="327" y="273">80–89</text><text x="399" y="273">90–99</text></g></svg>`,
+    pie: `<div class="micro-pie-wrap" role="img" aria-label="Pie chart showing how class time is divided"><h4>Class time</h4><div class="micro-pie"></div><div class="micro-legend"><span><i class="practice"></i>Practice 50%</span><span><i class="discussion"></i>Discussion 30%</span><span><i class="reflection"></i>Reflection 20%</span></div></div>`,
+    scatter: `<svg class="micro-svg" viewBox="0 0 480 300" role="img" aria-label="Scatter chart comparing study hours and quiz scores"><text x="240" y="25" text-anchor="middle">Study time and quiz score</text><line x1="65" y1="250" x2="445" y2="250"/><line x1="65" y1="48" x2="65" y2="250"/><g class="orange-fill"><circle cx="102" cy="220" r="8"/><circle cx="145" cy="195" r="8"/><circle cx="195" cy="202" r="8"/><circle cx="245" cy="155" r="8"/><circle cx="310" cy="132" r="8"/><circle cx="365" cy="84" r="8"/><circle cx="410" cy="68" r="8"/></g><text class="axis-title" x="255" y="285">Study hours</text><text class="axis-title" transform="translate(22 180) rotate(-90)">Quiz score</text></svg>`,
+    line: `<svg class="micro-svg" viewBox="0 0 480 300" role="img" aria-label="Line chart showing temperature from Monday to Friday"><text x="240" y="25" text-anchor="middle">Temperature by day</text><line x1="60" y1="250" x2="450" y2="250"/><line x1="60" y1="48" x2="60" y2="250"/><polyline points="92,205 175,152 258,170 341,95 424,68" fill="none" stroke="#2c7f8f" stroke-width="7"/><g class="orange-fill"><circle cx="92" cy="205" r="8"/><circle cx="175" cy="152" r="8"/><circle cx="258" cy="170" r="8"/><circle cx="341" cy="95" r="8"/><circle cx="424" cy="68" r="8"/></g><g class="axis-label"><text x="92" y="274">Mon</text><text x="175" y="274">Tue</text><text x="258" y="274">Wed</text><text x="341" y="274">Thu</text><text x="424" y="274">Fri</text></g></svg>`
+  };
+  return examples[chartKey];
 }
 
 function renderDataRows() {
@@ -545,7 +570,7 @@ function setupLessonNavigation() {
   });
   nextButton.addEventListener("click", () => {
     const currentIndex = lessonSteps.findIndex(step => step.id === chartState.currentStep);
-    if (!validateLessonStep(lessonSteps[currentIndex].id)) return;
+    if (!validateLessonStep(lessonSteps[currentIndex])) return;
     if (currentIndex < lessonSteps.length - 1) {
       showLessonStep(currentIndex + 1, "push");
     } else {
@@ -566,29 +591,24 @@ function setupLessonNavigation() {
   showLessonStep(hashIndex >= 0 ? hashIndex : Math.max(savedIndex, 0), "replace", false);
 }
 
-function validateLessonStep(stepId) {
+function validateLessonStep(step) {
   const message = document.querySelector("#navigationMessage");
   message.textContent = "";
-  if (stepId === "video") chartState.videoWatched = true;
-  if (stepId === "examples") chartState.examplesReviewed = true;
-  if (stepId === "identify" && !checkIdentifications()) {
-    message.textContent = "Review the highlighted displays before continuing.";
+  if (step.phase === "learn") chartState.lessonViewed[step.chartKey] = true;
+  if (step.phase === "check" && !checkMicroQuestions(step.chartKey)) {
+    message.textContent = "Correct all three answers before continuing.";
     return false;
   }
-  if (stepId === "matching" && !checkJudgments()) {
-    message.textContent = "Read the explanations and correct your choices before continuing.";
-    return false;
-  }
-  if (stepId === "builder" && !chartState.chartCreated) {
+  if (step.id === "builder" && !chartState.chartCreated) {
     showChartMessage("Create the chart and check its title, labels, and values before continuing.", "warning");
     message.textContent = "Create or update your chart first.";
     return false;
   }
-  if (stepId === "interpret" && !sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10)) {
+  if (step.id === "interpret" && !sentenceKeys.every(key => chartState.sentences[key].trim().length >= 10)) {
     message.textContent = "Write all four evidence sentences before continuing.";
     return false;
   }
-  if (stepId === "evidence" && !(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())) {
+  if (step.id === "evidence" && !(chartState.strongest && chartState.sentences[chartState.strongest]?.trim())) {
     message.textContent = "Select your strongest evidence sentence before finishing.";
     return false;
   }
@@ -600,14 +620,16 @@ function validateLessonStep(stepId) {
 function showLessonStep(index, historyMode = "push", scroll = true) {
   const safeIndex = Math.max(0, Math.min(index, lessonSteps.length - 1));
   const active = lessonSteps[safeIndex];
-  document.querySelectorAll("[data-lesson-step]").forEach(section => {
-    section.hidden = section.dataset.lessonStep !== active.id;
+  document.querySelectorAll("[data-lesson-screen]").forEach(section => {
+    section.hidden = section.dataset.lessonScreen !== active.screen;
   });
+  const segmentVideo = document.querySelector("#segmentVideo");
+  if (active.phase === "learn") renderMicroLearn(active.chartKey, safeIndex);
+  else if (active.phase === "check") renderMicroCheck(active.chartKey, safeIndex);
+  else segmentVideo.removeAttribute("src");
   chartState.currentStep = active.id;
   saveChartState();
-  document.querySelector("#stepCount").textContent = `Step ${safeIndex + 1} of ${lessonSteps.length}`;
-  document.querySelector("#stepName").textContent = active.name;
-  document.querySelector("#navigationMessage").textContent = "Your work saves automatically.";
+  document.querySelector("#navigationMessage").textContent = `Step ${safeIndex + 1} of ${lessonSteps.length} · Your work saves automatically.`;
   updateLessonNavigation(safeIndex);
   const nextUrl = `${window.location.pathname}#${active.id}`;
   if (historyMode === "push") window.history.pushState({ chartStep: active.id }, "", nextUrl);
@@ -618,13 +640,16 @@ function showLessonStep(index, historyMode = "push", scroll = true) {
 function updateLessonNavigation(index) {
   const previousButton = document.querySelector("#previousStepBtn");
   const nextButton = document.querySelector("#nextStepBtn");
-  const nextNames = ["Explore examples", "Identify chart types", "Answer use questions", "Build a chart", "Interpret the chart", "Choose strongest evidence"];
   previousButton.disabled = index === 0;
   if (index === lessonSteps.length - 1) {
     nextButton.textContent = chartState.lessonFinished ? "Activity complete ✓" : "Finish activity ✓";
     nextButton.disabled = chartState.lessonFinished;
   } else {
-    nextButton.textContent = `Next: ${nextNames[index]} →`;
+    const current = lessonSteps[index];
+    const next = lessonSteps[index + 1];
+    if (current.phase === "learn") nextButton.textContent = "Next: Answer 3 questions →";
+    else if (current.phase === "check" && next.phase === "learn") nextButton.textContent = `Next: Learn ${chartLessons[next.chartKey].shortTitle} →`;
+    else nextButton.textContent = `Next: ${next.name} →`;
     nextButton.disabled = false;
   }
 }
@@ -651,11 +676,10 @@ function svgElement(tag, attributes, text) {
 
 function shortLabel(value) { return value.length > 11 ? `${value.slice(0, 10)}…` : value; }
 function formatNumber(value) { return Number.isInteger(value) ? String(value) : value.toFixed(1); }
+function formatTimestamp(seconds) { return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, "0")}`; }
 function escapeHtml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;"); }
 
 loadChartState();
-setupIdentification();
-setupMatching();
 setupChartBuilder();
 setupSentences();
 updateClassProgress();

@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chart Lab · Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260721e" />
-  <link rel="stylesheet" href="charts.css?v=20260721e" />
+  <link rel="stylesheet" href="styles.css?v=20260722" />
+  <link rel="stylesheet" href="charts.css?v=20260722" />
 </head>
 <body>
   <header class="hero chart-hero">
@@ -21,19 +21,50 @@
   </header>
 
   <main class="wrap chart-main">
-    <section class="card chart-overview lesson-progress" aria-label="Lesson progress">
+    <section class="card chart-overview lesson-progress" aria-label="Lesson progress" hidden>
       <div><span id="stepCount">Step 1 of 7</span><strong id="stepName">Watch the video</strong></div>
       <span class="timer">80–90 min</span>
       <div class="progress-track" aria-hidden="true"><div id="classProgressBar"></div></div>
       <p id="classProgressText" class="progress-text" aria-live="polite"></p>
     </section>
 
-    <section id="video" class="card lesson-step" data-lesson-step="video">
+    <section id="microLearn" class="card lesson-step micro-lesson" data-lesson-screen="microLearn">
+      <p id="microLearnStep" class="step">Chart lesson</p>
+      <h2 id="microLearnTitle">Learn the chart</h2>
+      <p id="microLearnInstruction" class="hint">Study the example and watch the short video segment. Then select Next to answer three questions.</p>
+      <div class="micro-lesson-layout">
+        <article class="micro-panel example-panel" aria-labelledby="examplePanelTitle">
+          <div class="micro-panel-heading"><span>Example</span><h3 id="examplePanelTitle">Chart example</h3></div>
+          <div id="microExample" class="micro-example"></div>
+          <div class="micro-purpose"><strong>Use it to:</strong> <span id="microPurpose"></span></div>
+          <div class="micro-question"><strong>It can answer:</strong> <span id="microQuestion"></span></div>
+        </article>
+        <article class="micro-panel video-panel" aria-labelledby="videoPanelTitle">
+          <div class="micro-panel-heading"><span id="microVideoTime">Video segment</span><h3 id="videoPanelTitle">Watch this section</h3></div>
+          <div class="segment-video-frame">
+            <iframe id="segmentVideo" title="Chart lesson video segment" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+          </div>
+          <p class="segment-note">Watch only this chart’s section. The player stops at the end of the segment.</p>
+          <a id="segmentVideoLink" class="segment-link" href="https://www.youtube.com/watch?v=o7F-tbBl_hA" target="_blank" rel="noopener">Open this segment on YouTube</a>
+        </article>
+      </div>
+      <div class="micro-direction"><strong>Next:</strong> Answer three questions about this chart. Correct all three to continue.</div>
+    </section>
+
+    <section id="microCheck" class="card lesson-step micro-check" data-lesson-screen="microCheck" hidden>
+      <p id="microCheckStep" class="step">Chart check</p>
+      <h2 id="microCheckTitle">Check your understanding</h2>
+      <p class="hint">Answer all three questions. If an answer needs revision, read the explanation and try again.</p>
+      <div id="microQuestionList" class="micro-question-list"></div>
+      <div id="microCheckResult" class="result" aria-live="polite"></div>
+    </section>
+
+    <section id="video" class="card lesson-step" data-lesson-step="video" hidden>
       <p class="step">Step 1 · Watch · About 7 minutes</p>
       <h2>How do we choose the right graph?</h2>
       <p class="hint">Watch the video. Listen for the three bar-chart variations and what histogram, pie, scatter, and line charts help us understand.</p>
       <div class="video-frame">
-        <iframe src="https://www.youtube-nocookie.com/embed/o7F-tbBl_hA?rel=0" title="How To Choose The Right Graph (Types of Graphs and When To Use Them)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
+        <iframe data-src="https://www.youtube-nocookie.com/embed/o7F-tbBl_hA?rel=0" title="How To Choose The Right Graph (Types of Graphs and When To Use Them)" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" referrerpolicy="strict-origin-when-cross-origin" allowfullscreen></iframe>
       </div>
       <p class="video-source">Video: “How To Choose The Right Graph (Types of Graphs and When To Use Them)” by UNDATABLE. <a href="https://www.youtube.com/watch?v=o7F-tbBl_hA" target="_blank" rel="noopener">Open on YouTube</a>.</p>
       <div class="watch-prompt"><strong>While you watch:</strong> Which bar variation shows ranking? What does a histogram show? Which chart shows change over time?</div>
@@ -201,8 +232,8 @@
       <div id="matchResult" class="result" aria-live="polite"></div>
     </section>
 
-    <section id="builder" class="card lesson-step" data-lesson-step="builder" hidden>
-      <p class="step">Step 5 · Create · About 30–35 minutes</p>
+    <section id="builder" class="card lesson-step" data-lesson-screen="builder" hidden>
+      <p class="step">Step 15 of 17 · Create · About 25–30 minutes</p>
       <h2>Create a practice chart</h2>
       <p class="hint">Choose a chart type, edit the sample data, add clear labels, and generate the display. Revise it until the chart communicates the data accurately.</p>
 
@@ -254,8 +285,8 @@
       </section>
     </section>
 
-    <section id="interpret" class="card lesson-step" data-lesson-step="interpret" hidden>
-      <p class="step">Step 6 · Explain · About 15–20 minutes</p>
+    <section id="interpret" class="card lesson-step" data-lesson-screen="interpret" hidden>
+      <p class="step">Step 16 of 17 · Explain · About 15–20 minutes</p>
       <h2>Draft interpretation sentences</h2>
       <p class="hint">Use specific labels or values from your chart. Write one complete evidence sentence for each purpose.</p>
       <div class="interpretation-grid">
@@ -275,8 +306,8 @@
       <p id="sentenceProgress" class="mini-progress" aria-live="polite"></p>
     </section>
 
-    <section id="evidence" class="card lesson-step" data-lesson-step="evidence" hidden>
-      <p class="step">Step 7 · Highlight · About 10 minutes</p>
+    <section id="evidence" class="card lesson-step" data-lesson-screen="evidence" hidden>
+      <p class="step">Step 17 of 17 · Highlight · About 10 minutes</p>
       <h2>Highlight the strongest practice evidence</h2>
       <p class="hint">Choose the sentence that uses the clearest and most accurate evidence from your chart.</p>
       <fieldset class="evidence-choices">
@@ -299,6 +330,6 @@
   </main>
 
   <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
-  <script src="charts.js?v=20260721e"></script>
+  <script src="charts.js?v=20260722"></script>
 </body>
 </html>
