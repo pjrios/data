@@ -144,6 +144,7 @@ function defaultChartState() {
     interpretChartKey: "line",
     currentStep: "column-learn",
     lessonFinished: false,
+    submissionDetails: { group: "", date: getLocalDateValue(), members: ["", ""] },
     chartType: "bar",
     title: "Practice scores by week",
     xAxisLabel: "Week",
@@ -192,6 +193,7 @@ function loadChartState() {
       chartType: builderChartTypes.includes(saved.chartType) ? saved.chartType : defaults.chartType,
       currentStep: lessonSteps.some(step => step.id === saved.currentStep) ? saved.currentStep : defaults.currentStep,
       lessonFinished: saved.lessonFinished === true,
+      submissionDetails: validSubmissionDetails(saved.submissionDetails) ? saved.submissionDetails : defaults.submissionDetails,
       rows: Array.isArray(saved.rows) && saved.rows.length >= 2 && saved.rows.length <= 8
         ? saved.rows.map((row, index) => ({ ...row, value2: row.value2 ?? defaults.rows[index % defaults.rows.length].value2 }))
         : defaults.rows,
@@ -933,6 +935,7 @@ function setupLessonNavigation() {
       chartState.lessonFinished = true;
       saveChartState();
       updateLessonNavigation(currentIndex);
+      updateChartExportAvailability();
       document.querySelector("#navigationMessage").textContent = "Chart Lab complete—your work is saved in this browser.";
     }
   });
@@ -1002,6 +1005,7 @@ function showLessonStep(index, historyMode = "push", scroll = true) {
   saveChartState();
   document.querySelector("#navigationMessage").textContent = `Step ${safeIndex + 1} of ${lessonSteps.length} · Your work saves automatically.`;
   updateLessonNavigation(safeIndex);
+  updateChartExportAvailability();
   const nextUrl = `${window.location.pathname}#${active.id}`;
   if (historyMode === "push") window.history.pushState({ chartStep: active.id }, "", nextUrl);
   if (historyMode === "replace") window.history.replaceState({ chartStep: active.id }, "", nextUrl);
@@ -1024,6 +1028,260 @@ function updateLessonNavigation(index) {
     else nextButton.textContent = `Next: ${next.name} →`;
     nextButton.disabled = false;
   }
+}
+
+function validSubmissionDetails(details) {
+  return Boolean(details
+    && typeof details === "object"
+    && typeof details.group === "string"
+    && /^\d{4}-\d{2}-\d{2}$/.test(details.date)
+    && Array.isArray(details.members)
+    && details.members.length >= 1
+    && details.members.length <= 8
+    && details.members.every(name => typeof name === "string"));
+}
+
+function getLocalDateValue() {
+  const now = new Date();
+  const localDate = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+  return localDate.toISOString().slice(0, 10);
+}
+
+function formatActivityDate(value) {
+  const [year, month, day] = String(value || "").split("-").map(Number);
+  if (!year || !month || !day) return value || "Not provided";
+  return new Date(year, month - 1, day).toLocaleDateString();
+}
+
+function updateChartExportAvailability() {
+  const panel = document.querySelector("#chartExportPanel");
+  const button = document.querySelector("#downloadChartPdfBtn");
+  const help = document.querySelector("#chartExportHelp");
+  if (!panel || !button || !help) return;
+  button.disabled = !chartState.lessonFinished;
+  panel.classList.toggle("ready", chartState.lessonFinished);
+  help.textContent = chartState.lessonFinished
+    ? "Your complete Chart Lab practice is ready to export."
+    : "Finish the activity to unlock your PDF report.";
+}
+
+function renderChartMemberFields(names = []) {
+  const fields = document.querySelector("#chartMemberFields");
+  const requestedCount = Number(document.querySelector("#chartMemberCount").value);
+  if (!Number.isInteger(requestedCount) || requestedCount < 1 || requestedCount > 8) {
+    fields.innerHTML = "";
+    return;
+  }
+  const currentNames = [...fields.querySelectorAll("[data-chart-member]")].map(input => input.value);
+  const values = names.length ? names : currentNames;
+  fields.innerHTML = "";
+  for (let index = 0; index < requestedCount; index += 1) {
+    const label = document.createElement("label");
+    label.textContent = `Member ${index + 1}`;
+    const input = document.createElement("input");
+    input.type = "text";
+    input.maxLength = 60;
+    input.required = true;
+    input.placeholder = "Full name";
+    input.dataset.chartMember = String(index);
+    input.value = values[index] || "";
+    label.appendChild(input);
+    fields.appendChild(label);
+  }
+}
+
+function openChartGroupDialog() {
+  if (!chartState.lessonFinished) return;
+  const details = chartState.submissionDetails;
+  document.querySelector("#chartGroupName").value = details.group;
+  document.querySelector("#chartActivityDate").value = details.date || getLocalDateValue();
+  document.querySelector("#chartMemberCount").value = String(details.members.length || 2);
+  renderChartMemberFields(details.members);
+  document.querySelector("#chartGroupDialog").showModal();
+}
+
+function closeChartGroupDialog() {
+  document.querySelector("#chartGroupDialog").close();
+}
+
+function submitChartGroupDetails(event) {
+  event.preventDefault();
+  chartState.submissionDetails = {
+    group: document.querySelector("#chartGroupName").value.trim(),
+    date: document.querySelector("#chartActivityDate").value,
+    members: [...document.querySelectorAll("[data-chart-member]")].map(input => input.value.trim())
+  };
+  saveChartState();
+  closeChartGroupDialog();
+  downloadChartPdf();
+}
+
+function pdfText(value) {
+  return String(value ?? "").replace(/[–—−]/g, "-");
+}
+
+function chartTypeLabel(type) {
+  return {
+    bar: "Vertical / column chart",
+    horizontalBar: "Horizontal bar chart",
+    stackedBar: "Stacked bar chart",
+    histogram: "Histogram",
+    pie: "Pie chart",
+    scatter: "Scatter chart",
+    line: "Line chart"
+  }[type] || type;
+}
+
+function downloadChartPdf() {
+  if (!chartState.lessonFinished) return;
+  if (!window.jspdf?.jsPDF) {
+    document.querySelector("#navigationMessage").textContent = "The PDF tool could not load. Check your connection and try again.";
+    return;
+  }
+  syncActiveChartBuild();
+  syncActiveInterpretation();
+  saveChartState();
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: "mm", format: "a4" });
+  const pageWidth = doc.internal.pageSize.getWidth();
+  const pageHeight = doc.internal.pageSize.getHeight();
+  const margin = 14;
+  const contentWidth = pageWidth - (margin * 2);
+  const blue = [44, 127, 143];
+  const dark = [29, 36, 51];
+  const muted = [102, 112, 133];
+
+  function ensureSpace(y, needed = 18) {
+    if (y + needed <= pageHeight - 17) return y;
+    doc.addPage();
+    return 18;
+  }
+
+  function sectionTitle(title, y) {
+    y = ensureSpace(y, 15);
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(13);
+    doc.setTextColor(...blue);
+    doc.text(pdfText(title), margin, y);
+    doc.setDrawColor(216, 222, 234);
+    doc.line(margin, y + 2, pageWidth - margin, y + 2);
+    return y + 8;
+  }
+
+  function paragraph(text, y, options = {}) {
+    const safeText = pdfText(text || "Not completed");
+    const lines = doc.splitTextToSize(safeText, contentWidth);
+    y = ensureSpace(y, (lines.length * 5) + 3);
+    doc.setFont("helvetica", options.bold ? "bold" : "normal");
+    doc.setFontSize(options.size || 10);
+    doc.setTextColor(...(options.color || dark));
+    doc.text(lines, margin, y);
+    return y + (lines.length * 5) + 3;
+  }
+
+  doc.setFillColor(...blue);
+  doc.rect(0, 0, pageWidth, 32, "F");
+  doc.setTextColor(255, 255, 255);
+  doc.setFont("helvetica", "bold");
+  doc.setFontSize(22);
+  doc.text("Chart Lab", margin, 15);
+  doc.setFont("helvetica", "normal");
+  doc.setFontSize(10);
+  doc.text("Complete Practice Evidence Report", margin, 23);
+  doc.text(formatActivityDate(chartState.submissionDetails.date), pageWidth - margin, 23, { align: "right" });
+
+  let y = sectionTitle("Group Details", 43);
+  doc.autoTable({
+    startY: y,
+    head: [["Group / Class", "Activity Date", "Members"]],
+    body: [[pdfText(chartState.submissionDetails.group), formatActivityDate(chartState.submissionDetails.date), pdfText(chartState.submissionDetails.members.join(", "))]],
+    margin: { left: margin, right: margin }, theme: "grid",
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 2.8, textColor: dark, overflow: "linebreak" },
+    headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" },
+    columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 34 } }
+  });
+
+  y = sectionTitle("Activity Completion", doc.lastAutoTable.finalY + 12);
+  doc.autoTable({
+    startY: y,
+    head: [["Chart family", "Video", "Check", "Chart", "Read graph"]],
+    body: chartLessonOrder.map(key => {
+      const build = chartState.chartBuilds[key] || {};
+      return [pdfText(chartLessons[key].title), chartState.videoWatched[key] ? "Complete" : "Incomplete", chartState.lessonChecks[key] ? "3/3" : "Incomplete", build.chartCreated ? "Created" : "Incomplete", build.readCorrect ? "2/2" : "Incomplete"];
+    }),
+    margin: { left: margin, right: margin }, theme: "grid",
+    styles: { font: "helvetica", fontSize: 8, cellPadding: 2.3, textColor: dark },
+    headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" }
+  });
+
+  chartLessonOrder.forEach((key, index) => {
+    const build = chartState.chartBuilds[key];
+    if (!build?.chartCreated) return;
+    y = ensureSpace(doc.lastAutoTable.finalY + 12, 110);
+    y = sectionTitle(`${index + 1}. ${chartLessons[key].title} Practice`, y);
+    doc.autoTable({
+      startY: y,
+      body: [
+        ["Chart title", pdfText(build.title)],
+        ["Chart type", chartTypeLabel(build.chartType)],
+        ["Labels", pdfText(`${build.xAxisLabel} / ${build.yAxisLabel}`)],
+        ["Learning evidence", `Video complete; understanding check 3/3; read-your-graph check ${build.readCorrect ? "2/2" : "incomplete"}`]
+      ],
+      margin: { left: margin, right: margin }, theme: "grid",
+      styles: { font: "helvetica", fontSize: 8.5, cellPadding: 2.2, textColor: dark },
+      columnStyles: { 0: { cellWidth: 38, fontStyle: "bold", fillColor: [238, 244, 247] } }
+    });
+
+    let headers;
+    let dataRows;
+    if (build.chartType === "scatter") {
+      headers = [["Point", pdfText(build.xAxisLabel || "X"), pdfText(build.yAxisLabel || "Y")]];
+      dataRows = build.rows.map(row => [pdfText(row.label), pdfText(row.x), pdfText(row.value)]);
+    } else if (build.chartType === "stackedBar") {
+      headers = [[pdfText(build.xAxisLabel || "Category"), pdfText(build.seriesOneLabel || "Series 1"), pdfText(build.seriesTwoLabel || "Series 2")]];
+      dataRows = build.rows.map(row => [pdfText(row.label), pdfText(row.value), pdfText(row.value2)]);
+    } else {
+      headers = [[pdfText(build.xAxisLabel || "Category"), pdfText(build.yAxisLabel || "Value")]];
+      dataRows = build.rows.map(row => [pdfText(row.label), pdfText(row.value)]);
+    }
+    doc.autoTable({
+      startY: doc.lastAutoTable.finalY + 4,
+      head: headers, body: dataRows,
+      margin: { left: margin, right: margin }, theme: "striped",
+      styles: { font: "helvetica", fontSize: 8.5, cellPadding: 2.1, textColor: dark },
+      headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" }
+    });
+  });
+
+  const interpretation = chartState.chartInterpretations[chartState.interpretChartKey] || { sentences: chartState.sentences, strongest: chartState.strongest };
+  doc.addPage();
+  y = sectionTitle("Chart Interpretation", 18);
+  y = paragraph(`Chart interpreted: ${chartLessons[chartState.interpretChartKey]?.title || chartState.interpretChartKey}`, y, { bold: true });
+  const sentenceLabels = { pattern: "Pattern", comparison: "Comparison", outlier: "Outlier or limitation", conclusion: "Conclusion" };
+  sentenceKeys.forEach(key => {
+    y = paragraph(`${sentenceLabels[key]}:`, y, { bold: true });
+    y = paragraph(interpretation.sentences?.[key], y);
+  });
+  y = sectionTitle("Strongest Evidence", y + 2);
+  paragraph(interpretation.sentences?.[interpretation.strongest], y, { bold: true });
+
+  const pageCount = doc.getNumberOfPages();
+  for (let page = 1; page <= pageCount; page += 1) {
+    doc.setPage(page);
+    doc.setDrawColor(216, 222, 234);
+    doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(...muted);
+    doc.text("Data Detectives - Chart Lab", margin, pageHeight - 7);
+    doc.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 7, { align: "right" });
+  }
+
+  const safeGroup = chartState.submissionDetails.group.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+  doc.save(`chart-lab-evidence-${safeGroup || "group"}.pdf`);
+  document.querySelector("#navigationMessage").textContent = "Your Chart Lab evidence PDF was downloaded.";
 }
 
 function resetChartActivity() {
@@ -1059,3 +1317,8 @@ setupSentences();
 updateClassProgress();
 setupLessonNavigation();
 document.querySelector("#resetChartActivityBtn").addEventListener("click", resetChartActivity);
+document.querySelector("#downloadChartPdfBtn").addEventListener("click", openChartGroupDialog);
+document.querySelector("#chartMemberCount").addEventListener("input", () => renderChartMemberFields());
+document.querySelector("#closeChartGroupDialogBtn").addEventListener("click", closeChartGroupDialog);
+document.querySelector("#cancelChartGroupDialogBtn").addEventListener("click", closeChartGroupDialog);
+document.querySelector("#chartGroupForm").addEventListener("submit", submitChartGroupDetails);

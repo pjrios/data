@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260721" />
+  <link rel="stylesheet" href="styles.css?v=20260722" />
 </head>
 <body>
   <header class="hero">
@@ -97,7 +97,7 @@
         <div>
           <p class="step">Part 2 · Practice · About 13–16 minutes</p>
           <h2 id="practiceTitle" tabindex="-1">Your mission</h2>
-          <p class="hint">Work through all four stages. Aim for careful decisions, not speed.</p>
+          <p class="hint">Work through all five stages. Aim for careful decisions, not speed.</p>
         </div>
         <button id="reviewBasicsBtn" class="secondary" type="button" aria-controls="learnSection">Back to Part 1</button>
       </div>
@@ -106,6 +106,7 @@
         <li><strong>Clean:</strong> Fix blank cells, repeated rows, impossible numbers, spelling differences, and missing units.</li>
         <li><strong>Document:</strong> Select the issue and save each corrected row.</li>
         <li><strong>Review:</strong> Check the cleaned dataset and complete the reflection.</li>
+        <li><strong>Submit:</strong> Download your evidence report and upload it to Google Classroom.</li>
       </ol>
       <div class="rules"><strong>Data-care rule:</strong> Never invent a missing answer. Use <em>Not provided</em> when the correct value is unknown.</div>
     </section>
@@ -165,11 +166,60 @@
       <label class="reflection">One responsible decision our group made:
         <textarea id="reflection" rows="4" placeholder="Write one or two sentences..."></textarea>
       </label>
-      <div class="action-row">
-        <button id="checkBtn" type="button">Check our work</button>
-        <button id="downloadPdfBtn" class="secondary" type="button">Download PDF</button>
+    </section>
+
+    <section class="card submission-card" aria-labelledby="submissionTitle">
+      <p class="step">Stage 5 · Appreciation Grade #1</p>
+      <div class="section-heading">
+        <div>
+          <h2 id="submissionTitle">Prepare your evidence submission</h2>
+          <p class="hint">Complete every item below. Then add your group details and download one report to submit through Google Classroom.</p>
+        </div>
+        <span id="readinessBadge" class="readiness-badge" aria-live="polite">In progress</span>
       </div>
-      <p class="hint export-hint">Add your group details when you download. The PDF includes the member names, cleaned dataset, change log, answers, checklist, and reflection.</p>
+
+      <div class="assessment-note">
+        <strong>Your teacher assigns the grade.</strong>
+        This page checks that your evidence is present. Your teacher will use the rubric and classroom observations to evaluate responsible data handling, collaboration, organization, persistence, punctuality, readiness, and respect.
+      </div>
+
+      <div id="readinessList" class="readiness-list" aria-label="Submission readiness">
+        <div class="readiness-item" data-readiness="activity">
+          <span class="readiness-icon" aria-hidden="true">○</span>
+          <div><strong>Data-cleaning activity</strong><span id="activityReadiness">0 of 8 problem rows recorded</span></div>
+        </div>
+        <div class="readiness-item" data-readiness="log">
+          <span class="readiness-icon" aria-hidden="true">○</span>
+          <div><strong>Change-log evidence</strong><span id="logReadiness">0 cleaned values recorded · minimum 3</span></div>
+        </div>
+        <div class="readiness-item" data-readiness="questions">
+          <span class="readiness-icon" aria-hidden="true">○</span>
+          <div><strong>Data-care explanations</strong><span id="questionsReadiness">0 of 2 answered</span></div>
+        </div>
+        <div class="readiness-item" data-readiness="teamwork">
+          <span class="readiness-icon" aria-hidden="true">○</span>
+          <div><strong>Collaboration checklist</strong><span id="teamworkReadiness">0 of 5 completed</span></div>
+        </div>
+        <div class="readiness-item" data-readiness="reflection">
+          <span class="readiness-icon" aria-hidden="true">○</span>
+          <div><strong>Responsible-decision reflection</strong><span id="reflectionReadiness">Not completed</span></div>
+        </div>
+      </div>
+
+      <div class="submission-instructions">
+        <strong>When every item is ready:</strong>
+        <ol>
+          <li>Click <em>Download evidence report</em>.</li>
+          <li>Add your group, date, and every member's full name.</li>
+          <li>Upload the PDF to the Appreciation Grade #1 assignment in Google Classroom.</li>
+        </ol>
+      </div>
+
+      <div class="action-row">
+        <button id="checkBtn" type="button">Check readiness</button>
+        <button id="downloadPdfBtn" class="secondary" type="button" disabled aria-describedby="downloadHelp">Download evidence report</button>
+      </div>
+      <p id="downloadHelp" class="hint export-hint">Finish the evidence checklist to unlock the report. Group details are added when you download.</p>
       <div id="result" class="result" aria-live="polite"></div>
     </section>
     </div>
@@ -179,12 +229,12 @@
     <form id="groupForm">
       <div class="dialog-heading">
         <div>
-          <p class="step">PDF details</p>
-          <h2 id="groupDialogTitle">Who completed this activity?</h2>
+          <p class="step">Appreciation Grade #1</p>
+          <h2 id="groupDialogTitle">Add your submission details</h2>
         </div>
         <button id="closeGroupDialogBtn" class="icon-button" type="button" aria-label="Close group details">×</button>
       </div>
-      <p class="hint">Add the information that should appear at the top of the downloaded report.</p>
+      <p class="hint">Enter accurate information for the evidence report you will submit to Google Classroom.</p>
 
       <div class="group-details-grid">
         <label>Group or class
@@ -205,14 +255,14 @@
 
       <div class="dialog-actions">
         <button id="cancelGroupDialogBtn" class="secondary" type="button">Cancel</button>
-        <button type="submit">Download PDF</button>
+        <button type="submit">Create evidence PDF</button>
       </div>
     </form>
   </dialog>
 
-  <footer><div class="wrap">Data Detectives · Practice before the graded checklist</div></footer>
+  <footer><div class="wrap">Data Detectives · Appreciation Grade #1 evidence activity</div></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
-  <script src="script.js?v=20260721"></script>
+  <script src="script.js?v=20260722"></script>
 </body>
 </html>

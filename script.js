@@ -32,6 +32,7 @@ const practiceSection = document.querySelector("#practiceSection");
 const groupDialog = document.querySelector("#groupDialog");
 const groupForm = document.querySelector("#groupForm");
 const memberFields = document.querySelector("#memberFields");
+const downloadPdfBtn = document.querySelector("#downloadPdfBtn");
 
 function persistState() {
   const state = {
@@ -279,23 +280,70 @@ function updateProgress() {
   const count = problemRows.filter(row => corrected.has(row)).length;
   progressText.textContent = `${count} of ${problemRows.length} problem rows recorded.`;
   progressBar.style.width = `${(count / problemRows.length) * 100}%`;
+  updateSubmissionReadiness();
+}
+
+function getReadiness() {
+  const correctedRows = new Set(changes.map(change => change.row));
+  const activityCount = problemRows.filter(row => correctedRows.has(row)).length;
+  const questionsCount = [...document.querySelectorAll("[data-question]")].filter(question => question.value.trim().length >= 10).length;
+  const teamworkCount = [...document.querySelectorAll('.check-grid input[type="checkbox"]')].filter(box => box.checked).length;
+  const reflectionComplete = document.querySelector("#reflection").value.trim().length >= 10;
+
+  return {
+    activityCount,
+    changeCount: changes.length,
+    questionsCount,
+    teamworkCount,
+    reflectionComplete,
+    activity: activityCount === problemRows.length,
+    log: changes.length >= 3,
+    questions: questionsCount === 2,
+    teamwork: teamworkCount === 5,
+    reflection: reflectionComplete
+  };
+}
+
+function updateSubmissionReadiness() {
+  const readiness = getReadiness();
+  const items = ["activity", "log", "questions", "teamwork", "reflection"];
+  const ready = items.every(item => readiness[item]);
+
+  document.querySelector("#activityReadiness").textContent = `${readiness.activityCount} of ${problemRows.length} problem rows recorded`;
+  document.querySelector("#logReadiness").textContent = `${readiness.changeCount} cleaned value${readiness.changeCount === 1 ? "" : "s"} recorded · minimum 3`;
+  document.querySelector("#questionsReadiness").textContent = `${readiness.questionsCount} of 2 answered`;
+  document.querySelector("#teamworkReadiness").textContent = `${readiness.teamworkCount} of 5 completed`;
+  document.querySelector("#reflectionReadiness").textContent = readiness.reflectionComplete ? "Completed" : "Not completed";
+
+  items.forEach(item => {
+    const element = document.querySelector(`[data-readiness="${item}"]`);
+    element.classList.toggle("complete", readiness[item]);
+    element.querySelector(".readiness-icon").textContent = readiness[item] ? "✓" : "○";
+  });
+
+  const badge = document.querySelector("#readinessBadge");
+  badge.textContent = ready ? "Ready to submit" : "In progress";
+  badge.classList.toggle("ready", ready);
+  downloadPdfBtn.disabled = !ready;
+  document.querySelector("#downloadHelp").textContent = ready
+    ? "Your evidence is ready. Add your group details to create the report."
+    : "Finish the evidence checklist to unlock the report. Group details are added when you download.";
+
+  return ready;
 }
 
 function checkWork() {
-  const checked = [...document.querySelectorAll('.check-grid input[type="checkbox"]')].filter(box => box.checked).length;
-  const reflection = document.querySelector("#reflection").value.trim();
-  const questions = [...document.querySelectorAll("[data-question]")].filter(q => q.value.trim().length >= 10).length;
-  const changedRows = new Set(changes.map(change => change.row));
-  const allLogged = problemRows.every(row => changedRows.has(row));
+  const readiness = getReadiness();
 
-  if (allLogged && checked === 5 && reflection.length >= 10 && questions === 2) {
-    showMessage("Excellent work! You cleaned and documented eight problem rows, answered the data-care questions, and completed the teamwork reflection.", "success");
+  if (updateSubmissionReadiness()) {
+    showMessage("Your evidence is ready. Download the report, add every group member, and submit the PDF through Google Classroom.", "success");
   } else {
     const needs = [];
-    if (!allLogged) needs.push("record all eight problem rows");
-    if (questions < 2) needs.push("answer both data-care questions");
-    if (checked < 5) needs.push("complete every teamwork statement");
-    if (reflection.length < 10) needs.push("write the final reflection");
+    if (!readiness.activity) needs.push("record all eight problem rows");
+    if (!readiness.log) needs.push("record at least three cleaned values");
+    if (!readiness.questions) needs.push("answer both data-care questions");
+    if (!readiness.teamwork) needs.push("complete every collaboration statement");
+    if (!readiness.reflection) needs.push("write the responsible-decision reflection");
     showMessage(`Almost finished: ${needs.join(", ")}.`, "warning");
   }
 }
@@ -317,6 +365,9 @@ function resetActivity() {
 }
 
 function downloadPdf() {
+  if (!updateSubmissionReadiness()) {
+    return showMessage("Complete every evidence item before downloading the report.", "warning");
+  }
   if (!window.jspdf?.jsPDF) {
     return showMessage("The PDF tool could not load. Check your connection and try again.", "warning");
   }
@@ -370,10 +421,10 @@ function downloadPdf() {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text("Data Detectives", margin, 15);
+  doc.text("Appreciation Grade #1", margin, 15);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text("Data Cleaning Activity Report", margin, 23);
+  doc.text("Data Cleaning Collaboration and Care · Evidence Report", margin, 23);
   doc.text(formatActivityDate(submissionDetails.date), pageWidth - margin, 23, { align: "right" });
 
   let y = sectionTitle("Group Details", 43);
@@ -386,6 +437,24 @@ function downloadPdf() {
     styles: { font: "helvetica", fontSize: 9, cellPadding: 2.8, textColor: dark, overflow: "linebreak" },
     headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" },
     columnStyles: { 0: { cellWidth: 42 }, 1: { cellWidth: 34 } }
+  });
+
+  const readiness = getReadiness();
+  y = sectionTitle("Evidence Readiness", doc.lastAutoTable.finalY + 12);
+  doc.autoTable({
+    startY: y,
+    head: [["Required Evidence", "Status"]],
+    body: [
+      ["Data-cleaning activity", `${readiness.activityCount} of ${problemRows.length} problem rows recorded`],
+      ["Change-log evidence", `${readiness.changeCount} cleaned values recorded (minimum 3)`],
+      ["Data-care explanations", `${readiness.questionsCount} of 2 answered`],
+      ["Collaboration checklist", `${readiness.teamworkCount} of 5 completed`],
+      ["Responsible-decision reflection", readiness.reflectionComplete ? "Completed" : "Not completed"]
+    ],
+    margin: { left: margin, right: margin },
+    theme: "grid",
+    styles: { font: "helvetica", fontSize: 9, cellPadding: 2.8, textColor: dark },
+    headStyles: { fillColor: blue, textColor: 255, fontStyle: "bold" }
   });
 
   y = sectionTitle("Cleaned Dataset", doc.lastAutoTable.finalY + 12);
@@ -451,8 +520,8 @@ function downloadPdf() {
 
   const safeGroupName = submissionDetails.group.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
-  doc.save(`data-detectives-${safeGroupName || "group"}.pdf`);
-  showMessage("Your PDF was downloaded.", "success");
+  doc.save(`appreciation-grade-1-data-cleaning-${safeGroupName || "group"}.pdf`);
+  showMessage("Your Appreciation Grade #1 evidence report was downloaded. Upload it to Google Classroom.", "success");
 }
 
 function getLocalDateValue() {
@@ -472,19 +541,20 @@ function showMessage(message, type) { result.textContent = message; result.class
 
 tbody.addEventListener("input", preserveDraft);
 tbody.addEventListener("change", preserveDraft);
-document.querySelectorAll("[data-question], #reflection").forEach(field => field.addEventListener("input", persistState));
-document.querySelectorAll('.check-grid input[type="checkbox"]').forEach(box => box.addEventListener("change", persistState));
+document.querySelectorAll("[data-question], #reflection").forEach(field => field.addEventListener("input", () => { persistState(); updateSubmissionReadiness(); }));
+document.querySelectorAll('.check-grid input[type="checkbox"]').forEach(box => box.addEventListener("change", () => { persistState(); updateSubmissionReadiness(); }));
 restoreState();
 currentView = window.location.hash === "#practice" && introComplete ? "practice" : "learn";
 window.history.replaceState({ activityView: currentView }, "", activityUrl(currentView));
 renderActivityView();
 renderTable();
 renderLog();
+updateSubmissionReadiness();
 window.addEventListener("popstate", handleHistoryNavigation);
 document.querySelector("#startPracticeBtn").addEventListener("click", startPractice);
 document.querySelector("#reviewBasicsBtn").addEventListener("click", reviewBasics);
 document.querySelector("#checkBtn").addEventListener("click", checkWork);
-document.querySelector("#downloadPdfBtn").addEventListener("click", openGroupDialog);
+downloadPdfBtn.addEventListener("click", openGroupDialog);
 document.querySelector("#resetBtn").addEventListener("click", resetActivity);
 document.querySelector("#memberCount").addEventListener("input", () => renderMemberFields());
 document.querySelector("#closeGroupDialogBtn").addEventListener("click", closeGroupDialog);

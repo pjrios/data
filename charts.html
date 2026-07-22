@@ -4,8 +4,8 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Chart Lab · Data Detectives</title>
-  <link rel="stylesheet" href="styles.css?v=20260722f" />
-  <link rel="stylesheet" href="charts.css?v=20260722f" />
+  <link rel="stylesheet" href="styles.css?v=20260722g" />
+  <link rel="stylesheet" href="charts.css?v=20260722g" />
 </head>
 <body>
   <header class="hero chart-hero">
@@ -332,8 +332,17 @@
         <p>Choose your strongest sentence to highlight it here.</p>
       </div>
       <div class="lesson-rule rules"><strong>Final check:</strong> Your strongest sentence should name evidence, avoid guessing, and match what the chart actually shows.</div>
-      <button id="resetChartActivityBtn" class="secondary reset-chart" type="button">Reset chart activity</button>
-      <p class="hint save-note">This page saves your work automatically in this browser.</p>
+      <div id="chartExportPanel" class="chart-export-panel">
+        <div>
+          <strong>Chart Lab evidence report</strong>
+          <p id="chartExportHelp">Finish the activity to unlock your PDF report.</p>
+        </div>
+        <button id="downloadChartPdfBtn" type="button" disabled>Download Chart Lab PDF</button>
+      </div>
+      <div class="evidence-actions">
+        <button id="resetChartActivityBtn" class="secondary reset-chart" type="button">Reset chart activity</button>
+        <p class="hint save-note">This page saves your work automatically in this browser.</p>
+      </div>
     </section>
 
     <nav class="wizard-controls card" aria-label="Lesson navigation">
@@ -343,7 +352,44 @@
     </nav>
   </main>
 
+  <dialog id="chartGroupDialog" class="group-dialog" aria-labelledby="chartGroupDialogTitle">
+    <form id="chartGroupForm">
+      <div class="dialog-heading">
+        <div>
+          <p class="step">Chart Lab PDF</p>
+          <h2 id="chartGroupDialogTitle">Add your submission details</h2>
+        </div>
+        <button id="closeChartGroupDialogBtn" class="icon-button" type="button" aria-label="Close group details">×</button>
+      </div>
+      <p class="hint">Enter the group information that should appear on the evidence report.</p>
+
+      <div class="group-details-grid">
+        <label>Group or class
+          <input id="chartGroupName" type="text" maxlength="60" placeholder="Example: 9A · Group 2" required />
+        </label>
+        <label>Activity date
+          <input id="chartActivityDate" type="date" required />
+        </label>
+        <label>Number of members
+          <input id="chartMemberCount" type="number" min="1" max="8" value="2" required />
+        </label>
+      </div>
+
+      <fieldset class="member-fieldset">
+        <legend>Member names</legend>
+        <div id="chartMemberFields" class="member-fields"></div>
+      </fieldset>
+
+      <div class="dialog-actions">
+        <button id="cancelChartGroupDialogBtn" class="secondary" type="button">Cancel</button>
+        <button type="submit">Create Chart Lab PDF</button>
+      </div>
+    </form>
+  </dialog>
+
   <footer><div class="wrap">Data Detectives · Chart Lab practice before the graded chart check</div></footer>
-  <script src="charts.js?v=20260722f"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
+  <script src="charts.js?v=20260722g"></script>
 </body>
 </html>

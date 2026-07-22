@@ -106,6 +106,20 @@ button:disabled { opacity: .55; cursor: not-allowed; }
 .reflection textarea { margin-top: 8px; font-weight: 400; resize: vertical; }
 .action-row { display: flex; flex-wrap: wrap; gap: 10px; }
 .export-hint { margin: 10px 0 0; font-size: .92rem; }
+.submission-card { border-top: 5px solid var(--primary); }
+.readiness-badge { flex: 0 0 auto; padding: 8px 13px; border-radius: 999px; background: #fff4e7; color: var(--warning); font-weight: 800; white-space: nowrap; }
+.readiness-badge.ready { background: #eaf8f0; color: var(--success); }
+.assessment-note { margin: 18px 0; padding: 14px 16px; border-left: 4px solid var(--primary); border-radius: 10px; background: var(--soft); color: #34405a; }
+.assessment-note strong { display: block; color: var(--text); margin-bottom: 2px; }
+.readiness-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 18px 0; }
+.readiness-item { display: flex; gap: 12px; align-items: flex-start; min-height: 82px; padding: 14px; border: 1px solid var(--border); border-radius: 12px; background: #f8faff; }
+.readiness-item div { display: grid; gap: 3px; }
+.readiness-item span:not(.readiness-icon) { color: var(--muted); font-size: .9rem; }
+.readiness-icon { display: grid; place-items: center; flex: 0 0 28px; width: 28px; height: 28px; border-radius: 50%; background: #e4e9f5; color: #65708a; font-weight: 900; }
+.readiness-item.complete { border-color: #acd8be; background: #f0fbf5; }
+.readiness-item.complete .readiness-icon { background: var(--success); color: white; }
+.submission-instructions { margin: 0 0 18px; padding: 15px 17px; border: 1px solid var(--border); border-radius: 12px; }
+.submission-instructions ol { margin: 8px 0 0; padding-left: 22px; }
 .result { margin-top: 16px; padding: 0; border-radius: 10px; }
 .result.success { background: #eaf8f0; color: var(--success); padding: 14px; }
 .result.warning { background: #fff4e7; color: var(--warning); padding: 14px; }
@@ -129,7 +143,7 @@ footer { color: var(--muted); padding: 0 0 30px; text-align: center; }
   .card { padding: 18px; }
   .section-heading { flex-direction: column; }
   .concept-grid, .error-grid { grid-template-columns: 1fr; }
-  .check-grid { grid-template-columns: 1fr; }
+  .check-grid, .readiness-list { grid-template-columns: 1fr; }
   button { width: 100%; }
   .action-row { width: 100%; }
   .lesson-actions { flex-direction: column; align-items: stretch; }

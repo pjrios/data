@@ -165,7 +165,12 @@
 .strongest-evidence { margin: 18px 0; padding: 18px; border: 2px dashed #d6b13b; border-radius: 12px; background: #fff9db; }
 .strongest-evidence p { margin: 0; }
 .strongest-evidence mark { background: #ffea7a; padding: 3px 5px; line-height: 1.8; }
-.reset-chart { margin-top: 18px; }
+.chart-export-panel { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-top: 18px; padding: 16px; border: 1px solid #b8c7ee; border-radius: 12px; background: #f0f4ff; }
+.chart-export-panel.ready { border-color: #9dceb2; background: #eefaf3; }
+.chart-export-panel p { margin: 3px 0 0; color: var(--muted); }
+.chart-export-panel button { flex: 0 0 auto; }
+.evidence-actions { display: flex; align-items: center; margin-top: 18px; }
+.reset-chart { margin-top: 0; }
 .save-note { display: inline-block; margin-left: 10px; }
 .wizard-controls { position: static; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 14px 18px; border-color: #bac6d9; box-shadow: 0 8px 24px rgba(31, 48, 91, .1); }
 .wizard-controls #navigationMessage { text-align: center; color: var(--muted); font-size: .9rem; }
@@ -187,6 +192,8 @@
   .example-grid, .bar-family-grid, .identify-grid, .builder-controls, .interpretation-grid { grid-template-columns: 1fr; }
   .example-card:last-child { grid-column: auto; max-width: none; }
   .pie-layout { grid-template-columns: 1fr; }
+  .chart-export-panel { flex-direction: column; align-items: stretch; }
+  .evidence-actions { display: block; }
   .save-note { display: block; margin: 10px 0 0; text-align: center; }
   .wizard-controls { grid-template-columns: 1fr 1fr; }
   .wizard-controls #navigationMessage { grid-column: 1 / -1; grid-row: 1; }
