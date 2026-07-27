@@ -157,7 +157,6 @@
     .warning-box { margin: 18px 0; padding: 15px; border-left: 5px solid #d88a1d; border-radius: 10px; color: #704007; background: #fff4e7; }
     .notes-list { display: grid; gap: 12px; padding: 0; list-style: none; }
     .notes-list li { padding: 13px 15px; border: 1px solid var(--border); border-radius: 11px; background: #f8faff; }
-    .access-denied { margin-top: 40px; text-align: center; }
     footer { padding: 0 0 28px; color: var(--muted); text-align: center; font-size: .9rem; }
     @media (max-width: 700px) {
       body { font-size: 17px; }
@@ -181,11 +180,6 @@
   </header>
 
   <main class="wrap">
-    <section id="accessDenied" class="card access-denied" hidden>
-      <h2>This assessment link is incomplete</h2>
-      <p>Open the exact Guided Version link your teacher posted in Google Classroom.</p>
-    </section>
-
     <section id="assessment" class="card" hidden aria-labelledby="stageTitle">
       <div class="stage-heading">
         <div><p id="stageCounter" class="step"></p><h2 id="stageTitle" tabindex="-1"></h2></div>
@@ -242,7 +236,7 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
   <script>
     const assignments = {
-      "c4n7-x2p9": {
+      A: {
         id: "A",
         rows: [
           ["North Gate", "18 items", "Paper"],
@@ -255,7 +249,7 @@
           ["Courtyard", "13 items", "Metal"]
         ]
       },
-      "m8q3-v6d1": {
+      B: {
         id: "B",
         rows: [
           ["East Wing", "20 items", "Plastic"],
@@ -268,7 +262,7 @@
           ["Storage Room", "11 items", "Metal"]
         ]
       },
-      "r5k9-b2t7": {
+      C: {
         id: "C",
         rows: [
           ["Bus Stop", "19 items", "Paper"],
@@ -281,7 +275,7 @@
           ["Music Hall", "12 items", "Glass"]
         ]
       },
-      "w3h8-j6s4": {
+      D: {
         id: "D",
         rows: [
           ["North Hall", "17 items", "Paper"],
@@ -375,18 +369,17 @@
       3: "Save partner check",
       4: "Save comparison"
     };
-    const requestedAccessToken = new URLSearchParams(location.search).get("access") || "";
-    const accessToken = requestedAccessToken || (location.protocol === "file:" ? "c4n7-x2p9" : "");
-    const assignment = assignments[accessToken];
+    const requestedDataset = (new URLSearchParams(location.search).get("dataset") || "A").toUpperCase();
+    const datasetId = assignments[requestedDataset] ? requestedDataset : "A";
+    const assignment = assignments[datasetId];
     const assessment = document.querySelector("#assessment");
-    const accessDenied = document.querySelector("#accessDenied");
     const stageHost = document.querySelector("#stageHost");
     const stageActions = document.querySelector("#stageActions");
     const message = document.querySelector("#message");
     const notesDialog = document.querySelector("#notesDialog");
     const lockDialog = document.querySelector("#lockDialog");
     const studentDialog = document.querySelector("#studentDialog");
-    const storageKey = `guidedDataStewardV1:${accessToken}`;
+    const storageKey = `guidedDataStewardV2:${datasetId}`;
     let state = createState();
 
     function createState() {
@@ -423,12 +416,6 @@
     }
 
     function render() {
-      if (!assignment) {
-        accessDenied.hidden = false;
-        assessment.hidden = true;
-        return;
-      }
-      accessDenied.hidden = true;
       assessment.hidden = false;
       const stage = state.currentStage;
       document.querySelector("#stageCounter").textContent = `Step ${stage} of 5 · Guided Dataset ${assignment.id}`;
