@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Data Steward Challenge · Appreciation Grade #1</title>
+  <link rel="stylesheet" href="appreciation-1.css?v=20260727v" />
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <nav class="site-nav" aria-label="Class activities">
+        <a href="index.html">Data Cleaning Practice</a>
+        <a href="charts.html">Chart Practice</a>
+        <a class="active" href="appreciation-1.html" aria-current="page">Appreciation #1</a>
+      </nav>
+      <p class="eyebrow">Appreciation Grade #1 · Open Notes · Individual Submission · About 45–55 Minutes</p>
+      <h1>Data Steward Challenge</h1>
+      <p>Complete one stage at a time. Your drafts save automatically, and each finished stage becomes permanent when you continue.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="briefingSection" class="card learn-section" aria-labelledby="briefingTitle">
+      <div class="section-heading">
+        <div>
+          <p class="step">Assessment briefing · Read before beginning</p>
+          <h2 id="briefingTitle" tabindex="-1">A seven-stage individual assessment</h2>
+          <p class="hint">Data Detectives was your practice. This activity does not identify errors, write your change log, or tell you whether a correction is right.</p>
+        </div>
+        <div class="timer" aria-label="Suggested assessment time">45–55 min</div>
+      </div>
+
+      <div class="official-task">
+        <strong>Official activity:</strong>
+        Complete the collaboration checklist about responsibility, respectful communication, shared work, data care, and persistence while cleaning the assigned dataset. Record at least 3 cleaned values in a change log. Then create a simple model that represents one category, object, or display idea from your data topic.
+      </div>
+
+      <div class="concept-grid">
+        <article class="concept-card"><span class="concept-number">1</span><h3>Save drafts locally</h3><p>Your current answers remain on this browser if the page reloads.</p></article>
+        <article class="concept-card"><span class="concept-number">2</span><h3>Lock each stage</h3><p>Before continuing, you receive a warning. A locked stage cannot be edited.</p></article>
+        <article class="concept-card"><span class="concept-number">3</span><h3>Use saved evidence</h3><p>Later stages show your earlier work in read-only form for discussion and reflection.</p></article>
+      </div>
+
+      <div class="assessment-summary">
+        <h3>The seven stages</h3>
+        <ol>
+          <li>Upload and confirm your assigned CSV file.</li>
+          <li>Clean the imported dataset.</li>
+          <li>Manually document at least three corrections.</li>
+          <li>Review the locked evidence with one partner.</li>
+          <li>Answer five short individual reflection questions.</li>
+          <li>Compare two collection points with a two-bar display.</li>
+          <li>Review and download the final evidence report.</li>
+        </ol>
+      </div>
+
+      <div class="rules lesson-rule">
+        <strong>Open-notes assessment:</strong> You may consult Data Cleaning Practice while working. Use the activity menu to return to Appreciation #1. Your assessment draft remains saved in this browser.
+      </div>
+      <div class="lesson-actions">
+        <button id="beginBtn" type="button">Begin Stage 1</button>
+        <p>Once you begin, stages move forward only.</p>
+      </div>
+    </section>
+
+    <div id="assessmentSection" hidden>
+      <section class="card stage-shell" aria-labelledby="stageTitle">
+        <div class="stage-heading">
+          <div>
+            <p id="stageCounter" class="step"></p>
+            <h2 id="stageTitle" tabindex="-1"></h2>
+          </div>
+          <div class="save-status"><span aria-hidden="true">●</span> Saved in this browser</div>
+        </div>
+        <div id="stageHost"></div>
+        <div id="stageMessage" class="result" aria-live="polite"></div>
+        <div id="stageActions" class="stage-actions">
+          <p><strong>Review your work before continuing.</strong> If you move forward, you can view what you wrote later, but you cannot edit it.</p>
+          <button id="lockStageBtn" type="button"></button>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <dialog id="lockDialog" class="group-dialog lock-dialog" aria-labelledby="lockDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-heading">
+        <div><p class="step">Permanent stage lock</p><h2 id="lockDialogTitle">Lock this stage?</h2></div>
+        <button id="closeLockDialogBtn" class="icon-button" type="button" aria-label="Close warning">×</button>
+      </div>
+      <p id="lockDialogText"></p>
+      <div class="warning-panel">
+        If you move forward, you can view what you wrote in later stages, but you cannot return here or edit it.
+      </div>
+      <div class="dialog-actions">
+        <button id="cancelLockBtn" class="secondary" type="button">Cancel and review</button>
+        <button id="confirmLockBtn" type="button">Lock stage and continue</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="studentDialog" class="group-dialog" aria-labelledby="studentDialogTitle">
+    <form id="studentForm">
+      <div class="dialog-heading">
+        <div><p class="step">Final evidence report</p><h2 id="studentDialogTitle">Add your student details</h2></div>
+        <button id="closeStudentDialogBtn" class="icon-button" type="button" aria-label="Close student details">×</button>
+      </div>
+      <p class="hint">Use the same name and class information you use in Google Classroom.</p>
+      <div class="student-details-grid">
+        <label>Student's full name<input id="studentName" type="text" maxlength="80" placeholder="First and last name" required /></label>
+        <label>Class<input id="className" type="text" maxlength="30" placeholder="Example: 9A" required /></label>
+        <label>Activity date<input id="activityDate" type="date" required /></label>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancelStudentDialogBtn" class="secondary" type="button">Cancel</button>
+        <button type="submit">Create evidence PDF</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer><div class="wrap">Data Steward Challenge · Individual Appreciation Grade #1</div></footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
+  <script src="appreciation-1.js?v=20260727v"></script>
+</body>
+</html>

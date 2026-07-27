@@ -1,0 +1,13 @@
+Dataset ID,Collection Point,Items Collected,Material Category
+C,Bus Stop,19 items,Paper
+C,Library,,Plastic
+C,Laboratory,-7 items,Metal
+C,Bus Stop,19 items,Paper
+C,Cafeteria,16,Glass
+C,Gym,23 items,Cardbord
+C,Main Gate,1200 items,Paper
+C,Art Room,14 items,plastic
+C,Garden,10 items,Organic
+C,Technology Room,8 items,E waste
+C,Music Hall,12 items,Glass
+C,Courtyard,15 items,Metal

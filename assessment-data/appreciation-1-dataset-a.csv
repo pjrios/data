@@ -1,0 +1,13 @@
+Dataset ID,Collection Point,Items Collected,Material Category
+A,North Gate,18 items,Paper
+A,Library,,Plastic
+A,Cafeteria,-6 items,Glass
+A,North Gate,18 items,Paper
+A,Gym,14,Metal
+A,Science Hall,21 items,Cardbord
+A,Main Office,9999 items,Paper
+A,Art Room,12 items,plastic
+A,South Gate,16 items,Organic
+A,Technology Lab,9 items,E waste
+A,Music Room,11 items,Glass
+A,Courtyard,13 items,Metal

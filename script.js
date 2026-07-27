@@ -322,12 +322,12 @@ function updateSubmissionReadiness() {
   });
 
   const badge = document.querySelector("#readinessBadge");
-  badge.textContent = ready ? "Ready to submit" : "In progress";
+  badge.textContent = ready ? "Practice complete" : "In progress";
   badge.classList.toggle("ready", ready);
   downloadPdfBtn.disabled = !ready;
   document.querySelector("#downloadHelp").textContent = ready
-    ? "Your evidence is ready. Add your group details to create the report."
-    : "Finish the evidence checklist to unlock the report. Group details are added when you download.";
+    ? "Your practice report is ready. Add your group details to create it."
+    : "Finish the practice checklist to unlock the report. Group details are added when you download.";
 
   return ready;
 }
@@ -336,7 +336,7 @@ function checkWork() {
   const readiness = getReadiness();
 
   if (updateSubmissionReadiness()) {
-    showMessage("Your evidence is ready. Download the report, add every group member, and submit the PDF through Google Classroom.", "success");
+    showMessage("Your practice report is ready. Download it and add every group member.", "success");
   } else {
     const needs = [];
     if (!readiness.activity) needs.push("record all eight problem rows");
@@ -366,7 +366,7 @@ function resetActivity() {
 
 function downloadPdf() {
   if (!updateSubmissionReadiness()) {
-    return showMessage("Complete every evidence item before downloading the report.", "warning");
+    return showMessage("Complete every practice item before downloading the report.", "warning");
   }
   if (!window.jspdf?.jsPDF) {
     return showMessage("The PDF tool could not load. Check your connection and try again.", "warning");
@@ -421,10 +421,10 @@ function downloadPdf() {
   doc.setTextColor(255, 255, 255);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(22);
-  doc.text("Appreciation Grade #1", margin, 15);
+  doc.text("Data Detectives", margin, 15);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text("Data Cleaning Collaboration and Care · Evidence Report", margin, 23);
+  doc.text("Complete Data-Cleaning Practice Report", margin, 23);
   doc.text(formatActivityDate(submissionDetails.date), pageWidth - margin, 23, { align: "right" });
 
   let y = sectionTitle("Group Details", 43);
@@ -440,10 +440,10 @@ function downloadPdf() {
   });
 
   const readiness = getReadiness();
-  y = sectionTitle("Evidence Readiness", doc.lastAutoTable.finalY + 12);
+  y = sectionTitle("Practice Completion", doc.lastAutoTable.finalY + 12);
   doc.autoTable({
     startY: y,
-    head: [["Required Evidence", "Status"]],
+    head: [["Practice Item", "Status"]],
     body: [
       ["Data-cleaning activity", `${readiness.activityCount} of ${problemRows.length} problem rows recorded`],
       ["Change-log evidence", `${readiness.changeCount} cleaned values recorded (minimum 3)`],
@@ -520,8 +520,8 @@ function downloadPdf() {
 
   const safeGroupName = submissionDetails.group.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
-  doc.save(`appreciation-grade-1-data-cleaning-${safeGroupName || "group"}.pdf`);
-  showMessage("Your Appreciation Grade #1 evidence report was downloaded. Upload it to Google Classroom.", "success");
+  doc.save(`data-detectives-practice-${safeGroupName || "group"}.pdf`);
+  showMessage("Your Data Detectives practice report was downloaded.", "success");
 }
 
 function getLocalDateValue() {
