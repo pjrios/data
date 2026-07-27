@@ -200,7 +200,6 @@
         <div class="save-status">● Saved in this browser</div>
       </div>
       <div class="support-tools">
-        <button id="readAloudBtn" class="secondary" type="button">🔊 Read this step aloud</button>
         <button id="openNotesBtn" class="secondary" type="button">📘 Open data-cleaning notes</button>
       </div>
       <div id="stageHost"></div>
@@ -710,15 +709,6 @@
       message.className = `result ${type}`;
     }
 
-    function readStageAloud() {
-      if (!("speechSynthesis" in window)) return showMessage("Read-aloud is not available in this browser.", "warning");
-      speechSynthesis.cancel();
-      const text = `${document.querySelector("#stageTitle").textContent}. ${stageHost.textContent}`.replace(/\s+/g, " ").trim();
-      const utterance = new SpeechSynthesisUtterance(text);
-      utterance.rate = .88;
-      speechSynthesis.speak(utterance);
-    }
-
     function openStudentDialog() {
       document.querySelector("#studentName").value = state.student.name;
       document.querySelector("#studentClass").value = state.student.className;
@@ -838,7 +828,6 @@
     document.querySelector("#nextStageBtn").addEventListener("click", goToNextStage);
     document.querySelector("#previousStageBtn").addEventListener("click", goToPreviousStage);
     document.querySelector("#openNotesBtn").addEventListener("click", () => notesDialog.showModal());
-    document.querySelector("#readAloudBtn").addEventListener("click", readStageAloud);
     document.querySelector("#studentForm").addEventListener("submit", submitStudent);
     document.querySelectorAll("[data-close-dialog]").forEach(button => button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close()));
   </script>
