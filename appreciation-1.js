@@ -32,6 +32,7 @@ const stageHost = document.querySelector("#stageHost");
 const stageMessage = document.querySelector("#stageMessage");
 const stageActions = document.querySelector("#stageActions");
 const lockDialog = document.querySelector("#lockDialog");
+const supportDialog = document.querySelector("#supportDialog");
 const studentDialog = document.querySelector("#studentDialog");
 
 function createInitialState() {
@@ -175,9 +176,9 @@ const stageRenderers = {
 
   2: () => `
     <div class="dataset-identity"><strong>Assigned Dataset ${escapeHtml(state.dataset.id)}</strong><span>${escapeHtml(state.dataset.fileName)}</span></div>
-    <div class="open-notes-panel">
-      <div><strong>This is an open-notes assessment.</strong><span>You may review the Data Cleaning Practice examples. This page saves your draft while you consult them.</span></div>
-      <a href="index.html" target="_blank" rel="noopener">Open Data Cleaning Notes</a>
+    <div class="support-reminder">
+      <div><strong>Use the built-in assessment support.</strong><span>Review the data-care rules, hints, and change-log notes without leaving this assessment.</span></div>
+      <button class="secondary" type="button" data-open-support>Open support</button>
     </div>
     <p class="stage-intro">Review every row and independently correct the problems you find. The website will not identify the problems or tell you whether a correction is right.</p>
     <div class="rules"><strong>Data-care rules:</strong> Do not invent missing information—use <em>Not provided</em> when the correct value is unknown. For this small school collection, a quantity above 100 items is implausible unless another source verifies it. When two records are exactly repeated, keep the first record and mark the later copy as a duplicate.</div>
@@ -996,6 +997,10 @@ document.querySelector("#lockStageBtn").addEventListener("click", openLockDialog
 document.querySelector("#closeLockDialogBtn").addEventListener("click", () => lockDialog.close());
 document.querySelector("#cancelLockBtn").addEventListener("click", () => lockDialog.close());
 document.querySelector("#confirmLockBtn").addEventListener("click", confirmStageLock);
+document.addEventListener("click", event => {
+  if (event.target.closest("[data-open-support]")) supportDialog.showModal();
+  if (event.target.closest("[data-close-support]")) supportDialog.close();
+});
 document.querySelector("#closeStudentDialogBtn").addEventListener("click", () => studentDialog.close());
 document.querySelector("#cancelStudentDialogBtn").addEventListener("click", () => studentDialog.close());
 document.querySelector("#studentForm").addEventListener("submit", submitStudentDetails);

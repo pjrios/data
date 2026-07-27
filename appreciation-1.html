@@ -3,18 +3,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
   <title>Data Steward Challenge · Appreciation Grade #1</title>
-  <link rel="stylesheet" href="appreciation-1.css?v=20260727v" />
+  <link rel="stylesheet" href="appreciation-1.css?v=20260727w" />
 </head>
 <body>
   <header class="hero">
     <div class="wrap">
-      <nav class="site-nav" aria-label="Class activities">
-        <a href="index.html">Data Cleaning Practice</a>
-        <a href="charts.html">Chart Practice</a>
-        <a class="active" href="appreciation-1.html" aria-current="page">Appreciation #1</a>
-      </nav>
-      <p class="eyebrow">Appreciation Grade #1 · Open Notes · Individual Submission · About 45–55 Minutes</p>
+      <p class="eyebrow">Appreciation Grade #1 · Individual Submission · About 45–55 Minutes</p>
       <h1>Data Steward Challenge</h1>
       <p>Complete one stage at a time. Your drafts save automatically, and each finished stage becomes permanent when you continue.</p>
     </div>
@@ -42,6 +38,20 @@
         <article class="concept-card"><span class="concept-number">3</span><h3>Use saved evidence</h3><p>Later stages show your earlier work in read-only form for discussion and reflection.</p></article>
       </div>
 
+      <section class="assessment-support" aria-labelledby="supportTitle">
+        <div>
+          <p class="step">Built-in assessment support</p>
+          <h3 id="supportTitle">Review, hints, and data-care notes</h3>
+          <p>Everything you may use is inside this assessment. The support explains the rules, but it does not identify the errors in your assigned dataset.</p>
+        </div>
+        <div class="support-summary-grid">
+          <div><strong>Review</strong><span>Missing values, unreliable values, duplicates, and consistent formatting.</span></div>
+          <div><strong>Hints</strong><span>Questions that help you decide what to check before changing a value.</span></div>
+          <div><strong>Notes</strong><span>Change-log reminders and sentence starters for explaining your evidence.</span></div>
+        </div>
+        <button class="secondary" type="button" data-open-support>Open review, hints, and notes</button>
+      </section>
+
       <div class="assessment-summary">
         <h3>The seven stages</h3>
         <ol>
@@ -55,9 +65,7 @@
         </ol>
       </div>
 
-      <div class="rules lesson-rule">
-        <strong>Open-notes assessment:</strong> You may consult Data Cleaning Practice while working. Use the activity menu to return to Appreciation #1. Your assessment draft remains saved in this browser.
-      </div>
+      <div class="rules lesson-rule"><strong>Use the built-in support:</strong> The review, hints, and data-care notes stay available throughout the assessment. Your draft remains saved in this browser.</div>
       <div class="lesson-actions">
         <button id="beginBtn" type="button">Begin Stage 1</button>
         <p>Once you begin, stages move forward only.</p>
@@ -71,7 +79,10 @@
             <p id="stageCounter" class="step"></p>
             <h2 id="stageTitle" tabindex="-1"></h2>
           </div>
-          <div class="save-status"><span aria-hidden="true">●</span> Saved in this browser</div>
+          <div class="stage-tools">
+            <button class="secondary support-button" type="button" data-open-support>Review, hints &amp; notes</button>
+            <div class="save-status"><span aria-hidden="true">●</span> Saved in this browser</div>
+          </div>
         </div>
         <div id="stageHost"></div>
         <div id="stageMessage" class="result" aria-live="polite"></div>
@@ -101,6 +112,46 @@
     </div>
   </dialog>
 
+  <dialog id="supportDialog" class="group-dialog support-dialog" aria-labelledby="supportDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-heading">
+        <div><p class="step">Built-in assessment support</p><h2 id="supportDialogTitle">Review, hints, and data-care notes</h2></div>
+        <button class="icon-button" type="button" data-close-support aria-label="Close support">×</button>
+      </div>
+      <p class="hint">Use these general reminders at any point. They explain safe data-cleaning decisions but do not tell you which rows to change.</p>
+
+      <section class="support-dialog-section">
+        <h3>Review: what to look for</h3>
+        <div class="support-note-grid">
+          <article><strong>Missing information</strong><p>If the correct value is unknown, do not guess. Use <em>Not provided</em>.</p></article>
+          <article><strong>Unreliable quantity</strong><p>A negative amount or a very large amount may not be reliable without another source.</p></article>
+          <article><strong>Duplicate record</strong><p>If two complete records are exactly the same, keep the first one and mark the later copy as a duplicate.</p></article>
+          <article><strong>Consistent format</strong><p>Check spelling, capitalization, units, and category names so similar information is written the same way.</p></article>
+        </div>
+      </section>
+
+      <section class="support-dialog-section">
+        <h3>Hints: questions to ask yourself</h3>
+        <ul class="support-list">
+          <li>What evidence in this row makes me think a change is needed?</li>
+          <li>Do I know the correct value, or would changing it mean I am guessing?</li>
+          <li>Does this row repeat an earlier complete record?</li>
+          <li>Will this correction make the dataset more consistent and easier to compare?</li>
+        </ul>
+      </section>
+
+      <section class="support-dialog-section">
+        <h3>Notes: explain your evidence</h3>
+        <div class="support-starters">
+          <p><strong>Change log:</strong> “I changed ___ to ___ because ___.”</p>
+          <p><strong>Missing value:</strong> “I used Not provided because the dataset does not give a reliable value.”</p>
+          <p><strong>Duplicate:</strong> “I removed the later copy because it repeats row ___.”</p>
+          <p><strong>Peer review:</strong> “I explained ___, and my partner suggested ___.”</p>
+        </div>
+      </section>
+    </div>
+  </dialog>
+
   <dialog id="studentDialog" class="group-dialog" aria-labelledby="studentDialogTitle">
     <form id="studentForm">
       <div class="dialog-heading">
@@ -123,6 +174,6 @@
   <footer><div class="wrap">Data Steward Challenge · Individual Appreciation Grade #1</div></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
-  <script src="appreciation-1.js?v=20260727v"></script>
+  <script src="appreciation-1.js?v=20260727w"></script>
 </body>
 </html>
