@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>Chart Investigation · Daily Grade #4</title>
+  <link rel="stylesheet" href="daily-grade-4.css?v=20260727a" />
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="eyebrow">Daily Grade #4 · Individual Submission · About 45–55 Minutes</p>
+      <h1>Chart Investigation</h1>
+      <p>Import your assigned dataset, create one chart, and explain the evidence with four interpretation sentences.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="briefingSection" class="card" aria-labelledby="briefingTitle">
+      <div class="section-heading">
+        <div>
+          <p class="step">Assessment briefing · Read before beginning</p>
+          <h2 id="briefingTitle">Turn an assigned dataset into evidence</h2>
+          <p class="hint">Download the CSV file assigned to you in Google Classroom before beginning.</p>
+        </div>
+        <div class="timer">45–55 min</div>
+      </div>
+
+      <div class="official-task">
+        <strong>Official activity</strong>
+        Create one chart from a dataset and write four interpretation sentences: one pattern, one comparison, one outlier or limitation, and one conclusion. Then analyze the dataset for patterns, outliers, and possible correlation.
+      </div>
+
+      <div class="concept-grid">
+        <article class="concept-card"><span>1</span><h3>Import and lock</h3><p>Upload the CSV assigned in Classroom. Check the preview carefully before making it permanent.</p></article>
+        <article class="concept-card"><span>2</span><h3>Create and explain</h3><p>Build a chart, identify the evidence, and write the four required sentences.</p></article>
+        <article class="concept-card"><span>3</span><h3>Submit one PDF</h3><p>Download the complete report and upload that PDF to Google Classroom.</p></article>
+      </div>
+
+      <div class="assessment-summary">
+        <h3>The five stages</h3>
+        <ol>
+          <li>Upload and lock your assigned CSV file.</li>
+          <li>Create and lock one chart.</li>
+          <li>Write and lock the pattern and comparison sentences.</li>
+          <li>Write and lock the outlier or limitation and conclusion sentences.</li>
+          <li>Review the evidence and download the final PDF.</li>
+        </ol>
+      </div>
+
+      <div class="rules"><strong>Important:</strong> Your draft saves in this browser. When you lock a stage, you may view it later, but you cannot return to edit it.</div>
+      <div class="lesson-actions">
+        <button id="beginBtn" type="button">Begin Stage 1</button>
+        <p>Have your assigned CSV ready before beginning.</p>
+      </div>
+    </section>
+
+    <section id="assessmentSection" class="card stage-shell" hidden aria-labelledby="stageTitle">
+      <div class="stage-heading">
+        <div><p id="stageCounter" class="step"></p><h2 id="stageTitle" tabindex="-1"></h2></div>
+        <div class="save-status"><span aria-hidden="true">●</span> Saved in this browser</div>
+      </div>
+      <div id="stageHost"></div>
+      <div id="stageMessage" class="result" aria-live="polite"></div>
+      <div id="stageActions" class="stage-actions">
+        <p><strong>Review your work before continuing.</strong> After you lock this stage, you can view it later but cannot edit it.</p>
+        <button id="lockStageBtn" type="button"></button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="lockDialog" class="dialog" aria-labelledby="lockDialogTitle">
+    <div class="dialog-content">
+      <div class="dialog-heading">
+        <div><p class="step">Permanent stage lock</p><h2 id="lockDialogTitle">Lock this stage?</h2></div>
+        <button id="closeLockDialogBtn" class="icon-button" type="button" aria-label="Close warning">×</button>
+      </div>
+      <p id="lockDialogText"></p>
+      <div id="lockDialogWarning" class="warning-panel"></div>
+      <div class="dialog-actions">
+        <button id="cancelLockBtn" class="secondary" type="button">Cancel and review</button>
+        <button id="confirmLockBtn" type="button">Lock stage and continue</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog id="studentDialog" class="dialog" aria-labelledby="studentDialogTitle">
+    <form id="studentForm">
+      <div class="dialog-heading">
+        <div><p class="step">Final submission</p><h2 id="studentDialogTitle">Add your student details</h2></div>
+        <button id="closeStudentDialogBtn" class="icon-button" type="button" aria-label="Close student details">×</button>
+      </div>
+      <p class="hint">Use the same name and class information shown in Google Classroom.</p>
+      <div class="student-grid">
+        <label>Student's full name<input id="studentName" type="text" maxlength="80" placeholder="First and last name" required /></label>
+        <label>Class<input id="className" type="text" maxlength="30" placeholder="Example: 9A" required /></label>
+        <label>Activity date<input id="activityDate" type="date" required /></label>
+      </div>
+      <div class="dialog-actions">
+        <button id="cancelStudentDialogBtn" class="secondary" type="button">Cancel</button>
+        <button type="submit">Create submission PDF</button>
+      </div>
+    </form>
+  </dialog>
+
+  <footer><div class="wrap">Chart Investigation · Daily Grade #4</div></footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
+  <script src="daily-grade-4.js?v=20260727a"></script>
+</body>
+</html>
+
