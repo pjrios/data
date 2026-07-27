@@ -1,0 +1,821 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="robots" content="noindex,nofollow,noarchive" />
+  <title>Data Steward Challenge · Guided Version</title>
+  <style>
+    :root {
+      --bg: #f5f7fb;
+      --surface: #fff;
+      --text: #172033;
+      --muted: #58667f;
+      --primary: #2858a7;
+      --primary-dark: #183d7a;
+      --accent: #a85a19;
+      --border: #cfd7e6;
+      --soft: #edf3ff;
+      --success: #176b43;
+      --warning: #8a4b08;
+      --radius: 18px;
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display: none !important; }
+    body {
+      margin: 0;
+      color: var(--text);
+      background: var(--bg);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      font-size: 18px;
+      line-height: 1.55;
+    }
+    .wrap { width: min(980px, calc(100% - 28px)); margin: 0 auto; }
+    .hero { padding: 36px 0 34px; color: white; background: linear-gradient(135deg, #173767, #3b72c4); }
+    .hero .version { margin: 0 0 5px; font-size: .8rem; font-weight: 850; letter-spacing: .12em; text-transform: uppercase; }
+    .hero h1 { margin: 0 0 8px; font-size: clamp(2.1rem, 7vw, 3.6rem); line-height: 1.05; }
+    .hero p:last-child { max-width: 720px; margin: 0; }
+    main { padding: 26px 0 50px; }
+    .card {
+      padding: clamp(18px, 4vw, 30px);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--surface);
+      box-shadow: 0 12px 34px rgba(31, 48, 91, .08);
+    }
+    .stage-heading { display: flex; justify-content: space-between; gap: 16px; align-items: flex-start; margin-bottom: 18px; }
+    .stage-heading h2 { margin: 2px 0 0; font-size: clamp(1.6rem, 5vw, 2.25rem); }
+    .step { margin: 0; color: var(--primary); font-size: .78rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
+    .save-status { padding: 8px 12px; border-radius: 999px; color: var(--success); background: #eaf8f0; font-size: .86rem; font-weight: 800; white-space: nowrap; }
+    .support-tools { display: flex; flex-wrap: wrap; gap: 10px; margin: 0 0 20px; padding: 12px; border-radius: 12px; background: var(--soft); }
+    button, .button {
+      min-height: 48px;
+      padding: 11px 16px;
+      border: 0;
+      border-radius: 11px;
+      color: white;
+      background: var(--primary);
+      font: inherit;
+      font-weight: 800;
+      cursor: pointer;
+      text-decoration: none;
+    }
+    button:hover, .button:hover { background: var(--primary-dark); }
+    button.secondary { color: #243451; background: #e7ecf7; }
+    button.secondary:hover { background: #dbe3f3; }
+    button:disabled { opacity: .5; cursor: not-allowed; }
+    .stage-intro { max-width: 820px; color: #3f4d66; }
+    .assignment-banner, .worked-example, .instruction-box, .summary-box {
+      margin: 16px 0;
+      padding: 16px 18px;
+      border-radius: 13px;
+      border: 1px solid #bdccef;
+      background: #f3f6ff;
+    }
+    .assignment-banner { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 18px; }
+    .assignment-banner strong { color: var(--primary-dark); }
+    .worked-example { border-color: #e2c49e; background: #fff8ef; }
+    .worked-example strong { color: #7b3f10; }
+    .row-progress { display: flex; justify-content: space-between; gap: 14px; margin: 20px 0 8px; color: var(--muted); font-weight: 750; }
+    .progress-track { height: 10px; overflow: hidden; border-radius: 999px; background: #e1e6ef; }
+    .progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
+    .data-row-card { margin: 20px 0; padding: 20px; border: 2px solid #b9c7df; border-radius: 15px; background: #fbfcff; }
+    .data-row-card h3 { margin: 0 0 14px; }
+    .record-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; margin-bottom: 20px; }
+    .record-value { min-height: 88px; padding: 13px; border: 1px solid var(--border); border-radius: 11px; background: white; }
+    .record-value span { display: block; color: var(--muted); font-size: .82rem; font-weight: 750; }
+    .record-value strong { display: block; margin-top: 4px; overflow-wrap: anywhere; }
+    fieldset { min-width: 0; margin: 18px 0; padding: 0; border: 0; }
+    legend { margin-bottom: 10px; font-weight: 850; }
+    .choice-list { display: grid; gap: 10px; }
+    .choice-card {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      min-height: 58px;
+      padding: 12px 14px;
+      border: 2px solid var(--border);
+      border-radius: 12px;
+      background: white;
+      cursor: pointer;
+    }
+    .choice-card:hover { border-color: #8aa6da; background: #f6f8ff; }
+    .choice-card:has(input:checked) { border-color: var(--primary); background: #eaf1ff; }
+    .choice-card input { width: 22px; height: 22px; flex: 0 0 22px; accent-color: var(--primary); }
+    .choice-card span { font-weight: 720; }
+    .saved-result { padding: 13px 15px; border-radius: 11px; color: #145c39; background: #eaf8f0; }
+    .row-navigation, .stage-actions, .dialog-actions { display: flex; justify-content: space-between; gap: 12px; align-items: center; }
+    .stage-actions { margin-top: 26px; padding-top: 20px; border-top: 1px solid var(--border); }
+    .stage-actions p { margin: 0; color: var(--muted); }
+    .stage-actions p strong { display: block; color: var(--text); }
+    .reason-grid, .reflection-grid, .question-grid, .final-review { display: grid; gap: 16px; margin-top: 20px; }
+    .reason-card, .reflection-card, .question-card, .final-section {
+      padding: 18px;
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      background: #f9fbff;
+    }
+    .reason-card h3, .reflection-card h3, .question-card h3, .final-section h3 { margin: 0 0 7px; }
+    .change-line { display: grid; grid-template-columns: 1fr auto 1fr; gap: 12px; align-items: center; margin: 12px 0; }
+    .change-value { padding: 11px 12px; border-radius: 10px; background: white; border: 1px solid var(--border); }
+    .change-arrow { font-weight: 900; color: var(--primary); }
+    label.text-label { display: grid; gap: 7px; margin: 18px 0; font-weight: 800; }
+    input[type="text"], input[type="date"] {
+      width: 100%;
+      min-height: 50px;
+      padding: 10px 12px;
+      border: 2px solid #b9c4d8;
+      border-radius: 10px;
+      background: white;
+      font: inherit;
+    }
+    input:focus, button:focus-visible { outline: 4px solid rgba(40, 88, 167, .22); outline-offset: 2px; }
+    .bar-chart { display: grid; gap: 18px; margin: 20px 0; padding: 18px; border: 1px solid #b9d7c8; border-radius: 14px; background: #f0faf5; }
+    .bar-row { display: grid; grid-template-columns: minmax(130px, 210px) 1fr; gap: 14px; align-items: center; }
+    .bar-label { display: grid; }
+    .bar-label span { color: var(--muted); }
+    .bar-track { height: 28px; overflow: hidden; border-radius: 999px; background: #dfe8e3; }
+    .bar { display: block; height: 100%; border-radius: inherit; background: #2f7a58; }
+    .bar-row:nth-child(2) .bar { background: #4968b8; }
+    .result { margin-top: 16px; border-radius: 11px; }
+    .result.warning { padding: 14px; color: var(--warning); background: #fff4e7; }
+    .result.success { padding: 14px; color: var(--success); background: #eaf8f0; }
+    .evidence-list { display: grid; gap: 8px; margin: 0; }
+    .evidence-list div { padding: 11px 13px; border: 1px solid var(--border); border-radius: 10px; background: white; }
+    .evidence-list dt { font-weight: 850; }
+    .evidence-list dd { margin: 3px 0 0; color: #42516b; }
+    .table-scroll { overflow-x: auto; }
+    table { width: 100%; min-width: 760px; border-collapse: collapse; background: white; }
+    th, td { padding: 10px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: top; }
+    th { background: #f1f5fc; font-size: .84rem; }
+    dialog { width: min(690px, calc(100% - 24px)); max-height: calc(100vh - 30px); overflow-y: auto; padding: 0; border: 0; border-radius: 17px; color: var(--text); box-shadow: 0 25px 80px rgba(15, 29, 56, .35); }
+    dialog::backdrop { background: rgba(13, 25, 48, .68); backdrop-filter: blur(3px); }
+    .dialog-content, dialog form { padding: 24px; }
+    .dialog-heading { display: flex; justify-content: space-between; gap: 14px; align-items: flex-start; }
+    .dialog-heading h2 { margin: 0; }
+    .icon-button { width: 44px; min-height: 44px; padding: 0; color: #243451; background: #e7ecf7; font-size: 1.5rem; }
+    .warning-box { margin: 18px 0; padding: 15px; border-left: 5px solid #d88a1d; border-radius: 10px; color: #704007; background: #fff4e7; }
+    .notes-list { display: grid; gap: 12px; padding: 0; list-style: none; }
+    .notes-list li { padding: 13px 15px; border: 1px solid var(--border); border-radius: 11px; background: #f8faff; }
+    .access-denied { margin-top: 40px; text-align: center; }
+    footer { padding: 0 0 28px; color: var(--muted); text-align: center; font-size: .9rem; }
+    @media (max-width: 700px) {
+      body { font-size: 17px; }
+      .stage-heading, .stage-actions, .row-navigation, .dialog-actions { align-items: stretch; flex-direction: column; }
+      .save-status { white-space: normal; }
+      .record-grid { grid-template-columns: 1fr; }
+      .change-line { grid-template-columns: 1fr; }
+      .change-arrow { transform: rotate(90deg); text-align: center; }
+      .bar-row { grid-template-columns: 1fr; gap: 7px; }
+      button { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <p class="version">Appreciation Grade #1 · Guided Version · Open Notes</p>
+      <h1>Data Steward Challenge</h1>
+      <p>Work through one clear step at a time. Your choices save automatically in this browser.</p>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="accessDenied" class="card access-denied" hidden>
+      <h2>This assessment link is incomplete</h2>
+      <p>Open the exact Guided Version link your teacher posted in Google Classroom.</p>
+    </section>
+
+    <section id="assessment" class="card" hidden aria-labelledby="stageTitle">
+      <div class="stage-heading">
+        <div><p id="stageCounter" class="step"></p><h2 id="stageTitle" tabindex="-1"></h2></div>
+        <div class="save-status">● Saved in this browser</div>
+      </div>
+      <div class="support-tools">
+        <button id="readAloudBtn" class="secondary" type="button">🔊 Read this step aloud</button>
+        <button id="openNotesBtn" class="secondary" type="button">📘 Open data-cleaning notes</button>
+      </div>
+      <div id="stageHost"></div>
+      <div id="message" class="result" aria-live="polite"></div>
+      <div id="stageActions" class="stage-actions">
+        <p><strong>Review before continuing.</strong> A finished step cannot be edited.</p>
+        <button id="lockStageBtn" type="button"></button>
+      </div>
+    </section>
+  </main>
+
+  <dialog id="notesDialog" aria-labelledby="notesTitle">
+    <div class="dialog-content">
+      <div class="dialog-heading"><div><p class="step">Open-notes support</p><h2 id="notesTitle">Data-cleaning notes</h2></div><button class="icon-button" data-close-dialog="notesDialog" type="button" aria-label="Close notes">×</button></div>
+      <ul class="notes-list">
+        <li><strong>Blank or unreliable number:</strong> Use <em>Not provided</em>. Do not guess.</li>
+        <li><strong>Negative or extremely large number:</strong> Use <em>Not provided</em> unless another source confirms it.</li>
+        <li><strong>Repeated record:</strong> Keep the first copy and remove the later duplicate.</li>
+        <li><strong>Missing unit:</strong> Add <em>items</em> when the table clearly measures collected items.</li>
+        <li><strong>Spelling or format:</strong> Use the same correct spelling and capitalization throughout the dataset.</li>
+      </ul>
+      <div class="dialog-actions"><button data-close-dialog="notesDialog" type="button">Return to assessment</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="lockDialog" aria-labelledby="lockTitle">
+    <div class="dialog-content">
+      <div class="dialog-heading"><div><p class="step">Save this step</p><h2 id="lockTitle">Continue?</h2></div><button class="icon-button" data-close-dialog="lockDialog" type="button" aria-label="Close warning">×</button></div>
+      <p id="lockText"></p>
+      <div class="warning-box">After continuing, you can see this evidence in your report, but you cannot change it.</div>
+      <div class="dialog-actions"><button class="secondary" data-close-dialog="lockDialog" type="button">Review again</button><button id="confirmLockBtn" type="button">Save and continue</button></div>
+    </div>
+  </dialog>
+
+  <dialog id="studentDialog" aria-labelledby="studentTitle">
+    <form id="studentForm">
+      <div class="dialog-heading"><div><p class="step">Final report</p><h2 id="studentTitle">Add your information</h2></div><button class="icon-button" data-close-dialog="studentDialog" type="button" aria-label="Close student information">×</button></div>
+      <label class="text-label">Full name<input id="studentName" type="text" maxlength="80" required /></label>
+      <label class="text-label">Class<input id="studentClass" type="text" maxlength="30" placeholder="Example: 9A" required /></label>
+      <label class="text-label">Date<input id="studentDate" type="date" required /></label>
+      <div class="dialog-actions"><button class="secondary" data-close-dialog="studentDialog" type="button">Cancel</button><button type="submit">Create PDF report</button></div>
+    </form>
+  </dialog>
+
+  <footer><div class="wrap">Data Steward Challenge · Guided Version</div></footer>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
+  <script>
+    const assignments = {
+      "c4n7-x2p9": {
+        id: "A",
+        rows: [
+          ["North Gate", "18 items", "Paper"],
+          ["Library", "", "Plastic"],
+          ["Cafeteria", "-6 items", "Glass"],
+          ["North Gate", "18 items", "Paper"],
+          ["Gym", "14", "Metal"],
+          ["Science Hall", "21 items", "Cardbord"],
+          ["Main Office", "9999 items", "Paper"],
+          ["Courtyard", "13 items", "Metal"]
+        ]
+      },
+      "m8q3-v6d1": {
+        id: "B",
+        rows: [
+          ["East Wing", "20 items", "Plastic"],
+          ["Auditorium", "", "Glass"],
+          ["Playground", "-8 items", "Organic"],
+          ["East Wing", "20 items", "Plastic"],
+          ["Workshop", "15", "Metal"],
+          ["Media Center", "22 items", "Cardbord"],
+          ["Reception", "8888 items", "Paper"],
+          ["Storage Room", "11 items", "Metal"]
+        ]
+      },
+      "r5k9-b2t7": {
+        id: "C",
+        rows: [
+          ["Bus Stop", "19 items", "Paper"],
+          ["Library", "", "Plastic"],
+          ["Laboratory", "-7 items", "Metal"],
+          ["Bus Stop", "19 items", "Paper"],
+          ["Cafeteria", "16", "Glass"],
+          ["Gym", "23 items", "Cardbord"],
+          ["Main Gate", "1200 items", "Paper"],
+          ["Music Hall", "12 items", "Glass"]
+        ]
+      },
+      "w3h8-j6s4": {
+        id: "D",
+        rows: [
+          ["North Hall", "17 items", "Paper"],
+          ["Study Room", "", "Glass"],
+          ["Kitchen", "-5 items", "Organic"],
+          ["North Hall", "17 items", "Paper"],
+          ["Makerspace", "13", "Plastic"],
+          ["Science Lab", "20 items", "Cardbord"],
+          ["Office", "7777 items", "Paper"],
+          ["Art Corner", "11 items", "Plastic"]
+        ]
+      }
+    };
+    const actionOptions = [
+      ["keep", "Keep this row"],
+      ["notProvided", "Change the quantity to “Not provided”"],
+      ["remove", "Remove this repeated row"],
+      ["addUnit", "Add the word “items”"],
+      ["fixSpelling", "Correct “Cardbord” to “Cardboard”"]
+    ];
+    const correctActions = ["keep", "notProvided", "notProvided", "remove", "addUnit", "fixSpelling", "notProvided", "keep"];
+    const reasonRows = [1, 3, 4];
+    const reasonQuestions = {
+      1: {
+        prompt: "Why should an unknown quantity become “Not provided”?",
+        options: [
+          ["duplicate", "The row repeats another complete record."],
+          ["unknown", "The correct number is unknown, so I should not guess."],
+          ["spelling", "The material name has a spelling difference."]
+        ]
+      },
+      3: {
+        prompt: "Why should the later repeated row be removed?",
+        options: [
+          ["unknown", "Its number is missing."],
+          ["unit", "Its quantity needs the word “items”."],
+          ["duplicate", "It repeats the same place, quantity, and material, so it must not be counted twice."]
+        ]
+      },
+      4: {
+        prompt: "Why should the word “items” be added?",
+        options: [
+          ["duplicate", "It shows that this is a repeated row."],
+          ["unit", "It makes the quantity use the same unit as the other records."],
+          ["unknown", "It replaces an unreliable number."]
+        ]
+      }
+    };
+    const reflectionQuestions = [
+      {
+        key: "responsibility",
+        title: "Responsibility",
+        prompt: "What did you do before saving your cleaning choices?",
+        options: [["some", "I checked only some rows."], ["all", "I checked all eight rows."], ["none", "I did not review my rows."]]
+      },
+      {
+        key: "communication",
+        title: "Respectful communication",
+        prompt: "What did you do when your partner gave feedback?",
+        options: [["argued", "I argued without checking the evidence."], ["ignored", "I ignored the feedback."], ["listened", "I listened and answered calmly."]]
+      },
+      {
+        key: "sharedWork",
+        title: "Shared work",
+        prompt: "How did you and your partner share the review?",
+        options: [["partner", "My partner did all the checking."], ["both", "We each checked at least one correction."], ["alone", "I did not share the review."]]
+      },
+      {
+        key: "dataCare",
+        title: "Data care",
+        prompt: "What did you do when the correct number was unknown?",
+        options: [["guessed", "I chose a number that looked reasonable."], ["deleted", "I deleted the whole dataset."], ["notProvided", "I used “Not provided” instead of guessing."]]
+      },
+      {
+        key: "persistence",
+        title: "Persistence",
+        prompt: "What did you do when a decision was difficult?",
+        options: [["stopped", "I stopped without trying another strategy."], ["reviewed", "I read the notes and checked the row again."], ["random", "I selected a random answer."]]
+      }
+    ];
+    const stageNames = [
+      "Choose how to clean each row",
+      "Explain three cleaning decisions",
+      "Complete the partner check and reflection",
+      "Read and compare two values",
+      "Review and download your report"
+    ];
+    const stageButtons = {
+      1: "Save cleaning choices",
+      2: "Save reasons",
+      3: "Save partner check",
+      4: "Save comparison"
+    };
+    const accessToken = new URLSearchParams(location.search).get("access") || "";
+    const assignment = assignments[accessToken];
+    const assessment = document.querySelector("#assessment");
+    const accessDenied = document.querySelector("#accessDenied");
+    const stageHost = document.querySelector("#stageHost");
+    const stageActions = document.querySelector("#stageActions");
+    const message = document.querySelector("#message");
+    const notesDialog = document.querySelector("#notesDialog");
+    const lockDialog = document.querySelector("#lockDialog");
+    const studentDialog = document.querySelector("#studentDialog");
+    const storageKey = `guidedDataStewardV1:${accessToken}`;
+    let state = createState();
+
+    function createState() {
+      return {
+        version: 1,
+        currentStage: 1,
+        currentRow: 0,
+        lockedAt: {},
+        actions: Array(8).fill(""),
+        reasons: { 1: "", 3: "", 4: "" },
+        partnerName: "",
+        partnerCheck: "",
+        reflections: Object.fromEntries(reflectionQuestions.map(question => [question.key, ""])),
+        comparison: { title: "", larger: "", difference: "", sentence: "" },
+        student: { name: "", className: "", date: localDateValue() }
+      };
+    }
+
+    function restore() {
+      if (!assignment) return;
+      try {
+        const saved = JSON.parse(localStorage.getItem(storageKey));
+        if (!saved || saved.version !== 1 || saved.actions?.length !== 8 || saved.currentStage < 1 || saved.currentStage > 5) return;
+        state = { ...createState(), ...saved };
+      } catch {}
+    }
+
+    function persist() {
+      try {
+        localStorage.setItem(storageKey, JSON.stringify(state));
+      } catch {
+        showMessage("Your work could not be saved. Keep this page open until you finish.", "warning");
+      }
+    }
+
+    function render() {
+      if (!assignment) {
+        accessDenied.hidden = false;
+        assessment.hidden = true;
+        return;
+      }
+      accessDenied.hidden = true;
+      assessment.hidden = false;
+      const stage = state.currentStage;
+      document.querySelector("#stageCounter").textContent = `Step ${stage} of 5 · Guided Dataset ${assignment.id}`;
+      document.querySelector("#stageTitle").textContent = stageNames[stage - 1];
+      stageHost.innerHTML = stageRenderers[stage]();
+      stageActions.hidden = stage === 5;
+      if (stage < 5) document.querySelector("#lockStageBtn").textContent = stageButtons[stage];
+      message.className = "result";
+      message.textContent = "";
+      bindStage(stage);
+    }
+
+    const stageRenderers = {
+      1: () => {
+        const index = state.currentRow;
+        const row = assignment.rows[index];
+        const result = state.actions[index] ? cleanedRecord(index) : "";
+        return `
+          <div class="assignment-banner"><strong>Assigned Guided Dataset ${assignment.id}</strong><span>Eight records · one record at a time</span></div>
+          <p class="stage-intro">Read the row. Choose the best action. Your selection is not marked right or wrong on this screen.</p>
+          <div class="worked-example"><strong>Example:</strong> If a quantity is written as <em>12</em> and the column measures collected items, choose <em>Add the word “items.”</em></div>
+          <div class="row-progress"><span>Row ${index + 1} of 8</span><span>${state.actions.filter(Boolean).length} choices saved</span></div>
+          <div class="progress-track" aria-hidden="true"><span style="width:${((index + 1) / 8) * 100}%"></span></div>
+          <article class="data-row-card">
+            <h3>Record ${index + 1}</h3>
+            <div class="record-grid">
+              <div class="record-value"><span>Collection point</span><strong>${escapeHtml(row[0])}</strong></div>
+              <div class="record-value"><span>Items collected</span><strong>${escapeHtml(row[1] || "(blank)")}</strong></div>
+              <div class="record-value"><span>Material</span><strong>${escapeHtml(row[2])}</strong></div>
+            </div>
+            <fieldset><legend>What should you do with this row?</legend><div class="choice-list">
+              ${renderChoices(`action-${index}`, actionOptions, state.actions[index], "data-action")}
+            </div></fieldset>
+            ${result ? `<div class="saved-result"><strong>Your saved result:</strong> ${escapeHtml(result)}</div>` : ""}
+          </article>
+          <div class="row-navigation">
+            <button id="previousRowBtn" class="secondary" type="button"${index === 0 ? " disabled" : ""}>← Previous row</button>
+            <button id="nextRowBtn" type="button"${index === 7 ? " disabled" : ""}>Next row →</button>
+          </div>`;
+      },
+      2: () => `
+        <div class="assignment-banner"><strong>Three recorded decisions</strong><span>Choose the best reason for each correction.</span></div>
+        <p class="stage-intro">The website copied the original row and your saved result. You only need to select why the correction was appropriate.</p>
+        <div class="reason-grid">${reasonRows.map(index => {
+          const question = reasonQuestions[index];
+          return `<article class="reason-card">
+            <h3>Row ${index + 1}: ${escapeHtml(assignment.rows[index][0])}</h3>
+            <div class="change-line"><div class="change-value"><strong>Original</strong><br>${escapeHtml(formatRow(assignment.rows[index]))}</div><span class="change-arrow">→</span><div class="change-value"><strong>Your saved result</strong><br>${escapeHtml(cleanedRecord(index))}</div></div>
+            <fieldset><legend>${question.prompt}</legend><div class="choice-list">${renderChoices(`reason-${index}`, question.options, state.reasons[index], `data-reason="${index}"`)}</div></fieldset>
+          </article>`;
+        }).join("")}</div>`,
+      3: () => `
+        <div class="assignment-banner"><strong>Short partner check</strong><span>Use one assigned partner for about five minutes.</span></div>
+        <p class="stage-intro">Show one saved cleaning decision to your partner. Listen to the feedback, then answer the short reflection questions.</p>
+        <label class="text-label">Partner’s full name<input id="partnerName" type="text" maxlength="70" value="${escapeHtml(state.partnerName)}" placeholder="First and last name" /></label>
+        <fieldset><legend>What did your partner check?</legend><div class="choice-list">${renderChoices("partner-check", [
+          ["value", "The cleaned quantity and its unit"],
+          ["duplicate", "The repeated record"],
+          ["spelling", "The material spelling or format"]
+        ], state.partnerCheck, "data-partner-check")}</div></fieldset>
+        <div class="reflection-grid">${reflectionQuestions.map((question, index) => `<article class="reflection-card">
+          <h3>${index + 1}. ${question.title}</h3><fieldset><legend>${question.prompt}</legend><div class="choice-list">${renderChoices(`reflection-${question.key}`, question.options, state.reflections[question.key], `data-reflection="${question.key}"`)}</div></fieldset>
+        </article>`).join("")}</div>`,
+      4: () => {
+        const first = reliableComparison()[0];
+        const second = reliableComparison()[1];
+        const maximum = Math.max(first.value, second.value);
+        const difference = Math.abs(first.value - second.value);
+        const larger = first.value >= second.value ? first : second;
+        const smaller = first.value >= second.value ? second : first;
+        const material = first.material;
+        return `
+          <div class="assignment-banner"><strong>Two-location comparison</strong><span>The bars use two reliable values from your dataset.</span></div>
+          <p class="stage-intro">Read the bars and select the best answer for each question.</p>
+          <div class="bar-chart" role="img" aria-label="${escapeHtml(first.point)} ${first.value} items. ${escapeHtml(second.point)} ${second.value} items.">
+            ${[first, second].map(item => `<div class="bar-row"><div class="bar-label"><strong>${escapeHtml(item.point)}</strong><span>${item.value} ${escapeHtml(item.material)} items</span></div><div class="bar-track"><span class="bar" style="width:${(item.value / maximum) * 100}%"></span></div></div>`).join("")}
+          </div>
+          <div class="question-grid">
+            ${comparisonQuestion("title", "Choose the clearest title.", [
+              ["vague", "Some information from school"],
+              ["correct", `${material} items collected at ${first.point} and ${second.point}`],
+              ["wrong", `Temperature at ${first.point} and ${second.point}`]
+            ])}
+            ${comparisonQuestion("larger", "Which location collected more?", [
+              [smaller.point, smaller.point],
+              [larger.point, larger.point],
+              ["same", "They collected the same number."]
+            ])}
+            ${comparisonQuestion("difference", "How many more items did the larger location collect?", [
+              [String(first.value + second.value), `${first.value + second.value} items`],
+              ["0", "0 items"],
+              [String(difference), `${difference} item${difference === 1 ? "" : "s"}`]
+            ])}
+            ${comparisonQuestion("sentence", "Choose the strongest comparison sentence.", [
+              ["guess", `${larger.point} collected more because students there work harder.`],
+              ["correct", `${larger.point} collected ${larger.value} ${material.toLowerCase()} items, ${difference} more than ${smaller.point}’s ${smaller.value}.`],
+              ["reversed", `${smaller.point} collected more ${material.toLowerCase()} items than ${larger.point}.`]
+            ])}
+          </div>`;
+      },
+      5: () => `
+        <div class="assignment-banner"><strong>Guided Dataset ${assignment.id} completed</strong><span>All four evidence steps are locked.</span></div>
+        <p class="stage-intro">Review your saved evidence. Add your name and class when you are ready to download the report.</p>
+        <div class="final-review">
+          <section class="final-section"><h3>Cleaning choices</h3>${renderCleaningTable()}</section>
+          <section class="final-section"><h3>Three cleaning reasons</h3>${renderReasonSummary()}</section>
+          <section class="final-section"><h3>Partner check and reflection</h3>${renderReflectionSummary()}</section>
+          <section class="final-section"><h3>Comparison answers</h3>${renderComparisonSummary()}</section>
+        </div>
+        <button id="downloadBtn" type="button">Download Guided Version PDF</button>`
+    };
+
+    function renderChoices(name, options, selected, attribute) {
+      return options.map(([value, label], optionIndex) => {
+        const id = `${name}-${optionIndex}`;
+        return `<label class="choice-card" for="${id}"><input id="${id}" type="radio" name="${name}" value="${escapeHtml(value)}" ${attribute} ${selected === value ? "checked" : ""}><span>${escapeHtml(label)}</span></label>`;
+      }).join("");
+    }
+
+    function comparisonQuestion(key, prompt, options) {
+      return `<article class="question-card"><h3>${prompt}</h3><div class="choice-list">${renderChoices(`comparison-${key}`, options, state.comparison[key], `data-comparison="${key}"`)}</div></article>`;
+    }
+
+    function bindStage(stage) {
+      if (stage === 1) {
+        stageHost.querySelectorAll("[data-action]").forEach(input => input.addEventListener("change", event => {
+          state.actions[state.currentRow] = event.target.value;
+          persist();
+          render();
+        }));
+        document.querySelector("#previousRowBtn").addEventListener("click", () => { state.currentRow = Math.max(0, state.currentRow - 1); persist(); render(); });
+        document.querySelector("#nextRowBtn").addEventListener("click", () => { state.currentRow = Math.min(7, state.currentRow + 1); persist(); render(); });
+      }
+      if (stage === 2) {
+        stageHost.querySelectorAll("[data-reason]").forEach(input => input.addEventListener("change", event => {
+          state.reasons[event.target.dataset.reason] = event.target.value;
+          persist();
+        }));
+      }
+      if (stage === 3) {
+        document.querySelector("#partnerName").addEventListener("input", event => { state.partnerName = event.target.value; persist(); });
+        stageHost.querySelectorAll("[data-partner-check]").forEach(input => input.addEventListener("change", event => { state.partnerCheck = event.target.value; persist(); }));
+        stageHost.querySelectorAll("[data-reflection]").forEach(input => input.addEventListener("change", event => {
+          state.reflections[event.target.dataset.reflection] = event.target.value;
+          persist();
+        }));
+      }
+      if (stage === 4) {
+        stageHost.querySelectorAll("[data-comparison]").forEach(input => input.addEventListener("change", event => {
+          state.comparison[event.target.dataset.comparison] = event.target.value;
+          persist();
+        }));
+      }
+      if (stage === 5) document.querySelector("#downloadBtn").addEventListener("click", openStudentDialog);
+    }
+
+    function cleanedRecord(index) {
+      const row = [...assignment.rows[index]];
+      const action = state.actions[index];
+      if (action === "notProvided") row[1] = "Not provided";
+      if (action === "addUnit" && /^\d+$/.test(row[1].trim())) row[1] = `${row[1].trim()} items`;
+      if (action === "fixSpelling") row[2] = "Cardboard";
+      if (action === "remove") return "Removed as a repeated record";
+      return formatRow(row);
+    }
+
+    function formatRow(row) {
+      return `${row[0] || "(blank)"} · ${row[1] || "(blank)"} · ${row[2] || "(blank)"}`;
+    }
+
+    function reliableComparison() {
+      const first = assignment.rows[4];
+      const second = assignment.rows[7];
+      return [
+        { point: first[0], value: Number(first[1]), material: first[2] },
+        { point: second[0], value: Number(second[1].split(" ")[0]), material: second[2] }
+      ];
+    }
+
+    function validateStage(stage) {
+      if (stage === 1) {
+        if (state.actions.some(action => !action)) return "Choose an action for all eight rows before continuing.";
+        if (state.actions.filter(action => action && action !== "keep").length < 3) return "Record at least three cleaning changes before continuing.";
+      }
+      if (stage === 2 && reasonRows.some(index => !state.reasons[index])) return "Choose one reason for each of the three cleaning decisions.";
+      if (stage === 3) {
+        if (state.partnerName.trim().length < 3) return "Enter your partner’s full name.";
+        if (!state.partnerCheck) return "Choose what your partner checked.";
+        const missing = reflectionQuestions.filter(question => !state.reflections[question.key]);
+        if (missing.length) return "Answer all five short reflection questions.";
+      }
+      if (stage === 4 && Object.values(state.comparison).some(answer => !answer)) return "Answer all four comparison questions.";
+      return "";
+    }
+
+    function openLockDialog() {
+      const error = validateStage(state.currentStage);
+      if (error) return showMessage(error, "warning");
+      document.querySelector("#lockText").textContent = `You are about to finish “${stageNames[state.currentStage - 1]}.”`;
+      lockDialog.showModal();
+    }
+
+    function confirmLock() {
+      const error = validateStage(state.currentStage);
+      if (error) {
+        lockDialog.close();
+        return showMessage(error, "warning");
+      }
+      state.lockedAt[state.currentStage] = new Date().toISOString();
+      state.currentStage = Math.min(5, state.currentStage + 1);
+      persist();
+      lockDialog.close();
+      render();
+      document.querySelector("#stageTitle").focus({ preventScroll: true });
+      assessment.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+
+    function renderCleaningTable() {
+      return `<div class="table-scroll"><table><thead><tr><th>Row</th><th>Original record</th><th>Selected action</th><th>Saved result</th></tr></thead><tbody>${assignment.rows.map((row, index) => `<tr><td>${index + 1}</td><td>${escapeHtml(formatRow(row))}</td><td>${escapeHtml(optionLabel(actionOptions, state.actions[index]))}</td><td>${escapeHtml(cleanedRecord(index))}</td></tr>`).join("")}</tbody></table></div>`;
+    }
+
+    function renderReasonSummary() {
+      return `<dl class="evidence-list">${reasonRows.map(index => `<div><dt>Row ${index + 1}: ${escapeHtml(reasonQuestions[index].prompt)}</dt><dd>${escapeHtml(optionLabel(reasonQuestions[index].options, state.reasons[index]))}</dd></div>`).join("")}</dl>`;
+    }
+
+    function renderReflectionSummary() {
+      const partnerOptions = [["value", "The cleaned quantity and its unit"], ["duplicate", "The repeated record"], ["spelling", "The material spelling or format"]];
+      return `<dl class="evidence-list"><div><dt>Partner</dt><dd>${escapeHtml(state.partnerName)}</dd></div><div><dt>Partner checked</dt><dd>${escapeHtml(optionLabel(partnerOptions, state.partnerCheck))}</dd></div>${reflectionQuestions.map(question => `<div><dt>${escapeHtml(question.title)}</dt><dd>${escapeHtml(optionLabel(question.options, state.reflections[question.key]))}</dd></div>`).join("")}</dl>`;
+    }
+
+    function comparisonOptions() {
+      const [first, second] = reliableComparison();
+      const maximum = first.value >= second.value ? first : second;
+      const minimum = first.value >= second.value ? second : first;
+      const difference = maximum.value - minimum.value;
+      return {
+        title: [["vague", "Some information from school"], ["correct", `${first.material} items collected at ${first.point} and ${second.point}`], ["wrong", `Temperature at ${first.point} and ${second.point}`]],
+        larger: [[minimum.point, minimum.point], [maximum.point, maximum.point], ["same", "They collected the same number."]],
+        difference: [[String(first.value + second.value), `${first.value + second.value} items`], ["0", "0 items"], [String(difference), `${difference} item${difference === 1 ? "" : "s"}`]],
+        sentence: [["guess", `${maximum.point} collected more because students there work harder.`], ["correct", `${maximum.point} collected ${maximum.value} ${first.material.toLowerCase()} items, ${difference} more than ${minimum.point}’s ${minimum.value}.`], ["reversed", `${minimum.point} collected more ${first.material.toLowerCase()} items than ${maximum.point}.`]]
+      };
+    }
+
+    function renderComparisonSummary() {
+      const options = comparisonOptions();
+      return `<dl class="evidence-list">${Object.entries({ title: "Selected title", larger: "Location with more", difference: "Difference", sentence: "Selected conclusion" }).map(([key, label]) => `<div><dt>${label}</dt><dd>${escapeHtml(optionLabel(options[key], state.comparison[key]))}</dd></div>`).join("")}</dl>`;
+    }
+
+    function optionLabel(options, value) {
+      return options.find(option => option[0] === value)?.[1] || "Not answered";
+    }
+
+    function showMessage(text, type) {
+      message.textContent = text;
+      message.className = `result ${type}`;
+    }
+
+    function readStageAloud() {
+      if (!("speechSynthesis" in window)) return showMessage("Read-aloud is not available in this browser.", "warning");
+      speechSynthesis.cancel();
+      const text = `${document.querySelector("#stageTitle").textContent}. ${stageHost.textContent}`.replace(/\s+/g, " ").trim();
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.rate = .88;
+      speechSynthesis.speak(utterance);
+    }
+
+    function openStudentDialog() {
+      document.querySelector("#studentName").value = state.student.name;
+      document.querySelector("#studentClass").value = state.student.className;
+      document.querySelector("#studentDate").value = state.student.date;
+      studentDialog.showModal();
+    }
+
+    function submitStudent(event) {
+      event.preventDefault();
+      state.student = {
+        name: document.querySelector("#studentName").value.trim(),
+        className: document.querySelector("#studentClass").value.trim(),
+        date: document.querySelector("#studentDate").value
+      };
+      persist();
+      studentDialog.close();
+      downloadPdf();
+    }
+
+    function downloadPdf() {
+      if (!window.jspdf?.jsPDF) return showMessage("The PDF tool could not load. Check the connection and try again.", "warning");
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+      const margin = 14;
+      const pageWidth = doc.internal.pageSize.getWidth();
+      const pageHeight = doc.internal.pageSize.getHeight();
+      const blue = [40, 88, 167];
+      const dark = [23, 32, 51];
+      const muted = [88, 102, 127];
+      const ensureSpace = (y, needed = 18) => {
+        if (y + needed < pageHeight - 16) return y;
+        doc.addPage();
+        return 18;
+      };
+      const sectionTitle = (title, y) => {
+        y = ensureSpace(y, 14);
+        doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(...blue); doc.text(title, margin, y);
+        doc.setDrawColor(207, 215, 230); doc.line(margin, y + 2, pageWidth - margin, y + 2);
+        return y + 8;
+      };
+      const paragraph = (text, y, bold = false) => {
+        const lines = doc.splitTextToSize(text || "Not answered", pageWidth - margin * 2);
+        y = ensureSpace(y, lines.length * 5 + 4);
+        doc.setFont("helvetica", bold ? "bold" : "normal"); doc.setFontSize(9.5); doc.setTextColor(...dark); doc.text(lines, margin, y);
+        return y + lines.length * 5 + 3;
+      };
+      doc.setFillColor(...blue); doc.rect(0, 0, pageWidth, 32, "F");
+      doc.setTextColor(255, 255, 255); doc.setFont("helvetica", "bold"); doc.setFontSize(20); doc.text("Appreciation Grade #1", margin, 14);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(10); doc.text("Data Steward Challenge · Guided Version", margin, 23);
+      let y = sectionTitle("Student Information", 43);
+      doc.autoTable({
+        startY: y,
+        head: [["Student", "Class", "Date", "Guided Dataset", "Partner"]],
+        body: [[state.student.name, state.student.className, formatDate(state.student.date), assignment.id, state.partnerName]],
+        margin: { left: margin, right: margin },
+        theme: "grid",
+        styles: { font: "helvetica", fontSize: 8.5, cellPadding: 2.5, textColor: dark },
+        headStyles: { fillColor: blue, textColor: 255 }
+      });
+      y = sectionTitle("Cleaning Choices", doc.lastAutoTable.finalY + 10);
+      doc.autoTable({
+        startY: y,
+        head: [["Row", "Original Record", "Selected Action", "Saved Result"]],
+        body: assignment.rows.map((row, index) => [index + 1, formatRow(row), optionLabel(actionOptions, state.actions[index]), cleanedRecord(index)]),
+        margin: { left: margin, right: margin },
+        theme: "grid",
+        styles: { font: "helvetica", fontSize: 7.7, cellPadding: 2, textColor: dark, overflow: "linebreak" },
+        headStyles: { fillColor: blue, textColor: 255 },
+        alternateRowStyles: { fillColor: [248, 250, 255] }
+      });
+      y = sectionTitle("Three Cleaning Reasons", doc.lastAutoTable.finalY + 10);
+      reasonRows.forEach(index => {
+        y = paragraph(`Row ${index + 1}: ${reasonQuestions[index].prompt}`, y, true);
+        y = paragraph(optionLabel(reasonQuestions[index].options, state.reasons[index]), y);
+      });
+      y = sectionTitle("Partner Check and Reflection", y + 2);
+      y = paragraph(`Partner: ${state.partnerName}`, y, true);
+      y = paragraph(`Partner checked: ${optionLabel([["value", "The cleaned quantity and its unit"], ["duplicate", "The repeated record"], ["spelling", "The material spelling or format"]], state.partnerCheck)}`, y);
+      reflectionQuestions.forEach(question => {
+        y = paragraph(`${question.title}: ${question.prompt}`, y, true);
+        y = paragraph(optionLabel(question.options, state.reflections[question.key]), y);
+      });
+      y = sectionTitle("Two-Location Comparison", y + 2);
+      const comparisonLabels = comparisonOptions();
+      y = paragraph(`Title: ${optionLabel(comparisonLabels.title, state.comparison.title)}`, y);
+      y = paragraph(`Location with more: ${optionLabel(comparisonLabels.larger, state.comparison.larger)}`, y);
+      y = paragraph(`Difference: ${optionLabel(comparisonLabels.difference, state.comparison.difference)}`, y);
+      y = paragraph(`Conclusion: ${optionLabel(comparisonLabels.sentence, state.comparison.sentence)}`, y);
+      const pages = doc.getNumberOfPages();
+      for (let page = 1; page <= pages; page += 1) {
+        doc.setPage(page); doc.setDrawColor(207, 215, 230); doc.line(margin, pageHeight - 12, pageWidth - margin, pageHeight - 12);
+        doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(...muted);
+        doc.text("Data Steward Challenge · Guided Version", margin, pageHeight - 7);
+        doc.text(`Page ${page} of ${pages}`, pageWidth - margin, pageHeight - 7, { align: "right" });
+      }
+      const safeName = state.student.name.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "").slice(0, 40);
+      doc.save(`guided-appreciation-1-dataset-${assignment.id.toLowerCase()}-${safeName || "student"}.pdf`);
+      showMessage("Your Guided Version report was downloaded.", "success");
+    }
+
+    function localDateValue() {
+      const date = new Date();
+      return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 10);
+    }
+
+    function formatDate(value) {
+      const [year, month, day] = String(value).split("-").map(Number);
+      return year && month && day ? new Date(year, month - 1, day).toLocaleDateString() : value;
+    }
+
+    function escapeHtml(value) {
+      return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+    }
+
+    restore();
+    render();
+    document.querySelector("#lockStageBtn").addEventListener("click", openLockDialog);
+    document.querySelector("#confirmLockBtn").addEventListener("click", confirmLock);
+    document.querySelector("#openNotesBtn").addEventListener("click", () => notesDialog.showModal());
+    document.querySelector("#readAloudBtn").addEventListener("click", readStageAloud);
+    document.querySelector("#studentForm").addEventListener("submit", submitStudent);
+    document.querySelectorAll("[data-close-dialog]").forEach(button => button.addEventListener("click", () => document.querySelector(`#${button.dataset.closeDialog}`).close()));
+  </script>
+</body>
+</html>
