@@ -76,6 +76,19 @@
     .assignment-banner strong { color: var(--primary-dark); }
     .worked-example { border-color: #e2c49e; background: #fff8ef; }
     .worked-example strong { color: #7b3f10; }
+    .live-dataset { margin: 20px 0; padding: 18px; border: 1px solid #b9c7df; border-radius: 15px; background: #f8faff; }
+    .live-dataset h3 { margin: 0; }
+    .live-dataset > p { margin: 5px 0 0; color: var(--muted); }
+    .working-table { min-width: 800px; margin-top: 14px; }
+    .working-table td { transition: background-color .18s ease; }
+    .working-table tr.changed-dataset-row td { color: #145c39; background: #eaf8f0; font-weight: 700; }
+    .working-table tr.removed-dataset-row td { color: #8f2525; background: #fdecec; text-decoration: line-through; }
+    .working-table tr.removed-dataset-row td:last-child { text-decoration: none; }
+    .working-table tr.current-dataset-row td:first-child { border-left: 5px solid var(--primary); }
+    .working-table tr.current-dataset-row { outline: 3px solid rgba(40, 88, 167, .24); outline-offset: -3px; }
+    .row-status { display: inline-block; padding: 4px 8px; border-radius: 999px; color: #42516b; background: #e7ecf7; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+    .changed-dataset-row .row-status { color: #145c39; background: #d9f2e4; }
+    .removed-dataset-row .row-status { color: #8f2525; background: #f7d7d7; }
     .row-progress { display: flex; justify-content: space-between; gap: 14px; margin: 20px 0 8px; color: var(--muted); font-weight: 750; }
     .progress-track { height: 10px; overflow: hidden; border-radius: 999px; background: #e1e6ef; }
     .progress-track span { display: block; height: 100%; border-radius: inherit; background: var(--primary); }
@@ -437,6 +450,7 @@
           <div class="assignment-banner"><strong>Assigned Guided Dataset ${assignment.id}</strong><span>Eight records · one record at a time</span></div>
           <p class="stage-intro">Read the row. Choose the best action. Your selection is not marked right or wrong on this screen.</p>
           <div class="worked-example"><strong>Example:</strong> If a quantity is written as <em>12</em> and the column measures collected items, choose <em>Add the word “items.”</em></div>
+          ${renderWorkingDataset()}
           <div class="row-progress"><span>Row ${index + 1} of 8</span><span>${state.actions.filter(Boolean).length} choices saved</span></div>
           <div class="progress-track" aria-hidden="true"><span style="width:${((index + 1) / 8) * 100}%"></span></div>
           <article class="data-row-card">
@@ -573,13 +587,45 @@
     }
 
     function cleanedRecord(index) {
-      const row = [...assignment.rows[index]];
+      const row = rowAfterAction(index);
+      if (row.removed) return "Removed as a repeated record";
+      return formatRow([row.point, row.items, row.material]);
+    }
+
+    function rowAfterAction(index) {
+      const [point, originalItems, originalMaterial] = assignment.rows[index];
+      let items = originalItems;
+      let material = originalMaterial;
       const action = state.actions[index];
-      if (action === "notProvided") row[1] = "Not provided";
-      if (action === "addUnit" && /^\d+$/.test(row[1].trim())) row[1] = `${row[1].trim()} items`;
-      if (action === "fixSpelling") row[2] = "Cardboard";
-      if (action === "remove") return "Removed as a repeated record";
-      return formatRow(row);
+      if (action === "notProvided") items = "Not provided";
+      if (action === "addUnit" && /^\d+$/.test(items.trim())) items = `${items.trim()} items`;
+      if (action === "fixSpelling") material = "Cardboard";
+      return {
+        point,
+        items,
+        material,
+        removed: action === "remove",
+        changed: Boolean(action && action !== "keep"),
+        status: action ? optionLabel(actionOptions, action) : "Not answered"
+      };
+    }
+
+    function renderWorkingDataset() {
+      return `<section class="live-dataset" aria-labelledby="workingDatasetTitle">
+        <h3 id="workingDatasetTitle">Your working dataset</h3>
+        <p>Use the whole table to compare records. It updates from your choices but does not tell you whether an answer is correct.</p>
+        <div class="table-scroll"><table class="working-table">
+          <thead><tr><th>Row</th><th>Collection Point</th><th>Items Collected</th><th>Material</th><th>Your Decision</th></tr></thead>
+          <tbody>${assignment.rows.map((unused, index) => {
+            const row = rowAfterAction(index);
+            const classes = [
+              index === state.currentRow ? "current-dataset-row" : "",
+              row.removed ? "removed-dataset-row" : row.changed ? "changed-dataset-row" : ""
+            ].filter(Boolean).join(" ");
+            return `<tr class="${classes}"><td>${index + 1}</td><td>${escapeHtml(row.point)}</td><td>${escapeHtml(row.items || "(blank)")}</td><td>${escapeHtml(row.material)}</td><td><span class="row-status">${escapeHtml(row.status)}</span></td></tr>`;
+          }).join("")}</tbody>
+        </table></div>
+      </section>`;
     }
 
     function formatRow(row) {
