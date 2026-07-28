@@ -1,10 +1,10 @@
-Dataset ID,Data Product ID,Uncorrected Data Errors (count),Data Accuracy Score (0–100)
-D,A,0,96
-D,B,1,91
-D,C,2,86
-D,D,3,81
-D,E,4,76
-D,F,5,92
-D,G,6,66
-D,H,7,61
-D,I,8,56
+Dataset ID,Bus Trip ID,Rainfall (mm),Travel Time (minutes)
+D,A,0,24
+D,B,2,26
+D,C,4,29
+D,D,6,31
+D,E,8,34
+D,F,10,27
+D,G,12,40
+D,H,14,43
+D,I,16,46

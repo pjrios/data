@@ -1,10 +1,10 @@
-Dataset ID,Chart ID,Uncorrected Chart Errors (count),Chart Readability Score (0–100)
+Dataset ID,Wi-Fi Test ID,Distance from Wi-Fi Router (m),Download Speed (Mbps)
 B,A,0,95
-B,B,1,90
-B,C,2,85
-B,D,3,80
-B,E,4,75
-B,F,5,70
-B,G,6,88
-B,H,7,60
-B,I,8,55
+B,B,2,90
+B,C,4,85
+B,D,6,80
+B,E,8,75
+B,F,10,70
+B,G,12,88
+B,H,14,60
+B,I,16,55

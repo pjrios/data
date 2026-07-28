@@ -1,10 +1,10 @@
-Dataset ID,Student ID,Chart Examples Reviewed (count),Data Interpretation Score (0–100)
-C,A,1,50
-C,B,2,56
-C,C,3,63
-C,D,4,69
-C,E,5,75
-C,F,6,81
-C,G,7,86
-C,H,8,65
-C,I,9,95
+Dataset ID,School Day ID,Outdoor Temperature (°C),Cold Drinks Sold (count)
+C,A,24,18
+C,B,25,22
+C,C,26,27
+C,D,27,31
+C,E,28,36
+C,F,29,40
+C,G,30,45
+C,H,31,28
+C,I,32,52
