@@ -133,6 +133,12 @@ function restoreState() {
     xLabel: stringOrEmpty(saved.chart?.xLabel),
     yLabel: stringOrEmpty(saved.chart?.yLabel)
   };
+  const legacyAutomaticStageTwo = saved.currentStage === 2
+    && saved.chart
+    && !Object.prototype.hasOwnProperty.call(saved.chart, "xLabel");
+  if (legacyAutomaticStageTwo) {
+    state.chart = { type: "", title: state.chart.title, xField: "", yField: "", xLabel: "", yLabel: "" };
+  }
   if (saved.currentStage > 2) {
     if (!state.chart.xLabel) state.chart.xLabel = datasetFieldLabel(state.chart.xField);
     if (!state.chart.yLabel) state.chart.yLabel = datasetFieldLabel(state.chart.yField);
