@@ -171,6 +171,10 @@ function restoreState() {
   state.analysis = Object.fromEntries(
     Object.keys(state.analysis).map(key => [key, stringOrEmpty(saved.analysis?.[key])])
   );
+  const currentLimitationChoices = new Set(["otherFactors", "ignoreOutlier", "perfectLine"]);
+  if (saved.currentStage < 5 && state.analysis.limitation && !currentLimitationChoices.has(state.analysis.limitation)) {
+    state.analysis.limitation = "";
+  }
   state.student = {
     name: stringOrEmpty(saved.student?.name),
     className: stringOrEmpty(saved.student?.className),
@@ -338,10 +342,10 @@ const stageRenderers = {
           ${radio("correlation", "unclear", "No clear correlation", state.analysis.correlation)}
         </fieldset>
         <fieldset class="radio-list">
-          <legend class="hint">What is an important limitation?</legend>
-          ${radio("limitation", "causation", "The chart cannot prove that one variable caused the other", state.analysis.limitation)}
-          ${radio("limitation", "cause", "The chart proves exactly what caused the result", state.analysis.limitation)}
-          ${radio("limitation", "future", "The chart guarantees the same result in the future", state.analysis.limitation)}
+          <legend class="hint">Why should this relationship be described as a possible correlation rather than a proven cause?</legend>
+          ${radio("limitation", "otherFactors", "Other factors not shown in the chart could also have affected the results", state.analysis.limitation)}
+          ${radio("limitation", "ignoreOutlier", "The presence of one outlier means that the overall pattern must be ignored", state.analysis.limitation)}
+          ${radio("limitation", "perfectLine", "A correlation is valid only when every point forms a perfectly straight line", state.analysis.limitation)}
         </fieldset>
         <label>Conclusion sentence
           <textarea id="conclusionSentence" rows="5" maxlength="600" placeholder="State what the data suggest and what they cannot prove...">${escapeHtml(state.analysis.conclusion)}</textarea>
@@ -982,6 +986,9 @@ function directionLabel(value) {
 
 function limitationLabel(value) {
   return {
+    otherFactors: "Other factors not shown in the chart could also have affected the results",
+    ignoreOutlier: "The presence of one outlier means that the overall pattern must be ignored",
+    perfectLine: "A correlation is valid only when every point forms a perfectly straight line",
     causation: "The chart cannot prove that one variable caused the other",
     cause: "The chart proves exactly what caused the result",
     future: "The chart guarantees the same result in the future"
@@ -1034,7 +1041,9 @@ function validateStage(stage) {
     if (!selectedRecord(state.analysis.outlierRecord)) return "Select the record you believe is the clearest outlier.";
     if (!completeEvidenceSentence(state.analysis.outlierSentence)) return "Write a complete outlier or limitation sentence containing both numerical values from the selected record.";
     if (!["positive", "negative", "unclear"].includes(state.analysis.correlation)) return "Select the possible correlation shown by the dataset.";
-    if (!["causation", "cause", "future"].includes(state.analysis.limitation)) return "Select one important limitation.";
+    if (!["otherFactors", "ignoreOutlier", "perfectLine"].includes(state.analysis.limitation)) {
+      return "Select why the relationship should be described as a possible correlation rather than a proven cause.";
+    }
     if (state.analysis.conclusion.trim().length < 30) return "Write a complete conclusion explaining what the data suggest and what the chart cannot prove.";
   }
   return "";
