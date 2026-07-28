@@ -10,6 +10,9 @@ const datasetProfiles = {
     recordHeader: "Student ID",
     xHeader: "Practice Tasks Completed (count)",
     yHeader: "Chart Check Score (0–100)",
+    rowMeaning: "one anonymous student",
+    xUnit: "count",
+    yUnit: "score on a 0–100 scale",
     description: "This simulated dataset contains results from nine anonymous students who completed different numbers of chart-practice tasks and then completed the same chart check. Each row represents one student.",
     question: "What possible relationship exists between the number of practice tasks completed and the chart-check score?"
   },
@@ -17,6 +20,9 @@ const datasetProfiles = {
     recordHeader: "Wi-Fi Test ID",
     xHeader: "Distance from Wi-Fi Router (m)",
     yHeader: "Download Speed (Mbps)",
+    rowMeaning: "one Wi-Fi speed test",
+    xUnit: "meters (m)",
+    yUnit: "megabits per second (Mbps)",
     description: "This simulated dataset contains nine Wi-Fi speed tests completed with the same device and network. Each row represents one test conducted at a different distance from the router.",
     question: "What possible relationship exists between distance from the Wi-Fi router and download speed?"
   },
@@ -24,6 +30,9 @@ const datasetProfiles = {
     recordHeader: "School Day ID",
     xHeader: "Outdoor Temperature (°C)",
     yHeader: "Cold Drinks Sold (count)",
+    rowMeaning: "one school day",
+    xUnit: "degrees Celsius (°C)",
+    yUnit: "count",
     description: "This simulated dataset contains observations from nine school days. Each row pairs the outdoor temperature measured at midday with the total number of cold drinks sold in the cafeteria that day.",
     question: "What possible relationship exists between outdoor temperature and the number of cold drinks sold?"
   },
@@ -31,13 +40,18 @@ const datasetProfiles = {
     recordHeader: "Video ID",
     xHeader: "Video Duration (minutes)",
     yHeader: "Video File Size (MB)",
+    rowMeaning: "one video",
+    xUnit: "minutes",
+    yUnit: "megabytes (MB)",
     description: "This simulated dataset contains nine videos exported using the same format and resolution. Each row pairs one video's duration with its file size.",
     question: "What possible relationship exists between video duration and video file size?"
   }
 };
+const rowMeaningChoices = [...new Set(Object.values(datasetProfiles).map(profile => profile.rowMeaning))];
+const unitChoices = [...new Set(Object.values(datasetProfiles).flatMap(profile => [profile.xUnit, profile.yUnit]))];
 const storageKey = "dailyGrade4ChartInvestigationV4";
 const stageNames = [
-  "Upload your assigned CSV file",
+  "Upload and verify your assigned CSV file",
   "Create one scatter plot",
   "Write the pattern and comparison",
   "Analyze the outlier and possible correlation",
@@ -65,6 +79,14 @@ function createInitialState() {
       fileName: "",
       headers: { record: "", x: "", y: "" },
       rows: []
+    },
+    verification: {
+      rowMeaning: "",
+      idColumn: "",
+      secondColumn: "",
+      secondUnit: "",
+      thirdColumn: "",
+      thirdUnit: ""
     },
     chart: { type: "", title: "", xField: "", yField: "", xLabel: "", yLabel: "" },
     analysis: {
@@ -125,6 +147,9 @@ function restoreState() {
       rows: rows.map(row => ({ record: row.record, x: Number(row.x), y: Number(row.y) }))
     };
   }
+  state.verification = Object.fromEntries(
+    Object.keys(state.verification).map(key => [key, stringOrEmpty(saved.verification?.[key])])
+  );
   state.chart = {
     type: stringOrEmpty(saved.chart?.type),
     title: stringOrEmpty(saved.chart?.title),
@@ -188,7 +213,7 @@ function renderStage() {
 
 function stageButtonLabel(stage) {
   return {
-    1: "Lock assigned dataset and continue",
+    1: "Lock dataset verification and continue",
     2: "Lock chart and continue",
     3: "Lock pattern and comparison",
     4: "Lock final analysis and continue"
@@ -197,7 +222,7 @@ function stageButtonLabel(stage) {
 
 const stageRenderers = {
   1: () => `
-    <p class="stage-intro">Choose the CSV file assigned to you in Google Classroom. The file is read only here and is not sent to a server.</p>
+    <p class="stage-intro">Choose the CSV file assigned to you in Google Classroom. Then read its description, inspect all three displayed columns, and complete the dataset verification.</p>
     <div class="upload-panel">
       <label class="upload-label" for="datasetFile">
         <strong>Choose your assigned CSV file</strong>
@@ -352,7 +377,7 @@ function renderImportPreview() {
   if (!state.dataset.id || !state.dataset.rows.length) {
     return `<div class="rules"><strong>No file imported yet.</strong> The full table will appear here before you lock it.</div>`;
   }
-  return `${renderDatasetIdentity("Ready to lock")}${renderDatasetContext()}${renderDatasetTable()}`;
+  return `${renderDatasetIdentity("Ready to verify")}${renderDatasetContext()}${renderDatasetTable()}${renderDatasetVerification()}`;
 }
 
 function renderDatasetTable() {
@@ -362,6 +387,45 @@ function renderDatasetTable() {
     <thead><tr><th>${escapeHtml(headers.record)}</th><th>${escapeHtml(headers.x)}</th><th>${escapeHtml(headers.y)}</th></tr></thead>
     <tbody>${rows.map(row => `<tr><td>${escapeHtml(row.record)}</td><td>${row.x}</td><td>${row.y}</td></tr>`).join("")}</tbody>
   </table></div>`;
+}
+
+function renderDatasetVerification() {
+  const profile = datasetProfiles[state.dataset.id];
+  if (!profile) return "";
+  const columnChoices = [state.dataset.headers.record, state.dataset.headers.x, state.dataset.headers.y];
+  return `<section class="dataset-verification" aria-labelledby="datasetVerificationTitle">
+    <h3 id="datasetVerificationTitle">Verify what the three columns represent</h3>
+    <p>Use the description and table above. Complete every selection in English. Your answers will be saved in the final PDF and will not be marked on this page.</p>
+    <div class="verification-grid">
+      <article class="verification-card">
+        <p class="verification-number">Column 1</p>
+        <label>What does one row represent?
+          <select id="rowMeaning">${choiceOptions(rowMeaningChoices, state.verification.rowMeaning, "Choose what one row represents")}</select>
+        </label>
+        <label>Which column is the ID column?
+          <select id="idColumn">${choiceOptions(columnChoices, state.verification.idColumn, "Choose the ID-column name")}</select>
+        </label>
+      </article>
+      <article class="verification-card">
+        <p class="verification-number">Column 2</p>
+        <label>Which column name belongs here?
+          <select id="secondColumn">${choiceOptions(columnChoices, state.verification.secondColumn, "Choose the Column 2 name")}</select>
+        </label>
+        <label>What unit does this column use?
+          <select id="secondUnit">${choiceOptions(unitChoices, state.verification.secondUnit, "Choose the Column 2 unit")}</select>
+        </label>
+      </article>
+      <article class="verification-card">
+        <p class="verification-number">Column 3</p>
+        <label>Which column name belongs here?
+          <select id="thirdColumn">${choiceOptions(columnChoices, state.verification.thirdColumn, "Choose the Column 3 name")}</select>
+        </label>
+        <label>What unit does this column use?
+          <select id="thirdUnit">${choiceOptions(unitChoices, state.verification.thirdUnit, "Choose the Column 3 unit")}</select>
+        </label>
+      </article>
+    </div>
+  </section>`;
 }
 
 function renderLockedChart() {
@@ -380,6 +444,17 @@ function renderFinalSummary() {
     ${renderDatasetIdentity("All evidence is locked")}
     ${renderDatasetContext()}
     <section class="locked-evidence"><h3>Imported dataset</h3>${renderDatasetTable()}</section>
+    <section class="locked-evidence">
+      <h3>Dataset verification responses</h3>
+      <dl class="evidence-list">
+        <div><dt>What one row represents</dt><dd>${escapeHtml(verificationAnswer(state.verification.rowMeaning))}</dd></div>
+        <div><dt>ID-column name</dt><dd>${escapeHtml(verificationAnswer(state.verification.idColumn))}</dd></div>
+        <div><dt>Column 2 name</dt><dd>${escapeHtml(verificationAnswer(state.verification.secondColumn))}</dd></div>
+        <div><dt>Column 2 unit</dt><dd>${escapeHtml(verificationAnswer(state.verification.secondUnit))}</dd></div>
+        <div><dt>Column 3 name</dt><dd>${escapeHtml(verificationAnswer(state.verification.thirdColumn))}</dd></div>
+        <div><dt>Column 3 unit</dt><dd>${escapeHtml(verificationAnswer(state.verification.thirdUnit))}</dd></div>
+      </dl>
+    </section>
     ${renderLockedChart()}
     <section class="locked-evidence">
       <h3>Chart decisions</h3>
@@ -417,6 +492,10 @@ function option(value, label, selected) {
   return `<option value="${escapeHtml(value)}"${value === selected ? " selected" : ""}>${escapeHtml(label)}</option>`;
 }
 
+function choiceOptions(values, selected, placeholder) {
+  return [option("", placeholder, selected), ...values.map(value => option(value, value, selected))].join("");
+}
+
 function axisOptions(selected) {
   return [
     option("", "Choose a variable", selected),
@@ -443,6 +522,7 @@ function radio(name, value, label, selected) {
 function bindStageEvents(stage) {
   if (stage === 1) {
     document.querySelector("#datasetFile").addEventListener("change", importAssignedCsv);
+    bindDatasetVerificationEvents();
   }
   if (stage === 2) {
     ["chartTitle", "xLabel", "yLabel"].forEach(id => {
@@ -511,6 +591,17 @@ function bindStageEvents(stage) {
   }
 }
 
+function bindDatasetVerificationEvents() {
+  ["rowMeaning", "idColumn", "secondColumn", "secondUnit", "thirdColumn", "thirdUnit"].forEach(key => {
+    document.querySelector(`#${key}`)?.addEventListener("change", event => {
+      state.verification[key] = event.target.value;
+      persistState();
+      stageMessage.textContent = "";
+      stageMessage.className = "result";
+    });
+  });
+}
+
 async function importAssignedCsv(event) {
   const file = event.target.files?.[0];
   if (!file) return;
@@ -522,11 +613,13 @@ async function importAssignedCsv(event) {
       throw new Error(`Dataset ${parsed.id} does not match the original assigned file. Download a fresh copy from Google Classroom.`);
     }
     state.dataset = { ...parsed, fileName: file.name };
+    state.verification = createInitialState().verification;
     state.chart = { type: "", title: "", xField: "", yField: "", xLabel: "", yLabel: "" };
     state.analysis = createInitialState().analysis;
     persistState();
     document.querySelector("#importPreview").innerHTML = renderImportPreview();
-    showMessage(`Dataset ${parsed.id} was imported successfully. Review all nine records before locking it.`, "success");
+    bindDatasetVerificationEvents();
+    showMessage(`Dataset ${parsed.id} was imported successfully. Review all nine records and complete the six verification selections.`, "success");
   } catch (error) {
     event.target.value = "";
     showMessage(error.message || "This file could not be read as an assigned assessment CSV.", "warning");
@@ -895,6 +988,10 @@ function limitationLabel(value) {
   }[value] || "Not selected";
 }
 
+function verificationAnswer(value) {
+  return value || "Not answered in this legacy attempt";
+}
+
 function selectedRecord(label) {
   return state.dataset.rows.find(row => row.record === label) || null;
 }
@@ -915,6 +1012,9 @@ function outlierEvidence() {
 function validateStage(stage) {
   if (stage === 1 && (!state.dataset.id || state.dataset.rows.length !== 9)) {
     return "Upload the CSV file assigned to you and review the full nine-record preview.";
+  }
+  if (stage === 1 && Object.values(state.verification).some(value => !value)) {
+    return "Complete all six dataset-verification selections before locking Stage 1.";
   }
   if (stage === 2) {
     if (state.chart.title.trim().length < 6) return "Write a clear chart title before continuing.";
@@ -957,7 +1057,7 @@ function openLockDialog() {
 
 function lockWarning(stage) {
   return {
-    1: "The imported dataset will be saved and cannot be replaced after you continue.",
+    1: "The imported dataset and all six verification responses will be saved and cannot be changed after you continue.",
     2: "The chart type, title, variables, axis labels, and chart image cannot be changed after you continue.",
     3: "Your pattern and comparison choices and sentences cannot be changed after you continue.",
     4: "Your outlier, correlation, limitation, and final sentences cannot be changed after you continue."
@@ -1089,6 +1189,25 @@ function downloadPdf() {
     headStyles: { fillColor: [222, 234, 247], textColor: dark },
     head: [[state.dataset.headers.record, state.dataset.headers.x, state.dataset.headers.y]],
     body: state.dataset.rows.map(row => [row.record, String(row.x), String(row.y)]),
+    margin: { left: margin, right: margin }
+  });
+  y = doc.lastAutoTable.finalY + 9;
+
+  sectionTitle("Dataset Verification Responses");
+  doc.autoTable({
+    startY: y,
+    theme: "grid",
+    styles: { fontSize: 8.5, cellPadding: 2.4, textColor: dark },
+    headStyles: { fillColor: [222, 234, 247], textColor: dark },
+    columnStyles: { 0: { fontStyle: "bold", cellWidth: 48 } },
+    body: [
+      ["What one row represents", verificationAnswer(state.verification.rowMeaning)],
+      ["ID-column name", verificationAnswer(state.verification.idColumn)],
+      ["Column 2 name", verificationAnswer(state.verification.secondColumn)],
+      ["Column 2 unit", verificationAnswer(state.verification.secondUnit)],
+      ["Column 3 name", verificationAnswer(state.verification.thirdColumn)],
+      ["Column 3 unit", verificationAnswer(state.verification.thirdUnit)]
+    ],
     margin: { left: margin, right: margin }
   });
   y = doc.lastAutoTable.finalY + 9;

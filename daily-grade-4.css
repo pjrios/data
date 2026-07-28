@@ -141,6 +141,36 @@ label input, label select, label textarea { margin-top: 7px; font-weight: 400; }
 table { width: 100%; min-width: 700px; border-collapse: collapse; }
 th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--border); }
 th { background: #f4f8fc; font-size: .88rem; }
+.dataset-verification {
+  margin-top: 20px;
+  padding: 18px;
+  border: 1px solid #c5d8e9;
+  border-radius: 13px;
+  background: #f2f7fc;
+}
+.dataset-verification h3 { margin: 0 0 5px; }
+.dataset-verification > p { margin: 0; color: #45546b; }
+.verification-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 13px;
+  margin-top: 15px;
+}
+.verification-card {
+  display: grid;
+  align-content: start;
+  gap: 13px;
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  background: white;
+}
+.verification-number {
+  margin: 0;
+  color: var(--primary-dark);
+  font-weight: 850;
+}
 .chart-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin: 18px 0; }
 .chart-title-field { grid-column: 1 / -1; }
 .chart-assignment { align-self: end; }
@@ -242,7 +272,7 @@ footer { padding: 0 0 32px; color: var(--muted); text-align: center; }
 @media (max-width: 760px) {
   .card { padding: 19px; }
   .section-heading, .stage-heading { flex-direction: column; }
-  .concept-grid, .chart-form, .analysis-grid, .student-grid { grid-template-columns: 1fr; }
+  .concept-grid, .chart-form, .analysis-grid, .student-grid, .verification-grid { grid-template-columns: 1fr; }
   .chart-title-field, .analysis-card.full { grid-column: auto; }
   .stage-actions, .lesson-actions { flex-direction: column; align-items: stretch; }
   .stage-actions p, .lesson-actions p { text-align: center; }
