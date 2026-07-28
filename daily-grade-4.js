@@ -3,39 +3,39 @@ const acceptedDatasetHashes = {
   A: "10223e0718166b62fbabc53f2a087f4587afefbac80459c065704ffe380d75d1",
   B: "4b4a942191014a4cc21b1b2c07fb9eaf268a337d577d3eded4705354f30dcb03",
   C: "3d6729f498f36dafae1f904db5799e12ae5479d2aaf5ca540dbf4dbee730a24a",
-  D: "0392716c9e5f90b903acd4e918c375fdb5a073242a4eb1a76bb808ccc729cff6"
+  D: "4d01b8e68b7bc6dc57f45d6e96eeb4f594cd465ed3a0df84b81e8e1e66570273"
 };
 const datasetProfiles = {
   A: {
     recordHeader: "Student ID",
     xHeader: "Practice Tasks Completed (count)",
     yHeader: "Chart Check Score (0–100)",
-    description: "This dataset contains results from nine anonymous students who completed different numbers of chart-practice tasks and then completed the same chart check. Each row represents one student.",
+    description: "This simulated dataset contains results from nine anonymous students who completed different numbers of chart-practice tasks and then completed the same chart check. Each row represents one student.",
     question: "What possible relationship exists between the number of practice tasks completed and the chart-check score?"
   },
   B: {
     recordHeader: "Wi-Fi Test ID",
     xHeader: "Distance from Wi-Fi Router (m)",
     yHeader: "Download Speed (Mbps)",
-    description: "This dataset contains nine Wi-Fi speed tests completed with the same device and network. Each row represents one test conducted at a different distance from the router.",
+    description: "This simulated dataset contains nine Wi-Fi speed tests completed with the same device and network. Each row represents one test conducted at a different distance from the router.",
     question: "What possible relationship exists between distance from the Wi-Fi router and download speed?"
   },
   C: {
     recordHeader: "School Day ID",
     xHeader: "Outdoor Temperature (°C)",
     yHeader: "Cold Drinks Sold (count)",
-    description: "This dataset contains observations from nine school days. Each row pairs the outdoor temperature measured at midday with the total number of cold drinks sold in the cafeteria that day.",
+    description: "This simulated dataset contains observations from nine school days. Each row pairs the outdoor temperature measured at midday with the total number of cold drinks sold in the cafeteria that day.",
     question: "What possible relationship exists between outdoor temperature and the number of cold drinks sold?"
   },
   D: {
-    recordHeader: "Bus Trip ID",
-    xHeader: "Rainfall (mm)",
-    yHeader: "Travel Time (minutes)",
-    description: "This dataset contains observations from nine morning trips along the same school-bus route. Each row pairs the rainfall recorded during the trip with the total travel time.",
-    question: "What possible relationship exists between rainfall and school-bus travel time?"
+    recordHeader: "Video ID",
+    xHeader: "Video Duration (minutes)",
+    yHeader: "Video File Size (MB)",
+    description: "This simulated dataset contains nine videos exported using the same format and resolution. Each row pairs one video's duration with its file size.",
+    question: "What possible relationship exists between video duration and video file size?"
   }
 };
-const storageKey = "dailyGrade4ChartInvestigationV3";
+const storageKey = "dailyGrade4ChartInvestigationV4";
 const stageNames = [
   "Upload your assigned CSV file",
   "Create one scatter plot",
@@ -56,7 +56,7 @@ const studentDialog = document.querySelector("#studentDialog");
 
 function createInitialState() {
   return {
-    version: 3,
+    version: 4,
     introComplete: false,
     currentStage: 1,
     lockedAt: {},
@@ -99,7 +99,7 @@ function restoreState() {
     try { localStorage.removeItem(storageKey); } catch {}
     return;
   }
-  if (!saved || saved.version !== 3 || typeof saved !== "object") return;
+  if (!saved || saved.version !== 4 || typeof saved !== "object") return;
   if (!Number.isInteger(saved.currentStage) || saved.currentStage < 1 || saved.currentStage > 5) return;
   const rows = saved.dataset?.rows;
   const headers = saved.dataset?.headers;
@@ -199,7 +199,7 @@ const stageRenderers = {
   2: () => `
     ${renderDatasetIdentity("Imported dataset is locked")}
     ${renderDatasetContext()}
-    <p class="stage-intro">Create one scatter plot using the two numerical columns. Each point represents one student, Wi-Fi test, school day, or bus trip identified in the first column.</p>
+    <p class="stage-intro">Create one scatter plot using the two numerical columns. Each point represents one student, Wi-Fi test, school day, or video identified in the first column.</p>
     ${renderDatasetTable()}
     <div class="chart-form">
       <label class="chart-title-field">Chart title

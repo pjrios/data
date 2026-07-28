@@ -1,10 +1,10 @@
-Dataset ID,Bus Trip ID,Rainfall (mm),Travel Time (minutes)
-D,A,0,24
-D,B,2,26
-D,C,4,29
-D,D,6,31
-D,E,8,34
-D,F,10,27
-D,G,12,40
-D,H,14,43
-D,I,16,46
+Dataset ID,Video ID,Video Duration (minutes),Video File Size (MB)
+D,A,1,12
+D,B,2,21
+D,C,3,30
+D,D,4,39
+D,E,5,48
+D,F,6,30
+D,G,7,66
+D,H,8,75
+D,I,9,84
