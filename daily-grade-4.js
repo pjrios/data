@@ -212,7 +212,7 @@ const stageRenderers = {
     <div class="rules"><strong>Outlier reminder:</strong> An outlier is a valid point that does not follow the overall pattern. Do not delete or change it.</div>
     <section class="chart-preview-card" aria-labelledby="chartPreviewTitle">
       <h3 id="chartPreviewTitle">Chart preview</h3>
-      <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column</span>. Hover over a point to see its exact values. Keyboard users can focus the chart and use the arrow keys.</p>
+      <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column (A–I)</span>. Hover over a point to see its full ID and exact values. Keyboard users can focus the chart and use the arrow keys.</p>
       <div class="chart-canvas-wrap"><div class="interactive-chart">
         <canvas id="chartCanvas" width="900" height="500" role="img" tabindex="0" aria-label="Interactive chart preview"></canvas>
         <div class="chart-tooltip" role="tooltip" hidden></div>
@@ -337,7 +337,7 @@ function renderDatasetTable() {
 function renderLockedChart() {
   return `<section class="locked-evidence" aria-labelledby="lockedChartTitle">
     <h3 id="lockedChartTitle">Locked chart</h3>
-    <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column</span>. Hover over a point to see its exact values. Keyboard users can focus the chart and use the arrow keys.</p>
+    <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column (A–I)</span>. Hover over a point to see its full ID and exact values. Keyboard users can focus the chart and use the arrow keys.</p>
     <div class="chart-canvas-wrap"><div class="interactive-chart">
       <canvas id="lockedChartCanvas" class="summary-chart" width="900" height="500" role="img" tabindex="0" aria-label="Interactive locked chart"></canvas>
       <div class="chart-tooltip" role="tooltip" hidden></div>
@@ -681,7 +681,7 @@ function renderChartInto(canvas) {
       ctx.fill();
       ctx.fillStyle = "#25344a";
       ctx.font = "700 11px system-ui, sans-serif";
-      const pointLabel = `${state.dataset.headers.record} ${point.row.record}`;
+      const pointLabel = point.row.record;
       const labelWidth = ctx.measureText(pointLabel).width;
       const placeLeft = point.x + labelWidth + 12 > width - margin.right;
       ctx.textAlign = placeLeft ? "right" : "left";
@@ -724,7 +724,7 @@ function setupChartInteraction(canvas, points) {
   if (!chart) return;
   const tooltip = chart.querySelector(".chart-tooltip");
   const pointLabel = chart.closest("section, .chart-preview-card")?.querySelector("[data-point-label]");
-  if (pointLabel) pointLabel.textContent = state.dataset.headers.record;
+  if (pointLabel) pointLabel.textContent = `${state.dataset.headers.record} (A–I)`;
 
   canvas._chartPoints = points;
   canvas._activeChartPoint = Math.min(canvas._activeChartPoint || 0, points.length - 1);
