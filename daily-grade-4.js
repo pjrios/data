@@ -66,7 +66,7 @@ function createInitialState() {
       headers: { record: "", x: "", y: "" },
       rows: []
     },
-    chart: { type: "", title: "", xField: "", yField: "" },
+    chart: { type: "", title: "", xField: "", yField: "", xLabel: "", yLabel: "" },
     analysis: {
       patternDirection: "",
       patternSentence: "",
@@ -129,8 +129,14 @@ function restoreState() {
     type: stringOrEmpty(saved.chart?.type),
     title: stringOrEmpty(saved.chart?.title),
     xField: stringOrEmpty(saved.chart?.xField),
-    yField: stringOrEmpty(saved.chart?.yField)
+    yField: stringOrEmpty(saved.chart?.yField),
+    xLabel: stringOrEmpty(saved.chart?.xLabel),
+    yLabel: stringOrEmpty(saved.chart?.yLabel)
   };
+  if (saved.currentStage > 2) {
+    if (!state.chart.xLabel) state.chart.xLabel = datasetFieldLabel(state.chart.xField);
+    if (!state.chart.yLabel) state.chart.yLabel = datasetFieldLabel(state.chart.yField);
+  }
   state.analysis = Object.fromEntries(
     Object.keys(state.analysis).map(key => [key, stringOrEmpty(saved.analysis?.[key])])
   );
@@ -199,15 +205,33 @@ const stageRenderers = {
   2: () => `
     ${renderDatasetIdentity("Imported dataset is locked")}
     ${renderDatasetContext()}
-    <p class="stage-intro">Create one scatter plot using the two numerical columns. Each point represents one student, Wi-Fi test, school day, or video identified in the first column.</p>
+    <p class="stage-intro">Build the chart yourself. Select the required chart type, assign the two numerical variables to the correct axes, and write both axis labels in English. Each point represents the ID shown in the first column.</p>
     ${renderDatasetTable()}
     <div class="chart-form">
       <label class="chart-title-field">Chart title
         <input id="chartTitle" type="text" maxlength="100" value="${escapeHtml(state.chart.title)}" placeholder="Describe the two variables being shown" />
       </label>
-      <div><strong>Chart type</strong><span>Scatter plot</span></div>
-      <div><strong>Horizontal (X) axis</strong><span>${escapeHtml(state.dataset.headers.x)}</span></div>
-      <div><strong>Vertical (Y) axis</strong><span>${escapeHtml(state.dataset.headers.y)}</span></div>
+      <label>Chart type
+        <select id="chartType">
+          ${option("", "Choose a chart type", state.chart.type)}
+          ${option("scatter", "Scatter plot", state.chart.type)}
+          ${option("line", "Line chart", state.chart.type)}
+          ${option("bar", "Bar chart", state.chart.type)}
+        </select>
+      </label>
+      <div class="chart-assignment"><strong>Assigned arrangement</strong><span>Use the first numerical column on the horizontal axis and the second numerical column on the vertical axis.</span></div>
+      <label>Horizontal (X) variable
+        <select id="xField">${axisOptions(state.chart.xField)}</select>
+      </label>
+      <label>Horizontal (X) axis label
+        <input id="xLabel" type="text" maxlength="100" value="${escapeHtml(state.chart.xLabel)}" placeholder="${escapeHtml(axisLabelPlaceholder(state.chart.xField))}" />
+      </label>
+      <label>Vertical (Y) variable
+        <select id="yField">${axisOptions(state.chart.yField)}</select>
+      </label>
+      <label>Vertical (Y) axis label
+        <input id="yLabel" type="text" maxlength="100" value="${escapeHtml(state.chart.yLabel)}" placeholder="${escapeHtml(axisLabelPlaceholder(state.chart.yField))}" />
+      </label>
     </div>
     <div class="rules"><strong>Outlier reminder:</strong> An outlier is a valid point that does not follow the overall pattern. Do not delete or change it.</div>
     <section class="chart-preview-card" aria-labelledby="chartPreviewTitle">
@@ -356,8 +380,10 @@ function renderFinalSummary() {
       <dl class="evidence-list">
         <div><dt>Chart type</dt><dd>${escapeHtml(chartTypeLabel(state.chart.type))}</dd></div>
         <div><dt>Title</dt><dd>${escapeHtml(state.chart.title)}</dd></div>
-        <div><dt>Horizontal axis</dt><dd>${escapeHtml(fieldLabel(state.chart.xField))}</dd></div>
-        <div><dt>Vertical axis</dt><dd>${escapeHtml(fieldLabel(state.chart.yField))}</dd></div>
+        <div><dt>Horizontal variable</dt><dd>${escapeHtml(datasetFieldLabel(state.chart.xField))}</dd></div>
+        <div><dt>Horizontal label</dt><dd>${escapeHtml(state.chart.xLabel)}</dd></div>
+        <div><dt>Vertical variable</dt><dd>${escapeHtml(datasetFieldLabel(state.chart.yField))}</dd></div>
+        <div><dt>Vertical label</dt><dd>${escapeHtml(state.chart.yLabel)}</dd></div>
       </dl>
     </section>
     <section class="locked-evidence">
@@ -413,10 +439,23 @@ function bindStageEvents(stage) {
     document.querySelector("#datasetFile").addEventListener("change", importAssignedCsv);
   }
   if (stage === 2) {
-    document.querySelector("#chartTitle").addEventListener("input", event => {
-      state.chart.title = event.target.value;
-      persistState();
-      renderChartInto(document.querySelector("#chartCanvas"));
+    ["chartTitle", "xLabel", "yLabel"].forEach(id => {
+      document.querySelector(`#${id}`).addEventListener("input", event => {
+        const key = id === "chartTitle" ? "title" : id;
+        state.chart[key] = event.target.value;
+        persistState();
+        renderChartInto(document.querySelector("#chartCanvas"));
+      });
+    });
+    ["chartType", "xField", "yField"].forEach(id => {
+      document.querySelector(`#${id}`).addEventListener("change", event => {
+        const key = id === "chartType" ? "type" : id;
+        state.chart[key] = event.target.value;
+        if (id === "xField") document.querySelector("#xLabel").placeholder = axisLabelPlaceholder(state.chart.xField);
+        if (id === "yField") document.querySelector("#yLabel").placeholder = axisLabelPlaceholder(state.chart.yField);
+        persistState();
+        renderChartInto(document.querySelector("#chartCanvas"));
+      });
     });
   }
   if (stage === 3) {
@@ -477,7 +516,7 @@ async function importAssignedCsv(event) {
       throw new Error(`Dataset ${parsed.id} does not match the original assigned file. Download a fresh copy from Google Classroom.`);
     }
     state.dataset = { ...parsed, fileName: file.name };
-    state.chart = { type: "scatter", title: "", xField: "x", yField: "y" };
+    state.chart = { type: "", title: "", xField: "", yField: "", xLabel: "", yLabel: "" };
     state.analysis = createInitialState().analysis;
     persistState();
     document.querySelector("#importPreview").innerHTML = renderImportPreview();
@@ -596,12 +635,13 @@ function renderChartInto(canvas) {
   ctx.fillRect(0, 0, width, height);
 
   const complete = state.dataset.rows.length && state.chart.type && state.chart.title.trim()
-    && state.chart.xField && state.chart.yField && state.chart.xField !== state.chart.yField;
+    && state.chart.xField && state.chart.yField && state.chart.xField !== state.chart.yField
+    && state.chart.xLabel.trim() && state.chart.yLabel.trim();
   if (!complete) {
     ctx.fillStyle = "#647188";
     ctx.font = "600 20px system-ui, sans-serif";
     ctx.textAlign = "center";
-    ctx.fillText("Complete the chart title, type, and both axes.", width / 2, height / 2);
+    ctx.fillText("Complete the title, type, variables, and axis labels.", width / 2, height / 2);
     const summary = document.querySelector("#chartSummary");
     if (summary) summary.textContent = "The chart will appear after all chart decisions are complete.";
     clearChartInteraction(canvas);
@@ -700,15 +740,15 @@ function renderChartInto(canvas) {
   ctx.fillStyle = "#3f4f66";
   ctx.font = "700 14px system-ui, sans-serif";
   ctx.textAlign = "center";
-  ctx.fillText(state.chart.type === "bar" ? state.dataset.headers.record : fieldLabel(state.chart.xField), margin.left + plotWidth / 2, height - 24);
+  ctx.fillText(state.chart.xLabel.trim(), margin.left + plotWidth / 2, height - 24);
   ctx.save();
   ctx.translate(22, margin.top + plotHeight / 2);
   ctx.rotate(-Math.PI / 2);
-  ctx.fillText(fieldLabel(state.chart.yField), 0, 0);
+  ctx.fillText(state.chart.yLabel.trim(), 0, 0);
   ctx.restore();
 
   const summary = document.querySelector("#chartSummary");
-  if (summary) summary.textContent = `${chartTypeLabel(state.chart.type)} showing ${fieldLabel(state.chart.xField)} and ${fieldLabel(state.chart.yField)} for all nine records.`;
+  if (summary) summary.textContent = `${chartTypeLabel(state.chart.type)} showing ${datasetFieldLabel(state.chart.xField)} and ${datasetFieldLabel(state.chart.yField)} for all nine records.`;
   setupChartInteraction(canvas, points);
 }
 
@@ -825,8 +865,12 @@ function fieldValue(row, field) {
   return field === "x" ? row.x : row.y;
 }
 
-function fieldLabel(field) {
+function datasetFieldLabel(field) {
   return field === "x" ? state.dataset.headers.x : field === "y" ? state.dataset.headers.y : "Not selected";
+}
+
+function axisLabelPlaceholder(field) {
+  return field ? `Type this label in English: ${datasetFieldLabel(field)}` : "Select a variable, then enter its label";
 }
 
 function chartTypeLabel(type) {
@@ -868,7 +912,9 @@ function validateStage(stage) {
   }
   if (stage === 2) {
     if (state.chart.title.trim().length < 6) return "Write a clear chart title before continuing.";
-    if (state.chart.type !== "scatter" || state.chart.xField !== "x" || state.chart.yField !== "y") return "Use the required scatter plot and assigned axes.";
+    if (!["scatter", "line", "bar"].includes(state.chart.type)) return "Select a chart type.";
+    if (!state.chart.xField || !state.chart.yField || state.chart.xField === state.chart.yField) return "Select two different variables for the horizontal and vertical axes.";
+    if (state.chart.xLabel.trim().length < 3 || state.chart.yLabel.trim().length < 3) return "Write both axis labels in English, including the units shown in the column names.";
   }
   if (stage === 3) {
     if (!["positive", "negative", "unclear"].includes(state.analysis.patternDirection)) return "Select the overall pattern direction.";
@@ -906,7 +952,7 @@ function openLockDialog() {
 function lockWarning(stage) {
   return {
     1: "The imported dataset will be saved and cannot be replaced after you continue.",
-    2: "The chart title and scatter-plot image cannot be changed after you continue.",
+    2: "The chart type, title, variables, axis labels, and chart image cannot be changed after you continue.",
     3: "Your pattern and comparison choices and sentences cannot be changed after you continue.",
     4: "Your outlier, correlation, limitation, and final sentences cannot be changed after you continue."
   }[stage];
@@ -1071,8 +1117,10 @@ function downloadPdf() {
     body: [
       ["Chart type", chartTypeLabel(state.chart.type)],
       ["Chart title", state.chart.title],
-      ["Horizontal axis", fieldLabel(state.chart.xField)],
-      ["Vertical axis", fieldLabel(state.chart.yField)],
+      ["Horizontal variable", datasetFieldLabel(state.chart.xField)],
+      ["Horizontal label", state.chart.xLabel],
+      ["Vertical variable", datasetFieldLabel(state.chart.yField)],
+      ["Vertical label", state.chart.yLabel],
       ["Pattern direction", directionLabel(state.analysis.patternDirection)],
       ["Compared IDs", `${state.analysis.compareFirst} and ${state.analysis.compareSecond}`],
       ["Possible outlier ID", state.analysis.outlierRecord],

@@ -143,6 +143,7 @@ th, td { padding: 11px 12px; text-align: left; border-bottom: 1px solid var(--bo
 th { background: #f4f8fc; font-size: .88rem; }
 .chart-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 15px; margin: 18px 0; }
 .chart-title-field { grid-column: 1 / -1; }
+.chart-assignment { align-self: end; }
 .chart-form > div { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; background: #f8fbff; }
 .chart-form > div strong { display: block; margin-bottom: 5px; color: var(--primary-dark); }
 .chart-form > div span { color: #45546b; }
