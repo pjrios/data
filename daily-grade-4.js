@@ -212,7 +212,11 @@ const stageRenderers = {
     <div class="rules"><strong>Outlier reminder:</strong> An outlier is a valid point that does not follow the overall pattern. Do not delete or change it.</div>
     <section class="chart-preview-card" aria-labelledby="chartPreviewTitle">
       <h3 id="chartPreviewTitle">Chart preview</h3>
-      <div class="chart-canvas-wrap"><canvas id="chartCanvas" width="900" height="500" aria-label="Chart preview"></canvas></div>
+      <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column</span>. Hover over a point to see its exact values. Keyboard users can focus the chart and use the arrow keys.</p>
+      <div class="chart-canvas-wrap"><div class="interactive-chart">
+        <canvas id="chartCanvas" width="900" height="500" role="img" tabindex="0" aria-label="Interactive chart preview"></canvas>
+        <div class="chart-tooltip" role="tooltip" hidden></div>
+      </div></div>
       <p id="chartSummary" class="hint"></p>
     </section>`,
 
@@ -333,7 +337,11 @@ function renderDatasetTable() {
 function renderLockedChart() {
   return `<section class="locked-evidence" aria-labelledby="lockedChartTitle">
     <h3 id="lockedChartTitle">Locked chart</h3>
-    <div class="chart-canvas-wrap"><canvas id="lockedChartCanvas" class="summary-chart" width="900" height="500" aria-label="Locked chart"></canvas></div>
+    <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column</span>. Hover over a point to see its exact values. Keyboard users can focus the chart and use the arrow keys.</p>
+    <div class="chart-canvas-wrap"><div class="interactive-chart">
+      <canvas id="lockedChartCanvas" class="summary-chart" width="900" height="500" role="img" tabindex="0" aria-label="Interactive locked chart"></canvas>
+      <div class="chart-tooltip" role="tooltip" hidden></div>
+    </div></div>
   </section>`;
 }
 
@@ -596,6 +604,7 @@ function renderChartInto(canvas) {
     ctx.fillText("Complete the chart title, type, and both axes.", width / 2, height / 2);
     const summary = document.querySelector("#chartSummary");
     if (summary) summary.textContent = "The chart will appear after all chart decisions are complete.";
+    clearChartInteraction(canvas);
     return;
   }
 
@@ -671,9 +680,12 @@ function renderChartInto(canvas) {
       ctx.arc(point.x, point.y, 6.5, 0, Math.PI * 2);
       ctx.fill();
       ctx.fillStyle = "#25344a";
-      ctx.font = "700 12px system-ui, sans-serif";
-      ctx.textAlign = "left";
-      ctx.fillText(point.row.record, point.x + 9, point.y - 8);
+      ctx.font = "700 11px system-ui, sans-serif";
+      const pointLabel = `${state.dataset.headers.record} ${point.row.record}`;
+      const labelWidth = ctx.measureText(pointLabel).width;
+      const placeLeft = point.x + labelWidth + 12 > width - margin.right;
+      ctx.textAlign = placeLeft ? "right" : "left";
+      ctx.fillText(pointLabel, point.x + (placeLeft ? -10 : 10), point.y - 8);
     });
     ctx.fillStyle = "#647188";
     ctx.font = "12px system-ui, sans-serif";
@@ -697,6 +709,101 @@ function renderChartInto(canvas) {
 
   const summary = document.querySelector("#chartSummary");
   if (summary) summary.textContent = `${chartTypeLabel(state.chart.type)} showing ${fieldLabel(state.chart.xField)} and ${fieldLabel(state.chart.yField)} for all nine records.`;
+  setupChartInteraction(canvas, points);
+}
+
+function clearChartInteraction(canvas) {
+  canvas._chartPoints = [];
+  canvas.tabIndex = -1;
+  const tooltip = canvas.closest(".interactive-chart")?.querySelector(".chart-tooltip");
+  if (tooltip) tooltip.hidden = true;
+}
+
+function setupChartInteraction(canvas, points) {
+  const chart = canvas.closest(".interactive-chart");
+  if (!chart) return;
+  const tooltip = chart.querySelector(".chart-tooltip");
+  const pointLabel = chart.closest("section, .chart-preview-card")?.querySelector("[data-point-label]");
+  if (pointLabel) pointLabel.textContent = state.dataset.headers.record;
+
+  canvas._chartPoints = points;
+  canvas._activeChartPoint = Math.min(canvas._activeChartPoint || 0, points.length - 1);
+  canvas.tabIndex = 0;
+  canvas.setAttribute(
+    "aria-label",
+    `Interactive scatter plot titled ${state.chart.title}. Point labels use ${state.dataset.headers.record}. Hover over a point or use the arrow keys to hear exact values.`
+  );
+
+  if (canvas._chartInteractionBound) return;
+  canvas._chartInteractionBound = true;
+
+  canvas.addEventListener("pointermove", event => {
+    const point = closestChartPoint(canvas, event.clientX, event.clientY);
+    if (!point) {
+      tooltip.hidden = true;
+      return;
+    }
+    canvas._activeChartPoint = point.index;
+    showChartTooltip(canvas, point.index);
+  });
+  canvas.addEventListener("pointerleave", () => {
+    if (document.activeElement !== canvas) tooltip.hidden = true;
+  });
+  canvas.addEventListener("pointerdown", event => {
+    const point = closestChartPoint(canvas, event.clientX, event.clientY);
+    if (!point) return;
+    canvas._activeChartPoint = point.index;
+    showChartTooltip(canvas, point.index);
+  });
+  canvas.addEventListener("focus", () => showChartTooltip(canvas, canvas._activeChartPoint || 0));
+  canvas.addEventListener("blur", () => { tooltip.hidden = true; });
+  canvas.addEventListener("keydown", event => {
+    if (!["ArrowLeft", "ArrowUp", "ArrowRight", "ArrowDown", "Home", "End"].includes(event.key)) return;
+    event.preventDefault();
+    const lastIndex = canvas._chartPoints.length - 1;
+    if (event.key === "Home") canvas._activeChartPoint = 0;
+    else if (event.key === "End") canvas._activeChartPoint = lastIndex;
+    else {
+      const direction = ["ArrowRight", "ArrowDown"].includes(event.key) ? 1 : -1;
+      canvas._activeChartPoint = (canvas._activeChartPoint + direction + canvas._chartPoints.length) % canvas._chartPoints.length;
+    }
+    showChartTooltip(canvas, canvas._activeChartPoint);
+  });
+}
+
+function closestChartPoint(canvas, clientX, clientY) {
+  const rect = canvas.getBoundingClientRect();
+  const points = canvas._chartPoints || [];
+  let closest = null;
+  points.forEach((point, index) => {
+    const x = rect.left + (point.x / canvas.width) * rect.width;
+    const y = rect.top + (point.y / canvas.height) * rect.height;
+    const distance = Math.hypot(clientX - x, clientY - y);
+    if (distance <= 22 && (!closest || distance < closest.distance)) closest = { index, distance };
+  });
+  return closest;
+}
+
+function showChartTooltip(canvas, index) {
+  const chart = canvas.closest(".interactive-chart");
+  const tooltip = chart?.querySelector(".chart-tooltip");
+  const point = canvas._chartPoints?.[index];
+  if (!chart || !tooltip || !point) return;
+
+  const canvasRect = canvas.getBoundingClientRect();
+  const chartRect = chart.getBoundingClientRect();
+  const pointX = canvasRect.left - chartRect.left + (point.x / canvas.width) * canvasRect.width;
+  const pointY = canvasRect.top - chartRect.top + (point.y / canvas.height) * canvasRect.height;
+  const safeX = Math.max(145, Math.min(chartRect.width - 145, pointX));
+
+  tooltip.textContent = chartPointDetails(point.row);
+  tooltip.style.left = `${safeX}px`;
+  tooltip.style.top = `${Math.max(72, pointY - 12)}px`;
+  tooltip.hidden = false;
+}
+
+function chartPointDetails(row) {
+  return `${state.dataset.headers.record} ${row.record} · ${state.dataset.headers.x}: ${row.x} · ${state.dataset.headers.y}: ${row.y}`;
 }
 
 function paddedRange(values) {
