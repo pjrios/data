@@ -1,4 +1,4 @@
-Dataset ID,Record,Chart Errors Remaining,Readability Score
+Dataset ID,Chart ID,Uncorrected Chart Errors (count),Chart Readability Score (0–100)
 B,A,0,95
 B,B,1,90
 B,C,2,85

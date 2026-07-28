@@ -7,6 +7,7 @@ const acceptedDatasetHashes = {
   D: "4e0cf1e555aa763bb65d1d1fc091af9a1fd2d75ef96ce6dc2bd7a5ee5f55be1d"
 };
 const storageKey = "dataStewardLockedAppreciation1V3";
+const datasetContext = "A school environmental team conducted a one-day waste and recycling collection around the campus. Each row is one collection record showing the school location, the number of individual items collected, and the material category assigned to those items. Different team members entered the data, so the dataset may contain missing information, duplicate records, unreasonable quantities, inconsistent units, or inconsistent category names. Clean the data without inventing information, then use reliable records to compare two collection points.";
 const stageNames = [
   "Upload your assigned CSV file",
   "Clean the assigned dataset",
@@ -176,6 +177,7 @@ const stageRenderers = {
 
   2: () => `
     <div class="dataset-identity"><strong>Assigned Dataset ${escapeHtml(state.dataset.id)}</strong><span>${escapeHtml(state.dataset.fileName)}</span></div>
+    ${renderDatasetContext()}
     <div class="support-reminder">
       <div><strong>Use the built-in assessment support.</strong><span>Review the data-care rules, hints, and change-log notes without leaving this assessment.</span></div>
       <button class="secondary" type="button" data-open-support>Open support</button>
@@ -308,6 +310,7 @@ function renderImportPreview() {
   }
   return `<div class="import-success">
     <div class="dataset-identity"><strong>Dataset ${escapeHtml(state.dataset.id)} is ready</strong><span>${escapeHtml(state.dataset.fileName)} · ${state.originalRows.length} records</span></div>
+    ${renderDatasetContext()}
     <p>Check the dataset letter now. Do not begin cleaning until the next stage.</p>
     <div class="table-scroll"><table class="readonly-table">
       <thead><tr><th>Row</th><th>Collection Point</th><th>Items Collected</th><th>Material Category</th></tr></thead>
@@ -316,6 +319,10 @@ function renderImportPreview() {
       </tr>`).join("")}</tbody>
     </table></div>
   </div>`;
+}
+
+function renderDatasetContext() {
+  return `<div class="official-task"><strong>Dataset context:</strong> ${escapeHtml(datasetContext)}</div>`;
 }
 
 async function importAssignedCsv(event) {
@@ -863,7 +870,10 @@ function downloadPdf() {
     headStyles: { fillColor: orange, textColor: 255, fontStyle: "bold" }
   });
 
-  y = sectionTitle("Cleaned Dataset", doc.lastAutoTable.finalY + 11);
+  y = sectionTitle("Dataset Context", doc.lastAutoTable.finalY + 11);
+  y = paragraph(datasetContext, y);
+
+  y = sectionTitle("Cleaned Dataset", y + 3);
   doc.autoTable({
     startY: y,
     head: [["Row", "Collection Point", "Items Collected", "Material Category"]],

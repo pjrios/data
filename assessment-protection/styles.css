@@ -1,0 +1,25 @@
+/*
+ * Assessment-only deterrence. Editable controls retain selection, caret,
+ * focus, and ordinary keyboard input so students can revise their own work.
+ */
+.exam-content {
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+.exam-content img {
+  -webkit-user-drag: none;
+  user-drag: none;
+}
+
+.exam-content input,
+.exam-content textarea,
+.exam-content select,
+.exam-content [contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+}
+
+.exam-content :focus-visible {
+  outline-offset: 2px;
+}

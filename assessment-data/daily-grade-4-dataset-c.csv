@@ -1,4 +1,4 @@
-Dataset ID,Record,Examples Reviewed,Interpretation Score
+Dataset ID,Student ID,Chart Examples Reviewed (count),Data Interpretation Score (0–100)
 C,A,1,50
 C,B,2,56
 C,C,3,63

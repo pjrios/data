@@ -1,4 +1,4 @@
-Dataset ID,Record,Uncorrected Data Errors,Accuracy Score
+Dataset ID,Data Product ID,Uncorrected Data Errors (count),Data Accuracy Score (0–100)
 D,A,0,96
 D,B,1,91
 D,C,2,86

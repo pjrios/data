@@ -1,4 +1,4 @@
-Dataset ID,Record,Practice Tasks Completed,Chart Check Score
+Dataset ID,Student ID,Practice Tasks Completed (count),Chart Check Score (0–100)
 A,A,1,51
 A,B,2,57
 A,C,3,62

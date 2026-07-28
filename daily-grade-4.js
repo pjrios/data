@@ -1,11 +1,41 @@
 const acceptedDatasetIds = new Set(["A", "B", "C", "D"]);
 const acceptedDatasetHashes = {
-  A: "3b8a48d4b863d8a0c9f7650a376c3c55d41d3b5cba2fcca3d1258bccbef1dd03",
-  B: "08c3dfeae01b4eb4d14a714d1cf6955f2c72b74d8d4e11317254225fc9016598",
-  C: "c525a1c9287a5d9f05b4571e074650d826e5a8e6131f4b0d8772ab81ed4d9fc4",
-  D: "1b5544edb69ac5cadf62c1c05f5ea76e8d05049db7c884808894acc13ce88f73"
+  A: "10223e0718166b62fbabc53f2a087f4587afefbac80459c065704ffe380d75d1",
+  B: "9f1c80d5768f5a37b35f9b910fcfe738bbe3cda781dd06ca3770cf0035228833",
+  C: "d32bd740d7e04b88cd13c3ba254dce275ba74111647226369d630abb0900694f",
+  D: "9d45989422593724929bfd95e7875e2930b4612a5010f03db0d36910c4e3481b"
 };
-const storageKey = "dailyGrade4ChartInvestigationV1";
+const datasetProfiles = {
+  A: {
+    recordHeader: "Student ID",
+    xHeader: "Practice Tasks Completed (count)",
+    yHeader: "Chart Check Score (0–100)",
+    description: "This dataset contains results from nine anonymous students who completed different numbers of chart-practice tasks and then completed the same chart check. Each row represents one student.",
+    question: "What possible relationship exists between the number of practice tasks completed and the chart-check score?"
+  },
+  B: {
+    recordHeader: "Chart ID",
+    xHeader: "Uncorrected Chart Errors (count)",
+    yHeader: "Chart Readability Score (0–100)",
+    description: "This dataset contains nine anonymous student-created charts. Each row represents one chart and pairs the number of errors still uncorrected with its readability score.",
+    question: "What possible relationship exists between the number of uncorrected chart errors and the chart-readability score?"
+  },
+  C: {
+    recordHeader: "Student ID",
+    xHeader: "Chart Examples Reviewed (count)",
+    yHeader: "Data Interpretation Score (0–100)",
+    description: "This dataset contains results from nine anonymous students who reviewed different numbers of chart examples and then completed the same data-interpretation check. Each row represents one student.",
+    question: "What possible relationship exists between the number of chart examples reviewed and the data-interpretation score?"
+  },
+  D: {
+    recordHeader: "Data Product ID",
+    xHeader: "Uncorrected Data Errors (count)",
+    yHeader: "Data Accuracy Score (0–100)",
+    description: "This dataset contains nine anonymous student data products. Each row represents one data product and pairs the number of errors still uncorrected with its accuracy score.",
+    question: "What possible relationship exists between the number of uncorrected data errors and the data-accuracy score?"
+  }
+};
+const storageKey = "dailyGrade4ChartInvestigationV2";
 const stageNames = [
   "Upload your assigned CSV file",
   "Create one chart",
@@ -26,7 +56,7 @@ const studentDialog = document.querySelector("#studentDialog");
 
 function createInitialState() {
   return {
-    version: 1,
+    version: 2,
     introComplete: false,
     currentStage: 1,
     lockedAt: {},
@@ -69,7 +99,7 @@ function restoreState() {
     try { localStorage.removeItem(storageKey); } catch {}
     return;
   }
-  if (!saved || saved.version !== 1 || typeof saved !== "object") return;
+  if (!saved || saved.version !== 2 || typeof saved !== "object") return;
   if (!Number.isInteger(saved.currentStage) || saved.currentStage < 1 || saved.currentStage > 5) return;
   const rows = saved.dataset?.rows;
   const headers = saved.dataset?.headers;
@@ -168,28 +198,18 @@ const stageRenderers = {
 
   2: () => `
     ${renderDatasetIdentity("Imported dataset is locked")}
-    <p class="stage-intro">Use the two numerical columns to create one chart. Add a clear title and choose what appears on each axis.</p>
+    ${renderDatasetContext()}
+    <p class="stage-intro">Create one scatter plot using the two numerical columns. Each point represents one student, chart, or data product identified in the first column.</p>
     ${renderDatasetTable()}
     <div class="chart-form">
       <label class="chart-title-field">Chart title
         <input id="chartTitle" type="text" maxlength="100" value="${escapeHtml(state.chart.title)}" placeholder="Describe the two variables being shown" />
       </label>
-      <label>Chart type
-        <select id="chartType">
-          ${option("", "Choose a chart type", state.chart.type)}
-          ${option("scatter", "Scatter plot", state.chart.type)}
-          ${option("line", "Line chart", state.chart.type)}
-          ${option("bar", "Bar chart", state.chart.type)}
-        </select>
-      </label>
-      <label>Horizontal (X) axis
-        <select id="chartXField">${axisOptions(state.chart.xField)}</select>
-      </label>
-      <label>Vertical (Y) axis
-        <select id="chartYField">${axisOptions(state.chart.yField)}</select>
-      </label>
+      <div><strong>Chart type</strong><span>Scatter plot</span></div>
+      <div><strong>Horizontal (X) axis</strong><span>${escapeHtml(state.dataset.headers.x)}</span></div>
+      <div><strong>Vertical (Y) axis</strong><span>${escapeHtml(state.dataset.headers.y)}</span></div>
     </div>
-    <div class="rules"><strong>Chart check:</strong> The chart should help the reader see whether the two numerical variables may be related.</div>
+    <div class="rules"><strong>Outlier reminder:</strong> An outlier is a valid point that does not follow the overall pattern. Do not delete or change it.</div>
     <section class="chart-preview-card" aria-labelledby="chartPreviewTitle">
       <h3 id="chartPreviewTitle">Chart preview</h3>
       <div class="chart-canvas-wrap"><canvas id="chartCanvas" width="900" height="500" aria-label="Chart preview"></canvas></div>
@@ -198,6 +218,7 @@ const stageRenderers = {
 
   3: () => `
     ${renderDatasetIdentity("Dataset and chart are locked")}
+    ${renderDatasetContext()}
     <p class="stage-intro">Use your locked chart and exact dataset values. Both sentences should be complete and supported by evidence.</p>
     ${renderLockedChart()}
     <div class="analysis-grid">
@@ -217,10 +238,10 @@ const stageRenderers = {
       </section>
       <section class="analysis-card">
         <h3>2. Comparison</h3>
-        <p>Compare two different records using exact values.</p>
+        <p>Compare two different IDs using exact values.</p>
         <div class="record-grid">
-          <label>First record<select id="compareFirst">${recordOptions(state.analysis.compareFirst)}</select></label>
-          <label>Second record<select id="compareSecond">${recordOptions(state.analysis.compareSecond)}</select></label>
+          <label>First ${escapeHtml(state.dataset.headers.record)}<select id="compareFirst">${recordOptions(state.analysis.compareFirst)}</select></label>
+          <label>Second ${escapeHtml(state.dataset.headers.record)}<select id="compareSecond">${recordOptions(state.analysis.compareSecond)}</select></label>
         </div>
         <div id="comparisonEvidence" class="evidence-tip">${comparisonEvidence()}</div>
         <label>Comparison sentence
@@ -232,13 +253,14 @@ const stageRenderers = {
 
   4: () => `
     ${renderDatasetIdentity("Earlier evidence is locked")}
+    ${renderDatasetContext()}
     <p class="stage-intro">Identify the value that does not follow the overall pattern, then write a careful conclusion about possible correlation.</p>
     ${renderLockedChart()}
     <div class="analysis-grid">
       <section class="analysis-card">
         <h3>3. Outlier or limitation</h3>
-        <p>Select the record that appears most unusual compared with the overall pattern.</p>
-        <label>Possible outlier
+        <p>Select the ID that appears most unusual compared with the overall pattern.</p>
+        <label>Possible outlier ${escapeHtml(state.dataset.headers.record)}
           <select id="outlierRecord">${recordOptions(state.analysis.outlierRecord, "Choose a record")}</select>
         </label>
         <div id="outlierEvidence" class="evidence-tip">${outlierEvidence()}</div>
@@ -286,11 +308,17 @@ function renderDatasetIdentity(status) {
   return `<div class="dataset-identity"><strong>Assigned Dataset ${escapeHtml(state.dataset.id)}</strong><span>${escapeHtml(status)} · ${escapeHtml(state.dataset.fileName)}</span></div>`;
 }
 
+function renderDatasetContext() {
+  const profile = datasetProfiles[state.dataset.id];
+  if (!profile) return "";
+  return `<div class="official-task"><strong>What this dataset represents</strong><p>${escapeHtml(profile.description)}</p><p><strong>Investigation question:</strong> ${escapeHtml(profile.question)}</p><p><strong>Outlier meaning:</strong> Look for a valid point that does not follow the overall relationship. Do not remove or correct it.</p></div>`;
+}
+
 function renderImportPreview() {
   if (!state.dataset.id || !state.dataset.rows.length) {
     return `<div class="rules"><strong>No file imported yet.</strong> The full table will appear here before you lock it.</div>`;
   }
-  return `${renderDatasetIdentity("Ready to lock")}${renderDatasetTable()}`;
+  return `${renderDatasetIdentity("Ready to lock")}${renderDatasetContext()}${renderDatasetTable()}`;
 }
 
 function renderDatasetTable() {
@@ -312,6 +340,7 @@ function renderLockedChart() {
 function renderFinalSummary() {
   return `
     ${renderDatasetIdentity("All evidence is locked")}
+    ${renderDatasetContext()}
     <section class="locked-evidence"><h3>Imported dataset</h3>${renderDatasetTable()}</section>
     ${renderLockedChart()}
     <section class="locked-evidence">
@@ -336,8 +365,8 @@ function renderFinalSummary() {
       <h3>Analysis selections</h3>
       <dl class="evidence-list">
         <div><dt>Pattern direction</dt><dd>${escapeHtml(directionLabel(state.analysis.patternDirection))}</dd></div>
-        <div><dt>Compared records</dt><dd>${escapeHtml(`${state.analysis.compareFirst} and ${state.analysis.compareSecond}`)}</dd></div>
-        <div><dt>Possible outlier</dt><dd>${escapeHtml(state.analysis.outlierRecord)}</dd></div>
+        <div><dt>Compared IDs</dt><dd>${escapeHtml(`${state.analysis.compareFirst} and ${state.analysis.compareSecond}`)}</dd></div>
+        <div><dt>Possible outlier ID</dt><dd>${escapeHtml(state.analysis.outlierRecord)}</dd></div>
         <div><dt>Possible correlation</dt><dd>${escapeHtml(directionLabel(state.analysis.correlation))}</dd></div>
         <div><dt>Selected limitation</dt><dd>${escapeHtml(limitationLabel(state.analysis.limitation))}</dd></div>
       </dl>
@@ -376,19 +405,10 @@ function bindStageEvents(stage) {
     document.querySelector("#datasetFile").addEventListener("change", importAssignedCsv);
   }
   if (stage === 2) {
-    const bindings = {
-      chartTitle: "title",
-      chartType: "type",
-      chartXField: "xField",
-      chartYField: "yField"
-    };
-    Object.entries(bindings).forEach(([id, key]) => {
-      const field = document.querySelector(`#${id}`);
-      field.addEventListener(field.tagName === "INPUT" ? "input" : "change", event => {
-        state.chart[key] = event.target.value;
-        persistState();
-        renderChartInto(document.querySelector("#chartCanvas"));
-      });
+    document.querySelector("#chartTitle").addEventListener("input", event => {
+      state.chart.title = event.target.value;
+      persistState();
+      renderChartInto(document.querySelector("#chartCanvas"));
     });
   }
   if (stage === 3) {
@@ -449,7 +469,7 @@ async function importAssignedCsv(event) {
       throw new Error(`Dataset ${parsed.id} does not match the original assigned file. Download a fresh copy from Google Classroom.`);
     }
     state.dataset = { ...parsed, fileName: file.name };
-    state.chart = { type: "", title: "", xField: "", yField: "" };
+    state.chart = { type: "scatter", title: "", xField: "x", yField: "y" };
     state.analysis = createInitialState().analysis;
     persistState();
     document.querySelector("#importPreview").innerHTML = renderImportPreview();
@@ -470,7 +490,7 @@ function parseAssignedCsv(text) {
   const table = parseCsv(text.replace(/^\uFEFF/, ""));
   if (table.length < 2) throw new Error("The CSV file does not contain assessment records.");
   const headers = table[0].map(value => value.trim());
-  if (headers.length !== 4 || normalizeHeader(headers[0]) !== "datasetid" || normalizeHeader(headers[1]) !== "record") {
+  if (headers.length !== 4 || normalizeHeader(headers[0]) !== "datasetid") {
     throw new Error("This is not an assigned Daily Grade #4 dataset.");
   }
   if (!headers[2] || !headers[3] || normalizeHeader(headers[2]) === normalizeHeader(headers[3])) {
@@ -484,17 +504,21 @@ function parseAssignedCsv(text) {
   if (ids.length !== 1 || !acceptedDatasetIds.has(ids[0])) {
     throw new Error("The Dataset ID must be A, B, C, or D and must match in every row.");
   }
+  const profile = datasetProfiles[ids[0]];
+  if (headers[1] !== profile.recordHeader || headers[2] !== profile.xHeader || headers[3] !== profile.yHeader) {
+    throw new Error(`Dataset ${ids[0]} does not have the required descriptive column names.`);
+  }
   const rows = dataRows.map((row, index) => {
     const record = row[1].trim();
     const x = Number(row[2].trim());
     const y = Number(row[3].trim());
     if (!record || !Number.isFinite(x) || !Number.isFinite(y)) {
-      throw new Error(`Record ${index + 1} must contain one label and two numerical values.`);
+      throw new Error(`Row ${index + 1} must contain one ID and two numerical values.`);
     }
     return { record, x, y };
   });
   if (new Set(rows.map(row => row.record.toLowerCase())).size !== rows.length) {
-    throw new Error("Every record label in the assigned file must be different.");
+    throw new Error("Every ID in the assigned file must be different.");
   }
   return {
     id: ids[0],
@@ -721,14 +745,14 @@ function selectedRecord(label) {
 function comparisonEvidence() {
   const first = selectedRecord(state.analysis.compareFirst);
   const second = selectedRecord(state.analysis.compareSecond);
-  if (!first || !second) return "Choose two different records to see their exact evidence.";
-  if (first.record === second.record) return "Choose two different records.";
+  if (!first || !second) return "Choose two different IDs to see their exact evidence.";
+  if (first.record === second.record) return "Choose two different IDs.";
   return `${recordOptionLabel(first)}. ${recordOptionLabel(second)}.`;
 }
 
 function outlierEvidence() {
   const row = selectedRecord(state.analysis.outlierRecord);
-  return row ? recordOptionLabel(row) : "Choose the record you believe is most unusual.";
+  return row ? recordOptionLabel(row) : "Choose the ID you believe is most unusual.";
 }
 
 function validateStage(stage) {
@@ -737,17 +761,14 @@ function validateStage(stage) {
   }
   if (stage === 2) {
     if (state.chart.title.trim().length < 6) return "Write a clear chart title before continuing.";
-    if (!["scatter", "line", "bar"].includes(state.chart.type)) return "Choose one chart type.";
-    if (!["x", "y"].includes(state.chart.xField) || !["x", "y"].includes(state.chart.yField) || state.chart.xField === state.chart.yField) {
-      return "Choose two different numerical variables for the horizontal and vertical axes.";
-    }
+    if (state.chart.type !== "scatter" || state.chart.xField !== "x" || state.chart.yField !== "y") return "Use the required scatter plot and assigned axes.";
   }
   if (stage === 3) {
     if (!["positive", "negative", "unclear"].includes(state.analysis.patternDirection)) return "Select the overall pattern direction.";
     if (!completeEvidenceSentence(state.analysis.patternSentence)) return "Write a complete pattern sentence containing at least two numerical values from the dataset.";
     const first = selectedRecord(state.analysis.compareFirst);
     const second = selectedRecord(state.analysis.compareSecond);
-    if (!first || !second || first.record === second.record) return "Choose two different records for the comparison.";
+    if (!first || !second || first.record === second.record) return "Choose two different IDs for the comparison.";
     if (!completeEvidenceSentence(state.analysis.comparisonSentence)) return "Write a complete comparison sentence containing at least two numerical values from the selected records.";
   }
   if (stage === 4) {
@@ -778,7 +799,7 @@ function openLockDialog() {
 function lockWarning(stage) {
   return {
     1: "The imported dataset will be saved and cannot be replaced after you continue.",
-    2: "The chart type, title, axes, and chart image cannot be changed after you continue.",
+    2: "The chart title and scatter-plot image cannot be changed after you continue.",
     3: "Your pattern and comparison choices and sentences cannot be changed after you continue.",
     4: "Your outlier, correlation, limitation, and final sentences cannot be changed after you continue."
   }[stage];
@@ -895,6 +916,12 @@ function downloadPdf() {
   });
   y = doc.lastAutoTable.finalY + 9;
 
+  sectionTitle("What This Dataset Represents");
+  const profile = datasetProfiles[state.dataset.id];
+  paragraph(profile.description);
+  paragraph(`Investigation question: ${profile.question}`, { bold: true });
+  paragraph("Outlier meaning: A valid point that does not follow the overall relationship. It should not be removed or corrected.");
+
   sectionTitle("Imported Dataset");
   doc.autoTable({
     startY: y,
@@ -940,8 +967,8 @@ function downloadPdf() {
       ["Horizontal axis", fieldLabel(state.chart.xField)],
       ["Vertical axis", fieldLabel(state.chart.yField)],
       ["Pattern direction", directionLabel(state.analysis.patternDirection)],
-      ["Compared records", `${state.analysis.compareFirst} and ${state.analysis.compareSecond}`],
-      ["Possible outlier", state.analysis.outlierRecord],
+      ["Compared IDs", `${state.analysis.compareFirst} and ${state.analysis.compareSecond}`],
+      ["Possible outlier ID", state.analysis.outlierRecord],
       ["Possible correlation", directionLabel(state.analysis.correlation)],
       ["Selected limitation", limitationLabel(state.analysis.limitation)]
     ],
