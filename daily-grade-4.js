@@ -236,7 +236,7 @@ const stageRenderers = {
   2: () => `
     ${renderDatasetIdentity("Imported dataset is locked")}
     ${renderDatasetContext()}
-    <p class="stage-intro">Build the chart yourself. Select the required chart type, assign the two numerical variables to the correct axes, and write both axis labels in English. Each point represents the ID shown in the first column.</p>
+    <p class="stage-intro">Build the chart yourself. Select the required chart type, assign the two numerical variables to the correct axes, and write a clear English title and axis labels. Use the column titles and units from the table, and make the finished chart easy to read.</p>
     ${renderDatasetTable()}
     <div class="chart-form">
       <label class="chart-title-field">Chart title
@@ -969,7 +969,7 @@ function datasetFieldLabel(field) {
 }
 
 function axisLabelPlaceholder(field) {
-  return field ? `Type this label in English: ${datasetFieldLabel(field)}` : "Select a variable, then enter its label";
+  return field ? "Write the selected column title, including its unit" : "Select a variable, then write its column title and unit";
 }
 
 function chartTypeLabel(type) {
