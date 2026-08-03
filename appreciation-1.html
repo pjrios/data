@@ -56,8 +56,8 @@
 
       <div class="concept-grid">
         <article class="concept-card"><span class="concept-number">1</span><h3>Save drafts locally</h3><p>Your current answers remain on this browser if the page reloads.</p></article>
-        <article class="concept-card"><span class="concept-number">2</span><h3>Lock each stage</h3><p>Before continuing, you receive a warning. A locked stage cannot be edited.</p></article>
-        <article class="concept-card"><span class="concept-number">3</span><h3>Use saved evidence</h3><p>Later stages show your earlier work in read-only form for discussion and reflection.</p></article>
+        <article class="concept-card"><span class="concept-number">2</span><h3>Finish without getting stuck</h3><p>You may continue when you consider a stage finished, even when the website notices missing work.</p></article>
+        <article class="concept-card"><span class="concept-number">3</span><h3>Save your best version</h3><p>If you return and correct a mistake, the newest version you save becomes the version used for scoring.</p></article>
       </div>
 
       <section class="assessment-support" aria-labelledby="supportTitle">
@@ -80,7 +80,7 @@
           <li>Upload and confirm your assigned CSV file.</li>
           <li>Clean the imported dataset.</li>
           <li>Manually document at least three corrections.</li>
-          <li>Review the locked evidence with one partner.</li>
+          <li>Review the saved evidence with one partner.</li>
           <li>Answer five short individual reflection questions.</li>
           <li>Compare two collection points with a two-bar display.</li>
           <li>Review and download the final evidence report.</li>
@@ -90,7 +90,7 @@
       <div class="rules lesson-rule"><strong>Use the built-in support:</strong> The review, hints, and data-care notes stay available throughout the assessment. Your draft remains saved in this browser.</div>
       <div class="lesson-actions">
         <button id="beginBtn" type="button">Begin Stage 1</button>
-        <p>Once you begin, stages move forward only.</p>
+        <p>You may return to an earlier work stage after finishing it.</p>
       </div>
     </section>
 
@@ -106,10 +106,11 @@
             <div class="save-status"><span aria-hidden="true">●</span> Saved in this browser</div>
           </div>
         </div>
+        <nav id="stageNav" class="stage-nav" aria-label="Assessment stages"></nav>
         <div id="stageHost"></div>
         <div id="stageMessage" class="result" aria-live="polite"></div>
         <div id="stageActions" class="stage-actions">
-          <p><strong>Review your work before continuing.</strong> If you move forward, you can view what you wrote later, but you cannot edit it.</p>
+          <p><strong>Finish this stage when you are ready.</strong> If you return and save again, your newest saved version replaces the earlier one.</p>
           <button id="lockStageBtn" type="button"></button>
         </div>
       </section>
@@ -120,16 +121,14 @@
   <dialog id="lockDialog" class="group-dialog lock-dialog" aria-labelledby="lockDialogTitle">
     <div class="dialog-content">
       <div class="dialog-heading">
-        <div><p class="step">Permanent stage lock</p><h2 id="lockDialogTitle">Lock this stage?</h2></div>
+        <div><p class="step">Stage save</p><h2 id="lockDialogTitle">Finish this stage?</h2></div>
         <button id="closeLockDialogBtn" class="icon-button" type="button" aria-label="Close warning">×</button>
       </div>
       <p id="lockDialogText"></p>
-      <div class="warning-panel">
-        If you move forward, you can view what you wrote in later stages, but you cannot return here or edit it.
-      </div>
+      <div id="lockDialogWarning" class="warning-panel"></div>
       <div class="dialog-actions">
         <button id="cancelLockBtn" class="secondary" type="button">Cancel and review</button>
-        <button id="confirmLockBtn" type="button">Lock stage and continue</button>
+        <button id="confirmLockBtn" type="button">Save and continue</button>
       </div>
     </div>
   </dialog>
