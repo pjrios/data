@@ -6,7 +6,8 @@ const acceptedDatasetHashes = {
   C: "c79f56665c4751622521eeefaec5cc1fdd54956ed6eefe76b6b7a49deea83c51",
   D: "4e0cf1e555aa763bb65d1d1fc091af9a1fd2d75ef96ce6dc2bd7a5ee5f55be1d"
 };
-const storageKey = "dataStewardLockedAppreciation1V3";
+const storageKey = "dataStewardAppreciation1V4";
+const legacyStorageKey = "dataStewardLockedAppreciation1V3";
 const datasetContext = "A school environmental team conducted a one-day waste and recycling collection around the campus. Each row is one collection record showing the school location, the number of individual items collected, and the material category assigned to those items. Different team members entered the data, so the dataset may contain missing information, duplicate records, unreasonable quantities, inconsistent units, or inconsistent category names. Clean the data without inventing information, then use reliable records to compare two collection points.";
 const stageNames = [
   "Upload your assigned CSV file",
@@ -38,10 +39,11 @@ const studentDialog = document.querySelector("#studentDialog");
 
 function createInitialState() {
   return {
-    version: 3,
+    version: 4,
     introComplete: false,
     currentStage: 1,
     lockedAt: {},
+    stageSnapshots: {},
     dataset: { id: "", fileName: "" },
     originalRows: [],
     rows: [],
@@ -69,24 +71,26 @@ function persistState() {
 function restoreState() {
   let saved;
   try {
-    saved = JSON.parse(localStorage.getItem(storageKey));
+    saved = JSON.parse(localStorage.getItem(storageKey) || localStorage.getItem(legacyStorageKey));
   } catch {
     try { localStorage.removeItem(storageKey); } catch {}
     return;
   }
-  if (!saved || saved.version !== 3 || typeof saved !== "object") return;
+  if (!saved || ![3, 4].includes(saved.version) || typeof saved !== "object") return;
   if (!Number.isInteger(saved.currentStage) || saved.currentStage < 1 || saved.currentStage > 7) return;
   const validRows = rows => Array.isArray(rows)
     && rows.every(row => row && ["point", "items", "material"].every(key => typeof row[key] === "string"));
   if (!validRows(saved.originalRows) || !validRows(saved.rows) || saved.originalRows.length !== saved.rows.length) return;
   if (saved.currentStage > 1 && (!saved.dataset || !acceptedDatasetIds.has(saved.dataset.id) || saved.originalRows.length !== 12)) return;
   state = saved;
+  state.version = 4;
   state.dataset = saved.dataset && acceptedDatasetIds.has(saved.dataset.id)
     ? { id: saved.dataset.id, fileName: stringOrEmpty(saved.dataset.fileName) }
     : { id: "", fileName: "" };
   state.originalRows = structuredClone(saved.originalRows);
   originalRows = structuredClone(state.originalRows);
   state.lockedAt = saved.lockedAt && typeof saved.lockedAt === "object" ? saved.lockedAt : {};
+  state.stageSnapshots = saved.stageSnapshots && typeof saved.stageSnapshots === "object" ? saved.stageSnapshots : {};
   state.removedRows = Array.isArray(saved.removedRows)
     ? [...new Set(saved.removedRows.filter(index => Number.isInteger(index) && index >= 0 && index < state.rows.length))]
     : [];
@@ -117,6 +121,10 @@ function restoreState() {
   state.student = saved.student && typeof saved.student === "object"
     ? { name: stringOrEmpty(saved.student.name), className: stringOrEmpty(saved.student.className), date: stringOrEmpty(saved.student.date) || getLocalDateValue() }
     : { name: "", className: "", date: getLocalDateValue() };
+  Object.keys(state.lockedAt).forEach(stage => {
+    if (!state.stageSnapshots[stage]) state.stageSnapshots[stage] = createStageSnapshot(Number(stage));
+  });
+  persistState();
 }
 
 function stringOrEmpty(value) {
@@ -145,10 +153,42 @@ function renderStage() {
   document.querySelector("#stageTitle").textContent = stageNames[stage - 1];
   stageMessage.textContent = "";
   stageMessage.className = "result";
-  stageHost.innerHTML = stageRenderers[stage]();
+  stageHost.innerHTML = `${renderRevisionNotice(stage)}${stageRenderers[stage]()}`;
+  renderStageNavigation();
   stageActions.hidden = stage === 7;
   if (stage < 7) document.querySelector("#lockStageBtn").textContent = stageButtonLabel(stage);
   bindStageEvents(stage);
+}
+
+function renderRevisionNotice(stage) {
+  if (stage === 7 || !state.stageSnapshots[String(stage)]) return "";
+  return `<div class="revision-note"><strong>You are revising a saved stage.</strong> When you choose Save and continue, this version will replace the earlier version used for scoring.</div>`;
+}
+
+function highestAccessibleStage() {
+  const finished = Object.keys(state.lockedAt).map(Number).filter(Number.isInteger);
+  return Math.max(state.currentStage, finished.length ? Math.max(...finished) + 1 : 1);
+}
+
+function renderStageNavigation() {
+  const highest = Math.min(7, highestAccessibleStage());
+  const nav = document.querySelector("#stageNav");
+  nav.innerHTML = Array.from({ length: highest }, (_, index) => index + 1).map(stage => {
+    const finished = Boolean(state.lockedAt[String(stage)]);
+    const current = stage === state.currentStage;
+    const disabled = stage === 1 && finished;
+    return `<button type="button" data-stage-nav="${stage}" class="${finished ? "stage-finished" : ""}"${current ? ' aria-current="step"' : ""}${disabled ? ' disabled title="The assigned file cannot be replaced"' : ""}>${stage === 7 ? "Final review" : `Stage ${stage}`}</button>`;
+  }).join("");
+}
+
+function navigateToStage(stage) {
+  if (!Number.isInteger(stage) || stage < 1 || stage > highestAccessibleStage()) return;
+  if (stage === 1 && state.lockedAt["1"]) return;
+  state.currentStage = stage;
+  persistState();
+  renderStage();
+  document.querySelector("#stageTitle").focus({ preventScroll: true });
+  assessmentSection.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 function stageButtonLabel(stage) {
@@ -171,7 +211,7 @@ const stageRenderers = {
         <span class="hint">Accepted assessment files: Dataset A, B, C, or D.</span>
         <input id="datasetFile" type="file" accept=".csv,text/csv" />
       </label>
-      <div class="rules"><strong>Before continuing:</strong> Confirm that the dataset letter matches the file your teacher assigned. Once this stage is locked, the file cannot be replaced.</div>
+      <div class="rules"><strong>Before continuing:</strong> Confirm that the dataset letter matches the file your teacher assigned. The assigned file cannot be replaced after Stage 1.</div>
     </div>
     <div id="importPreview" aria-live="polite">${renderImportPreview()}</div>`,
 
@@ -206,8 +246,8 @@ const stageRenderers = {
     <p id="datasetDraftStatus" class="progress-text">${datasetDraftStatus()}</p>`,
 
   3: () => `
-    <div class="dataset-identity"><strong>Assigned Dataset ${escapeHtml(state.dataset.id)}</strong><span>Imported file is locked</span></div>
-    <p class="stage-intro">Your cleaned dataset is locked. Compare the original data with your saved corrections, then manually document at least three changes.</p>
+    <div class="dataset-identity"><strong>Assigned Dataset ${escapeHtml(state.dataset.id)}</strong><span>Imported file is fixed</span></div>
+    <p class="stage-intro">Compare the original data with your current working corrections, then manually document at least three changes.</p>
     ${renderDatasetComparison()}
     <div class="section-heading log-heading">
       <div><h3>Your manual change log</h3><p class="hint">Type each entry yourself. Explain why the cleaned value is more appropriate.</p></div>
@@ -222,9 +262,9 @@ const stageRenderers = {
     <p id="logDraftStatus" class="progress-text">${completeLogEntries().length} complete entr${completeLogEntries().length === 1 ? "y" : "ies"} · minimum 3.</p>`,
 
   4: () => `
-    <p class="stage-intro">Your cleaned dataset and change log are locked. Use this saved evidence during a five-minute review with one assigned partner.</p>
+    <p class="stage-intro">Use your saved cleaning evidence during a five-minute review with one assigned partner.</p>
     <div class="locked-evidence">
-      <h3>Locked cleaning evidence</h3>
+      <h3>Saved cleaning evidence</h3>
       ${renderReadOnlyDataset()}
       ${renderReadOnlyLog()}
     </div>
@@ -234,7 +274,7 @@ const stageRenderers = {
         <textarea id="correctionExplained" rows="3" maxlength="500" placeholder="Name the row or value and summarize your explanation...">${escapeHtml(state.peer.correctionExplained)}</textarea>
       </label>
       <label>What useful feedback did your partner give you?
-        <textarea id="feedbackReceived" rows="3" maxlength="500" placeholder="Record the feedback without changing your locked work...">${escapeHtml(state.peer.feedbackReceived)}</textarea>
+        <textarea id="feedbackReceived" rows="3" maxlength="500" placeholder="Record the feedback you received...">${escapeHtml(state.peer.feedbackReceived)}</textarea>
       </label>
       <label>Which correction did you check for your partner?
         <textarea id="correctionChecked" rows="3" maxlength="500" placeholder="Explain what you checked and what you told your partner...">${escapeHtml(state.peer.correctionChecked)}</textarea>
@@ -252,17 +292,17 @@ const stageRenderers = {
     </div>`,
 
   6: () => `
-    <p class="stage-intro">Use two accurate values from your locked dataset to show which collection point gathered more items.</p>
+    <p class="stage-intro">Use two accurate values from your current working dataset to show which collection point gathered more items. If an earlier data error prevents a fair comparison, return to Stage 2 and correct the working copy.</p>
     <div class="comparison-task">
       <strong>Your goal</strong>
       <p>Create two proportional bars: one for each collection point. Then state which location collected more and calculate the difference.</p>
       <ol>
         <li>Choose two different collection points.</li>
-        <li>Check that the displayed values match your locked data.</li>
+        <li>Check that the displayed values match your current working data.</li>
         <li>Write a comparison sentence using both locations and the difference.</li>
       </ol>
     </div>
-    <div class="locked-evidence compact-evidence"><h3>Your locked cleaned dataset</h3>${renderReadOnlyDataset()}</div>
+    <div class="locked-evidence compact-evidence"><h3>Your current working dataset</h3>${renderReadOnlyDataset()}</div>
     ${renderComparisonAvailability()}
     <div class="model-grid">
       <label class="model-title">Comparison title<input id="modelTitleInput" type="text" maxlength="80" value="${escapeHtml(state.model.title)}" placeholder="Example: Metal items collected at the Gym and Courtyard"></label>
@@ -283,16 +323,9 @@ const stageRenderers = {
     <div id="modelPreview" class="model-preview" aria-live="polite">${renderModelPreview()}</div>`,
 
   7: () => `
-    <p class="stage-intro">Every assessment stage is locked. Review the complete evidence below, then add your student details and download the PDF.</p>
-    <div class="completion-banner"><span aria-hidden="true">✓</span><div><strong>All six evidence stages are locked</strong><p>Dataset ${escapeHtml(state.dataset.id)} and your final report are ready.</p></div></div>
-    <div class="final-review">
-      <section><h3>Assigned file</h3><div class="dataset-identity"><strong>Dataset ${escapeHtml(state.dataset.id)}</strong><span>${escapeHtml(state.dataset.fileName)}</span></div></section>
-      <section><h3>Cleaned dataset</h3>${renderReadOnlyDataset()}</section>
-      <section><h3>Manual change log</h3>${renderReadOnlyLog()}</section>
-      <section><h3>Peer review</h3>${renderPeerSummary()}</section>
-      <section><h3>Individual reflections</h3>${renderReflectionSummary()}</section>
-      <section><h3>Two-location comparison</h3><div class="model-preview">${renderModelPreview()}</div></section>
-    </div>
+    <p class="stage-intro">Every assessment stage has been marked finished. Review the newest saved evidence below, then download the PDF. If you revise a stage, save it again before returning here.</p>
+    <div class="completion-banner"><span aria-hidden="true">✓</span><div><strong>All six evidence stages are finished</strong><p>Dataset ${escapeHtml(state.dataset.id)} and your evidence report are ready.</p></div></div>
+    ${renderFinalReview()}
     <div class="submission-instructions"><strong>Submit your individual evidence:</strong><ol>
       <li>Click <em>Download individual report</em>.</li>
       <li>Add your full name, class, and activity date.</li>
@@ -300,6 +333,22 @@ const stageRenderers = {
     </ol></div>
     <button id="downloadPdfBtn" type="button">Download individual report</button>`
 };
+
+function renderFinalReview() {
+  const cleaning = state.stageSnapshots["2"] || { rows: state.rows, removedRows: state.removedRows };
+  const logEntries = state.stageSnapshots["3"]?.logEntries || state.logEntries;
+  const peer = state.stageSnapshots["4"]?.peer || state.peer;
+  const reflections = state.stageSnapshots["5"]?.reflections || state.reflections;
+  const comparison = state.stageSnapshots["6"] || { model: state.model, rows: state.rows, removedRows: state.removedRows };
+  return `<div class="final-review">
+    <section><h3>Assigned file</h3><div class="dataset-identity"><strong>Dataset ${escapeHtml(state.dataset.id)}</strong><span>${escapeHtml(state.dataset.fileName)}</span></div></section>
+    <section><h3>Cleaned dataset</h3>${renderReadOnlyDataset(cleaning.rows, cleaning.removedRows)}</section>
+    <section><h3>Manual change log</h3>${renderReadOnlyLog(logEntries)}</section>
+    <section><h3>Peer review</h3>${renderPeerSummary(peer)}</section>
+    <section><h3>Individual reflections</h3>${renderReflectionSummary(reflections)}</section>
+    <section><h3>Two-location comparison</h3><div class="model-preview">${renderModelPreview(comparison.model, comparison.rows, comparison.removedRows)}</div></section>
+  </div>`;
+}
 
 function renderImportPreview() {
   if (!state.dataset.id || !state.originalRows.length) {
@@ -535,8 +584,8 @@ function renderDatasetComparison() {
       </table></div>
     </section>
     <section class="comparison-card comparison-card-locked" aria-labelledby="lockedDataHeading">
-      <h3 id="lockedDataHeading">Your locked data</h3>
-      <p>Your saved version. Green rows are rows you changed.</p>
+      <h3 id="lockedDataHeading">Your working data</h3>
+      <p>Your current version. Green rows are rows you changed.</p>
       <div class="table-scroll"><table class="comparison-table">
         <thead><tr><th>Row</th><th>Collection Point</th><th>Items Collected</th><th>Material Category</th></tr></thead>
         <tbody>${renderRows(state.rows, true)}</tbody>
@@ -545,36 +594,38 @@ function renderDatasetComparison() {
   </div>`;
 }
 
-function renderReadOnlyDataset() {
-  const activeRows = activeDatasetRows();
+function renderReadOnlyDataset(rows = state.rows, removedRows = state.removedRows) {
+  const activeRows = activeDatasetRowsFor(rows, removedRows);
   return `<div class="table-scroll"><table class="readonly-table">
     <thead><tr><th>Row</th><th>Collection Point</th><th>Items Collected</th><th>Material Category</th></tr></thead>
     <tbody>${activeRows.length
       ? activeRows.map(item => `<tr><td>${item.index + 1}</td><td>${displayValue(item.row.point)}</td><td>${displayValue(item.row.items)}</td><td>${displayValue(item.row.material)}</td></tr>`).join("")
       : `<tr class="empty-row"><td colspan="4">No active dataset rows remain.</td></tr>`}</tbody>
   </table></div>
-  ${state.removedRows.length ? `<p class="removed-summary"><strong>Removed duplicate row${state.removedRows.length === 1 ? "" : "s"}:</strong> ${state.removedRows.map(index => index + 1).join(", ")}</p>` : ""}`;
+  ${removedRows.length ? `<p class="removed-summary"><strong>Removed duplicate row${removedRows.length === 1 ? "" : "s"}:</strong> ${removedRows.map(index => index + 1).join(", ")}</p>` : ""}`;
 }
 
-function renderReadOnlyLog() {
-  const entries = completeLogEntries();
+function renderReadOnlyLog(logEntries = state.logEntries) {
+  const entries = attemptedLogEntries(logEntries);
   return `<div class="table-scroll"><table class="readonly-table log-review-table">
     <thead><tr><th>Row</th><th>Original</th><th>Problem</th><th>Cleaned</th><th>Reason</th></tr></thead>
-    <tbody>${entries.map(entry => `<tr><td>${escapeHtml(entry.row)}</td><td>${escapeHtml(entry.original)}</td><td>${escapeHtml(entry.problem)}</td><td>${escapeHtml(entry.cleaned)}</td><td>${escapeHtml(entry.reason)}</td></tr>`).join("")}</tbody>
+    <tbody>${entries.length
+      ? entries.map(entry => `<tr><td>${escapeHtml(entry.row || "(blank)")}</td><td>${escapeHtml(entry.original || "(blank)")}</td><td>${escapeHtml(entry.problem || "(blank)")}</td><td>${escapeHtml(entry.cleaned || "(blank)")}</td><td>${escapeHtml(entry.reason || "(blank)")}</td></tr>`).join("")
+      : `<tr class="empty-row"><td colspan="5">No change-log evidence was saved.</td></tr>`}</tbody>
   </table></div>`;
 }
 
-function renderPeerSummary() {
+function renderPeerSummary(peer = state.peer) {
   return `<dl class="evidence-list">
-    <div><dt>Partner</dt><dd>${escapeHtml(state.peer.partnerName)}</dd></div>
-    <div><dt>Correction explained</dt><dd>${escapeHtml(state.peer.correctionExplained)}</dd></div>
-    <div><dt>Feedback received</dt><dd>${escapeHtml(state.peer.feedbackReceived)}</dd></div>
-    <div><dt>Correction checked</dt><dd>${escapeHtml(state.peer.correctionChecked)}</dd></div>
+    <div><dt>Partner</dt><dd>${escapeHtml(peer.partnerName)}</dd></div>
+    <div><dt>Correction explained</dt><dd>${escapeHtml(peer.correctionExplained)}</dd></div>
+    <div><dt>Feedback received</dt><dd>${escapeHtml(peer.feedbackReceived)}</dd></div>
+    <div><dt>Correction checked</dt><dd>${escapeHtml(peer.correctionChecked)}</dd></div>
   </dl>`;
 }
 
-function renderReflectionSummary() {
-  return `<dl class="evidence-list">${reflectionPrompts.map(item => `<div><dt>${item.label}</dt><dd>${escapeHtml(state.reflections[item.key])}</dd></div>`).join("")}</dl>`;
+function renderReflectionSummary(reflections = state.reflections) {
+  return `<dl class="evidence-list">${reflectionPrompts.map(item => `<div><dt>${item.label}</dt><dd>${escapeHtml(reflections[item.key])}</dd></div>`).join("")}</dl>`;
 }
 
 function numericItemValue(row) {
@@ -602,8 +653,12 @@ function materialLabel(value) {
 }
 
 function comparisonRows() {
+  return comparisonRowsFor(state.rows, state.removedRows);
+}
+
+function comparisonRowsFor(rows, removedRows) {
   const seen = new Set();
-  return activeDatasetRows().map(item => ({
+  return activeDatasetRowsFor(rows, removedRows).map(item => ({
     ...item,
     value: numericItemValue(item.row),
     material: materialKey(item.row.material),
@@ -665,15 +720,18 @@ function renderComparisonOptions(selectedValue, selectedMaterial) {
 }
 
 function selectedComparisonRow(value) {
-  if (!/^\d+$/.test(value)) return null;
-  const index = Number(value);
-  return comparisonRows().find(item => item.index === index) || null;
+  return selectedComparisonRowFor(value, state.rows, state.removedRows);
 }
 
-function renderModelPreview() {
-  const model = state.model;
-  const first = selectedComparisonRow(model.firstRow);
-  const second = selectedComparisonRow(model.secondRow);
+function selectedComparisonRowFor(value, rows, removedRows) {
+  if (!/^\d+$/.test(value)) return null;
+  const index = Number(value);
+  return comparisonRowsFor(rows, removedRows).find(item => item.index === index) || null;
+}
+
+function renderModelPreview(model = state.model, rows = state.rows, removedRows = state.removedRows) {
+  const first = selectedComparisonRowFor(model.firstRow, rows, removedRows);
+  const second = selectedComparisonRowFor(model.secondRow, rows, removedRows);
   if (!model.title || !model.material || !first || !second) {
     return "<strong>Two-bar comparison preview</strong><p>Add a title, choose a comparable material, and select two different collection points.</p>";
   }
@@ -723,24 +781,38 @@ function validateStage(stage) {
   return "";
 }
 
+function createStageSnapshot(stage) {
+  const snapshot = { stage, finishedAt: new Date().toISOString() };
+  if (stage === 1) Object.assign(snapshot, { dataset: structuredClone(state.dataset), originalRows: structuredClone(state.originalRows) });
+  if (stage === 2) Object.assign(snapshot, { rows: structuredClone(state.rows), removedRows: [...state.removedRows] });
+  if (stage === 3) snapshot.logEntries = structuredClone(state.logEntries);
+  if (stage === 4) snapshot.peer = structuredClone(state.peer);
+  if (stage === 5) snapshot.reflections = structuredClone(state.reflections);
+  if (stage === 6) Object.assign(snapshot, { model: structuredClone(state.model), rows: structuredClone(state.rows), removedRows: [...state.removedRows] });
+  return snapshot;
+}
+
 function openLockDialog() {
   const error = validateStage(state.currentStage);
-  if (error) return showStageMessage(error, "warning");
+  if (state.currentStage === 1 && error) return showStageMessage(error, "warning");
   stageMessage.textContent = "";
   stageMessage.className = "result";
-  document.querySelector("#lockDialogTitle").textContent = `Lock Stage ${state.currentStage}?`;
-  document.querySelector("#lockDialogText").textContent = `You are about to finish “${stageNames[state.currentStage - 1]}.” Check every response now.`;
+  const firstFinish = !state.stageSnapshots[String(state.currentStage)];
+  document.querySelector("#lockDialogTitle").textContent = `${firstFinish ? "Finish" : "Save changes to"} Stage ${state.currentStage}?`;
+  document.querySelector("#lockDialogText").textContent = firstFinish
+    ? `You are about to mark “${stageNames[state.currentStage - 1]}” as finished. This version will be used for scoring.`
+    : "This version will replace the earlier saved version used for scoring.";
+  document.querySelector("#lockDialogWarning").textContent = error
+    ? `${error} You may still continue if you consider this stage finished.`
+    : "This stage appears complete. You can return later if a correction is needed for downstream work.";
+  document.querySelector("#confirmLockBtn").textContent = error ? "Continue with incomplete stage" : "Save and continue";
   lockDialog.showModal();
 }
 
 function confirmStageLock() {
   const stage = state.currentStage;
-  const error = validateStage(stage);
-  if (error) {
-    lockDialog.close();
-    return showStageMessage(error, "warning");
-  }
-  state.lockedAt[String(stage)] = new Date().toISOString();
+  state.stageSnapshots[String(stage)] = createStageSnapshot(stage);
+  if (!state.lockedAt[String(stage)]) state.lockedAt[String(stage)] = new Date().toISOString();
   state.currentStage = Math.min(7, stage + 1);
   persistState();
   lockDialog.close();
@@ -763,7 +835,11 @@ function isRowRemoved(index) {
 }
 
 function activeDatasetRows() {
-  return state.rows.map((row, index) => ({ row, index })).filter(item => !isRowRemoved(item.index));
+  return activeDatasetRowsFor(state.rows, state.removedRows);
+}
+
+function activeDatasetRowsFor(rows, removedRows) {
+  return rows.map((row, index) => ({ row, index })).filter(item => !removedRows.includes(item.index));
 }
 
 function datasetDraftStatus() {
@@ -777,12 +853,20 @@ function rowChanged(index) {
 }
 
 function completeLogEntries() {
-  return state.logEntries.filter(entry => {
+  return completeLogEntriesFrom(state.logEntries, state.rows.length);
+}
+
+function completeLogEntriesFrom(entries, rowCount) {
+  return entries.filter(entry => {
     const rowNumber = Number(entry.row);
-    return Number.isInteger(rowNumber) && rowNumber >= 1 && rowNumber <= state.rows.length
+    return Number.isInteger(rowNumber) && rowNumber >= 1 && rowNumber <= rowCount
       && ["original", "problem", "cleaned"].every(key => entry[key].trim().length >= 1)
       && entry.reason.trim().length >= 8;
   });
+}
+
+function attemptedLogEntries(entries) {
+  return entries.filter(entry => ["row", "original", "problem", "cleaned", "reason"].some(key => entry[key].trim().length));
 }
 
 function showStageMessage(message, type) {
@@ -810,8 +894,18 @@ function submitStudentDetails(event) {
 }
 
 function downloadPdf() {
-  if (state.currentStage !== 7 || Object.keys(state.lockedAt).length < 6) return showStageMessage("Complete and lock every evidence stage before downloading.", "warning");
+  const allStagesFinished = [1, 2, 3, 4, 5, 6].every(stage => state.lockedAt[String(stage)]);
+  if (state.currentStage !== 7 || !allStagesFinished) return showStageMessage("Mark every evidence stage finished before downloading.", "warning");
   if (!window.jspdf?.jsPDF) return showStageMessage("The PDF tool could not load. Check your connection and try again.", "warning");
+
+  const cleaningEvidence = state.stageSnapshots["2"] || { rows: state.rows, removedRows: state.removedRows };
+  const logEvidence = state.stageSnapshots["3"]?.logEntries || state.logEntries;
+  const peerEvidence = state.stageSnapshots["4"]?.peer || state.peer;
+  const reflectionEvidence = state.stageSnapshots["5"]?.reflections || state.reflections;
+  const comparisonEvidence = state.stageSnapshots["6"] || { model: state.model, rows: state.rows, removedRows: state.removedRows };
+  const comparisonModel = comparisonEvidence.model || state.model;
+  const comparisonDataRows = comparisonEvidence.rows || state.rows;
+  const comparisonRemovedRows = comparisonEvidence.removedRows || state.removedRows;
 
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit: "mm", format: "a4" });
@@ -856,14 +950,14 @@ function downloadPdf() {
   doc.text("Appreciation Grade #1", margin, 15);
   doc.setFont("helvetica", "normal");
   doc.setFontSize(10);
-  doc.text("Data Steward Challenge · Locked Individual Evidence", margin, 23);
+  doc.text("Data Steward Challenge · Latest Saved Evidence", margin, 23);
   doc.text(formatActivityDate(state.student.date), pageWidth - margin, 23, { align: "right" });
 
   let y = sectionTitle("Student Details", 43);
   doc.autoTable({
     startY: y,
     head: [["Student", "Class", "Dataset", "Activity Date", "Peer-review Partner"]],
-    body: [[state.student.name, state.student.className, state.dataset.id, formatActivityDate(state.student.date), state.peer.partnerName]],
+    body: [[state.student.name, state.student.className, state.dataset.id, formatActivityDate(state.student.date), peerEvidence.partnerName]],
     margin: { left: margin, right: margin },
     theme: "grid",
     styles: { font: "helvetica", fontSize: 9, cellPadding: 2.8, textColor: dark },
@@ -873,11 +967,11 @@ function downloadPdf() {
   y = sectionTitle("Dataset Context", doc.lastAutoTable.finalY + 11);
   y = paragraph(datasetContext, y);
 
-  y = sectionTitle("Cleaned Dataset", y + 3);
+  y = sectionTitle("Cleaned Dataset · Latest Saved Version", y + 3);
   doc.autoTable({
     startY: y,
     head: [["Row", "Collection Point", "Items Collected", "Material Category"]],
-    body: activeDatasetRows().map(item => [String(item.index + 1), item.row.point || "(blank)", item.row.items || "(blank)", item.row.material || "(blank)"]),
+    body: activeDatasetRowsFor(cleaningEvidence.rows, cleaningEvidence.removedRows).map(item => [String(item.index + 1), item.row.point || "(blank)", item.row.items || "(blank)", item.row.material || "(blank)"]),
     margin: { left: margin, right: margin },
     theme: "grid",
     styles: { font: "helvetica", fontSize: 8.5, cellPadding: 2.2, textColor: dark },
@@ -887,14 +981,14 @@ function downloadPdf() {
   });
 
   let datasetEndY = doc.lastAutoTable.finalY;
-  if (state.removedRows.length) {
-    datasetEndY = paragraph(`Removed duplicate row${state.removedRows.length === 1 ? "" : "s"}: ${state.removedRows.map(index => index + 1).join(", ")}`, datasetEndY + 6, { bold: true });
+  if (cleaningEvidence.removedRows.length) {
+    datasetEndY = paragraph(`Removed duplicate row${cleaningEvidence.removedRows.length === 1 ? "" : "s"}: ${cleaningEvidence.removedRows.map(index => index + 1).join(", ")}`, datasetEndY + 6, { bold: true });
   }
-  y = sectionTitle("Manual Change Log", datasetEndY + 5);
+  y = sectionTitle("Manual Change Log · Latest Saved Version", datasetEndY + 5);
   doc.autoTable({
     startY: y,
     head: [["Row", "Original Value", "Problem Found", "Cleaned Value", "Reason"]],
-    body: completeLogEntries().map(entry => [entry.row, entry.original, entry.problem, entry.cleaned, entry.reason]),
+    body: attemptedLogEntries(logEvidence).map(entry => [entry.row || "(blank)", entry.original || "(blank)", entry.problem || "(blank)", entry.cleaned || "(blank)", entry.reason || "(blank)"]),
     margin: { left: margin, right: margin },
     theme: "grid",
     styles: { font: "helvetica", fontSize: 8, cellPadding: 2.1, textColor: dark, overflow: "linebreak" },
@@ -904,23 +998,23 @@ function downloadPdf() {
   });
 
   y = ensureSpace(doc.lastAutoTable.finalY + 11, 55);
-  y = sectionTitle("Peer Review", y);
-  y = paragraph(`Partner: ${state.peer.partnerName}`, y, { bold: true });
-  y = paragraph(`Correction explained: ${state.peer.correctionExplained}`, y);
-  y = paragraph(`Feedback received: ${state.peer.feedbackReceived}`, y);
-  y = paragraph(`Correction checked: ${state.peer.correctionChecked}`, y);
+  y = sectionTitle("Peer Review · Latest Saved Version", y);
+  y = paragraph(`Partner: ${peerEvidence.partnerName}`, y, { bold: true });
+  y = paragraph(`Correction explained: ${peerEvidence.correctionExplained}`, y);
+  y = paragraph(`Feedback received: ${peerEvidence.feedbackReceived}`, y);
+  y = paragraph(`Correction checked: ${peerEvidence.correctionChecked}`, y);
 
-  y = sectionTitle("Individual Reflections", y + 2);
+  y = sectionTitle("Individual Reflections · Latest Saved Version", y + 2);
   reflectionPrompts.forEach(item => {
     y = paragraph(`${item.label}: ${item.prompt}`, y, { bold: true });
-    y = paragraph(state.reflections[item.key], y);
+    y = paragraph(reflectionEvidence[item.key], y);
   });
 
   y = ensureSpace(y + 2, 60);
-  y = sectionTitle("Two-Location Comparison", y);
-  y = paragraph(state.model.title, y, { bold: true, size: 12 });
-  const pdfFirst = selectedComparisonRow(state.model.firstRow);
-  const pdfSecond = selectedComparisonRow(state.model.secondRow);
+  y = sectionTitle("Two-Location Comparison · Latest Saved Version", y);
+  y = paragraph(comparisonModel.title, y, { bold: true, size: 12 });
+  const pdfFirst = selectedComparisonRowFor(comparisonModel.firstRow, comparisonDataRows, comparisonRemovedRows);
+  const pdfSecond = selectedComparisonRowFor(comparisonModel.secondRow, comparisonDataRows, comparisonRemovedRows);
   if (!pdfFirst || !pdfSecond) {
     paragraph("The two-location comparison was not completed.", y);
   } else {
@@ -946,7 +1040,7 @@ function downloadPdf() {
       }
     });
     y = visualY + 33;
-    paragraph(`Comparison: ${state.model.conclusion}`, y);
+    paragraph(`Comparison: ${comparisonModel.conclusion}`, y);
   }
 
   const pageCount = doc.getNumberOfPages();
@@ -957,7 +1051,7 @@ function downloadPdf() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(...muted);
-    doc.text("Data Steward Challenge · Locked Individual Submission", margin, pageHeight - 7);
+    doc.text("Data Steward Challenge · Latest Saved Scoring Record", margin, pageHeight - 7);
     doc.text(`Page ${page} of ${pageCount}`, pageWidth - margin, pageHeight - 7, { align: "right" });
   }
 
@@ -1007,6 +1101,10 @@ document.querySelector("#lockStageBtn").addEventListener("click", openLockDialog
 document.querySelector("#closeLockDialogBtn").addEventListener("click", () => lockDialog.close());
 document.querySelector("#cancelLockBtn").addEventListener("click", () => lockDialog.close());
 document.querySelector("#confirmLockBtn").addEventListener("click", confirmStageLock);
+document.querySelector("#stageNav").addEventListener("click", event => {
+  const button = event.target.closest("[data-stage-nav]");
+  if (button) navigateToStage(Number(button.dataset.stageNav));
+});
 document.addEventListener("click", event => {
   if (event.target.closest("[data-open-support]")) supportDialog.showModal();
   if (event.target.closest("[data-close-support]")) supportDialog.close();
