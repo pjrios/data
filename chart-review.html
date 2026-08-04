@@ -1,0 +1,684 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#10253f" />
+  <title>Chart Review · Ready for the Summative</title>
+  <style>
+    :root {
+      --navy: #10253f;
+      --ink: #18314f;
+      --blue: #2864dc;
+      --sky: #dceaff;
+      --cream: #fff9ec;
+      --gold: #f2b544;
+      --coral: #ed6a5a;
+      --green: #2d8b72;
+      --paper: #f7f3ea;
+      --white: #fff;
+      --muted: #5e6f82;
+      --shadow: 0 18px 50px rgba(16, 37, 63, .16);
+    }
+
+    * { box-sizing: border-box; }
+    html, body { margin: 0; min-height: 100%; }
+    body {
+      color: var(--ink);
+      background: var(--paper);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      overflow: hidden;
+    }
+    button, a { font: inherit; }
+    button:focus-visible, a:focus-visible { outline: 4px solid var(--gold); outline-offset: 3px; }
+
+    .topbar {
+      position: fixed;
+      inset: 0 0 auto;
+      z-index: 20;
+      height: 58px;
+      padding: 0 clamp(18px, 4vw, 58px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      color: var(--white);
+      background: var(--navy);
+    }
+    .brand { display: flex; align-items: center; gap: 11px; font-weight: 800; letter-spacing: .02em; }
+    .brand-mark { width: 14px; height: 14px; border-radius: 3px; background: var(--gold); transform: rotate(45deg); }
+    .top-actions { display: flex; align-items: center; gap: 16px; }
+    .practice-link { color: var(--white); text-decoration: none; font-weight: 700; font-size: .9rem; }
+    .slide-count { color: #c9d6e6; font-variant-numeric: tabular-nums; font-size: .9rem; }
+    .progress { position: fixed; z-index: 21; top: 58px; left: 0; width: 100%; height: 5px; background: #cad3dc; }
+    .progress span { display: block; height: 100%; width: 8.33%; background: var(--gold); transition: width .25s ease; }
+
+    .deck { position: relative; height: 100svh; padding-top: 63px; }
+    .slide {
+      position: absolute;
+      inset: 63px 0 0;
+      overflow-y: auto;
+      padding: clamp(28px, 5vh, 62px) clamp(24px, 7vw, 96px) 100px;
+      display: grid;
+      align-content: center;
+      opacity: 0;
+      visibility: hidden;
+      transform: translateX(30px);
+      transition: opacity .22s ease, transform .22s ease, visibility .22s;
+    }
+    .slide.is-active { opacity: 1; visibility: visible; transform: translateX(0); }
+    .slide.alt { background: var(--sky); }
+    .slide.dark { color: var(--white); background: var(--navy); }
+    .slide.warm { background: var(--cream); }
+    .slide-inner { width: min(1180px, 100%); margin: auto; }
+
+    .kicker { margin: 0 0 10px; color: var(--blue); font-size: .82rem; font-weight: 900; letter-spacing: .13em; text-transform: uppercase; }
+    .dark .kicker { color: var(--gold); }
+    h1, h2, h3, p { margin-top: 0; }
+    h1 { max-width: 880px; margin-bottom: 18px; font-size: clamp(3.2rem, 8vw, 7.2rem); line-height: .92; letter-spacing: -.06em; }
+    h2 { max-width: 920px; margin-bottom: 14px; font-size: clamp(2.2rem, 4.7vw, 4.8rem); line-height: .98; letter-spacing: -.045em; }
+    h3 { margin-bottom: 8px; font-size: 1.14rem; }
+    .lead { max-width: 780px; margin-bottom: 28px; color: var(--muted); font-size: clamp(1.15rem, 2vw, 1.55rem); line-height: 1.45; }
+    .dark .lead { color: #d6e2ef; }
+    .big-question { color: var(--gold); }
+    .rule { width: 78px; height: 8px; margin: 28px 0; border-radius: 10px; background: var(--coral); }
+
+    .hero-layout { display: grid; grid-template-columns: 1.15fr .85fr; gap: clamp(32px, 7vw, 90px); align-items: center; }
+    .hero-card { padding: 28px; border: 1px solid rgba(255,255,255,.18); border-radius: 28px; background: rgba(255,255,255,.08); box-shadow: var(--shadow); }
+    .hero-card strong { display: block; margin-bottom: 18px; color: var(--gold); font-size: .78rem; letter-spacing: .14em; text-transform: uppercase; }
+    .hero-card p { margin: 0; font-size: clamp(1.4rem, 2.4vw, 2.1rem); font-weight: 800; line-height: 1.25; }
+
+    .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 28px; }
+    .card-grid.four { grid-template-columns: repeat(4, 1fr); }
+    .chart-card, .info-card, .score-card {
+      min-width: 0;
+      padding: 20px;
+      border: 1px solid #d7dee6;
+      border-radius: 20px;
+      background: var(--white);
+      box-shadow: 0 8px 24px rgba(16,37,63,.08);
+    }
+    .chart-card { border-top: 6px solid var(--blue); }
+    .chart-card:nth-child(2n) { border-top-color: var(--coral); }
+    .chart-card:nth-child(3n) { border-top-color: var(--green); }
+    .chart-card p, .info-card p { margin: 0; color: var(--muted); line-height: 1.42; }
+    .use { display: inline-block; margin: 8px 0 10px; color: var(--blue); font-size: .76rem; font-weight: 900; letter-spacing: .06em; text-transform: uppercase; }
+    .memory-line { margin: 28px 0 0; padding: 17px 20px; border-left: 7px solid var(--gold); border-radius: 8px 18px 18px 8px; background: var(--white); font-size: 1.12rem; font-weight: 750; }
+
+    .mini { height: 72px; margin-bottom: 15px; display: flex; align-items: end; gap: 8px; border-bottom: 2px solid #aebccc; }
+    .mini i { display: block; flex: 1; background: var(--blue); border-radius: 4px 4px 0 0; }
+    .mini.column i:nth-child(1) { height: 40%; } .mini.column i:nth-child(2) { height: 78%; } .mini.column i:nth-child(3) { height: 58%; }
+    .mini.horizontal { height: 72px; padding: 5px 0; flex-direction: column; align-items: start; border: 0; }
+    .mini.horizontal i { flex: none; height: 13px; border-radius: 0 5px 5px 0; }
+    .mini.horizontal i:nth-child(1) { width: 92%; } .mini.horizontal i:nth-child(2) { width: 68%; } .mini.horizontal i:nth-child(3) { width: 42%; }
+    .mini.stacked { align-items: end; }
+    .mini.stacked span { width: 29%; display: flex; flex-direction: column; justify-content: end; }
+    .mini.stacked i, .mini.stacked b { width: 100%; border-radius: 0; }
+    .mini.stacked i { height: 34px; background: var(--blue); } .mini.stacked b { height: 18px; background: var(--gold); }
+    .mini.histogram { gap: 1px; }
+    .mini.histogram i:nth-child(1) { height: 24%; } .mini.histogram i:nth-child(2) { height: 62%; } .mini.histogram i:nth-child(3) { height: 90%; } .mini.histogram i:nth-child(4) { height: 52%; } .mini.histogram i:nth-child(5) { height: 20%; }
+    .mini.pie { width: 74px; border: 0; border-radius: 50%; background: conic-gradient(var(--blue) 0 50%, var(--gold) 50% 80%, var(--coral) 80% 100%); }
+    .mini.line, .mini.scatter { position: relative; display: block; border-left: 2px solid #aebccc; }
+    .mini.line i, .mini.scatter i { position: absolute; width: 11px; height: 11px; border-radius: 50%; background: var(--blue); }
+    .mini.line i:nth-child(1), .mini.scatter i:nth-child(1) { left: 10%; bottom: 14%; }
+    .mini.line i:nth-child(2), .mini.scatter i:nth-child(2) { left: 38%; bottom: 34%; }
+    .mini.line i:nth-child(3), .mini.scatter i:nth-child(3) { left: 64%; bottom: 62%; }
+    .mini.line i:nth-child(4), .mini.scatter i:nth-child(4) { left: 88%; bottom: 76%; }
+    .mini.line::after { content: ""; position: absolute; left: 9%; bottom: 18%; width: 86%; height: 4px; border-radius: 4px; background: var(--coral); transform: rotate(-23deg); transform-origin: left center; }
+    .actual-chart { display: block; width: 100%; height: 150px; margin: 0 0 16px; border-radius: 12px; background: #fff; }
+    .compare-panel .actual-chart { height: 190px; }
+    .actual-chart.large { height: min(46vh, 390px); min-height: 300px; margin: 0; border-radius: 18px; box-shadow: 0 8px 24px rgba(16,37,63,.08); }
+
+    .compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: stretch; margin-top: 30px; }
+    .versus { align-self: center; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; color: var(--white); background: var(--navy); font-weight: 900; }
+    .compare-panel { padding: 28px; border-radius: 24px; background: var(--white); box-shadow: var(--shadow); }
+    .compare-panel .mini { height: 120px; }
+    .compare-panel ul { margin: 18px 0 0; padding-left: 20px; line-height: 1.7; }
+
+    .quiz-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 30px; }
+    .quiz-card { padding: 22px; border: 2px solid #ccd7e3; border-radius: 20px; background: var(--white); }
+    .quiz-card p { min-height: 70px; line-height: 1.45; }
+    .quiz-options { display: grid; gap: 8px; }
+    .quiz-card button { width: 100%; padding: 11px 14px; border: 2px solid #b7c6d8; border-radius: 12px; color: var(--ink); background: var(--white); cursor: pointer; font-weight: 800; }
+    .quiz-card button:hover { border-color: var(--blue); background: #eef4ff; }
+    .quiz-card button.correct { border-color: var(--green); color: #145845; background: #e2f5ee; }
+    .quiz-card button.incorrect { border-color: var(--coral); color: #7d2d24; background: #fff0ed; }
+    .quiz-answer { min-height: 28px; margin: 13px 0 0 !important; color: var(--green) !important; font-weight: 850; }
+
+    .mission-layout { display: grid; grid-template-columns: 1fr .82fr; gap: 42px; align-items: center; }
+    .mission-list { margin: 24px 0 0; padding: 0; display: grid; gap: 10px; list-style: none; counter-reset: mission; }
+    .mission-list li { padding: 12px 16px 12px 52px; position: relative; border-radius: 14px; background: rgba(255,255,255,.09); counter-increment: mission; }
+    .mission-list li::before { content: counter(mission); position: absolute; left: 15px; top: 10px; width: 27px; height: 27px; display: grid; place-items: center; border-radius: 50%; color: var(--navy); background: var(--gold); font-weight: 900; }
+    .minute { display: grid; place-items: center; aspect-ratio: 1; border: 16px solid var(--gold); border-radius: 50%; text-align: center; background: #18314f; }
+    .minute strong { display: block; font-size: clamp(4rem, 10vw, 7rem); line-height: .85; }
+    .minute span { color: #dce7f2; font-weight: 800; text-transform: uppercase; letter-spacing: .12em; }
+
+    .anatomy { display: grid; grid-template-columns: 1.25fr .75fr; gap: 36px; margin-top: 24px; align-items: center; }
+    .plot { position: relative; height: min(46vh, 390px); min-height: 270px; border-left: 5px solid var(--ink); border-bottom: 5px solid var(--ink); background: linear-gradient(#e8eef5 1px, transparent 1px), linear-gradient(90deg, #e8eef5 1px, transparent 1px), var(--white); background-size: 12.5% 20%; }
+    .dot { position: absolute; width: 17px; height: 17px; border: 3px solid white; border-radius: 50%; background: var(--blue); box-shadow: 0 2px 8px rgba(16,37,63,.35); transform: translate(-50%, 50%); }
+    .dot.outlier { width: 22px; height: 22px; background: var(--coral); }
+    .x-label { position: absolute; left: 50%; bottom: -42px; transform: translateX(-50%); font-weight: 850; }
+    .y-label { position: absolute; top: 50%; left: -92px; transform: translateY(-50%) rotate(-90deg); font-weight: 850; }
+    .anatomy-list { display: grid; gap: 11px; }
+    .anatomy-list div { padding: 15px 17px; border-radius: 14px; background: var(--white); box-shadow: 0 6px 18px rgba(16,37,63,.08); }
+    .anatomy-list strong { color: var(--blue); }
+
+    .evidence-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-top: 28px; }
+    .evidence-card { padding: 20px; border-radius: 18px; background: var(--white); box-shadow: 0 8px 22px rgba(16,37,63,.08); }
+    .evidence-card span { display: inline-grid; width: 30px; height: 30px; margin-bottom: 12px; place-items: center; border-radius: 50%; color: white; background: var(--blue); font-weight: 900; }
+    .evidence-card p { margin: 0; color: var(--muted); line-height: 1.4; }
+    .frame { margin-top: 10px !important; padding: 10px 12px; border-radius: 10px; color: var(--ink) !important; background: #eef4ff; font-weight: 700; }
+    .warning { margin-top: 18px; padding: 15px 18px; border-radius: 14px; color: #653b05; background: #fff0c6; font-weight: 800; }
+
+    .timeline { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0; margin-top: 32px; }
+    .time-step { position: relative; min-height: 215px; padding: 22px 20px; border-right: 2px dashed #bac7d3; background: var(--white); }
+    .time-step:first-child { border-radius: 20px 0 0 20px; }
+    .time-step:last-child { border: 0; border-radius: 0 20px 20px 0; }
+    .time-step .seconds { display: inline-block; margin-bottom: 16px; padding: 6px 10px; border-radius: 999px; color: var(--white); background: var(--coral); font-size: .8rem; font-weight: 900; }
+    .time-step p { color: var(--muted); line-height: 1.45; }
+
+    .score-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin-top: 24px; }
+    .score-card { padding: 17px; display: flex; gap: 13px; align-items: start; }
+    .points { flex: 0 0 42px; height: 42px; display: grid; place-items: center; border-radius: 12px; color: var(--white); background: var(--blue); font-weight: 950; }
+    .score-card p { margin: 3px 0 0; color: var(--muted); font-size: .9rem; line-height: 1.35; }
+
+    .checklist { display: grid; grid-template-columns: 1fr 1fr; gap: 12px 24px; margin: 28px 0; }
+    .checklist label { padding: 16px 18px; display: flex; gap: 13px; align-items: center; border-radius: 14px; background: rgba(255,255,255,.09); cursor: pointer; font-weight: 700; }
+    .checklist input { width: 22px; height: 22px; accent-color: var(--gold); }
+    .ready-line { min-height: 52px; color: var(--gold); font-size: 1.35rem; font-weight: 900; }
+
+    .controls { position: fixed; z-index: 30; right: clamp(18px, 4vw, 52px); bottom: 20px; display: flex; gap: 10px; }
+    .controls button { width: 48px; height: 48px; border: 0; border-radius: 50%; color: var(--white); background: var(--navy); box-shadow: var(--shadow); cursor: pointer; font-size: 1.25rem; font-weight: 900; }
+    .controls button:disabled { opacity: .3; cursor: default; }
+    .dots { position: fixed; z-index: 25; left: clamp(18px, 4vw, 52px); bottom: 30px; display: flex; gap: 7px; }
+    .dots button { width: 9px; height: 9px; padding: 0; border: 0; border-radius: 50%; background: #9aabba; cursor: pointer; }
+    .dots button.active { width: 26px; border-radius: 999px; background: var(--coral); }
+    .dark + .controls button { background: var(--white); }
+    .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+
+    @media (max-width: 850px) {
+      body { overflow: auto; }
+      .slide { align-content: start; }
+      .hero-layout, .mission-layout, .anatomy { grid-template-columns: 1fr; }
+      .hero-card, .minute { max-width: 420px; }
+      .card-grid, .card-grid.four, .quiz-grid, .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .compare { grid-template-columns: 1fr; }
+      .versus { margin: -10px auto; }
+      .timeline { grid-template-columns: 1fr 1fr; gap: 10px; }
+      .time-step, .time-step:first-child, .time-step:last-child { min-height: auto; border: 0; border-radius: 15px; }
+      .minute { width: min(72vw, 320px); }
+      .plot { margin-left: 74px; }
+    }
+    @media (max-width: 560px) {
+      .practice-link { display: none; }
+      .slide { padding-inline: 18px; }
+      h1 { font-size: 3.15rem; }
+      .card-grid, .card-grid.four, .quiz-grid, .score-grid, .evidence-grid, .checklist, .timeline { grid-template-columns: 1fr; }
+      .dots { display: none; }
+      .chart-card { padding: 16px; }
+      .mini { height: 55px; }
+      .controls { bottom: 14px; }
+    }
+    @media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition: none !important; } }
+    @media print {
+      body { overflow: visible; }
+      .topbar, .progress, .controls, .dots { display: none; }
+      .deck { height: auto; padding: 0; }
+      .slide { position: relative; inset: auto; min-height: 100vh; break-after: page; opacity: 1; visibility: visible; transform: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark" aria-hidden="true"></span> Chart Review</div>
+    <div class="top-actions"><a class="practice-link" href="charts.html">Open full practice</a><span class="slide-count" id="slideCount">01 / 12</span></div>
+  </header>
+  <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
+
+  <main class="deck" id="deck">
+    <section class="slide dark is-active" data-title="Welcome" aria-labelledby="title-1">
+      <div class="slide-inner hero-layout">
+        <div>
+          <p class="kicker">Chart Lab · Summative Review</p>
+          <h1 id="title-1">Choose it. Read it. Explain it.</h1>
+          <div class="rule"></div>
+          <p class="lead">A fast review of seven graph types—and the evidence you need for the Chart Presentation summative.</p>
+        </div>
+        <aside class="hero-card">
+          <strong>Today’s big question</strong>
+          <p>What story does the data tell, and which graph makes that story easiest to see?</p>
+        </aside>
+      </div>
+    </section>
+
+    <section class="slide warm" data-title="Choose" aria-labelledby="title-2">
+      <div class="slide-inner">
+        <p class="kicker">Start with the question</p>
+        <h2 id="title-2">The best graph depends on what you want to know.</h2>
+        <div class="card-grid four">
+          <article class="chart-card"><h3>Compare categories</h3><span class="use">Column chart</span><p>Which class read the most?</p></article>
+          <article class="chart-card"><h3>Show a ranking</h3><span class="use">Horizontal bars</span><p>Which club ranks first?</p></article>
+          <article class="chart-card"><h3>Compare totals + parts</h3><span class="use">Stacked bars</span><p>How is each total divided?</p></article>
+          <article class="chart-card"><h3>See a distribution</h3><span class="use">Histogram</span><p>Which range occurs most often?</p></article>
+          <article class="chart-card"><h3>Show parts of one whole</h3><span class="use">Pie chart</span><p>What percent belongs to each part?</p></article>
+          <article class="chart-card"><h3>Investigate a relationship</h3><span class="use">Scatter plot</span><p>Do two numerical variables move together?</p></article>
+          <article class="chart-card"><h3>Show change in order</h3><span class="use">Line chart</span><p>How does a value change over time?</p></article>
+        </div>
+        <p class="memory-line">Question first → graph second → evidence always.</p>
+      </div>
+    </section>
+
+    <section class="slide alt" data-title="Bars" aria-labelledby="title-3">
+      <div class="slide-inner">
+        <p class="kicker">Graph family 1</p>
+        <h2 id="title-3">Three bar charts. Three different jobs.</h2>
+        <div class="card-grid">
+          <article class="chart-card"><canvas class="actual-chart" data-chart="column" role="img" aria-label="Column chart of books read by four classes"></canvas><h3>Vertical / column</h3><p>Compare values across separate categories. The bars have gaps.</p></article>
+          <article class="chart-card"><canvas class="actual-chart" data-chart="horizontal" role="img" aria-label="Horizontal bar chart ranking four clubs by number of students"></canvas><h3>Horizontal</h3><p>Show a ranking or make long category names easy to read.</p></article>
+          <article class="chart-card"><canvas class="actual-chart" data-chart="stacked" role="img" aria-label="Stacked bar chart of completed and remaining tasks for three groups"></canvas><h3>Stacked</h3><p>Compare the total bar and the colored parts inside each total.</p></article>
+        </div>
+        <p class="memory-line"><strong>Watch out:</strong> A stacked bar is not just decoration—the segments must represent meaningful parts.</p>
+      </div>
+    </section>
+
+    <section class="slide warm" data-title="Shape" aria-labelledby="title-4">
+      <div class="slide-inner">
+        <p class="kicker">Graph families 2 + 3</p>
+        <h2 id="title-4">Ranges touch. Parts make a whole.</h2>
+        <div class="compare">
+          <article class="compare-panel">
+            <canvas class="actual-chart" data-chart="histogram" role="img" aria-label="Histogram of students in five quiz score ranges"></canvas>
+            <h3>Histogram = distribution</h3>
+            <ul><li>Uses continuous numerical ranges</li><li>Bars normally touch</li><li>Reveals the most common range and overall shape</li></ul>
+          </article>
+          <div class="versus" aria-hidden="true">VS</div>
+          <article class="compare-panel">
+            <canvas class="actual-chart" data-chart="pie" role="img" aria-label="Pie chart showing how class time is divided"></canvas>
+            <h3>Pie chart = one whole</h3>
+            <ul><li>Every slice belongs to the same whole</li><li>All percentages total 100%</li><li>Works best with a few clear slices</li></ul>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide alt" data-title="Line vs scatter" aria-labelledby="title-5">
+      <div class="slide-inner">
+        <p class="kicker">Graph families 4 + 5</p>
+        <h2 id="title-5">Connected sequence or paired relationship?</h2>
+        <div class="compare">
+          <article class="compare-panel">
+            <canvas class="actual-chart" data-chart="line" role="img" aria-label="Line chart of temperature from Monday through Friday"></canvas>
+            <h3>Line chart</h3>
+            <ul><li>Shows change over time or another ordered sequence</li><li>Points connect because their order matters</li><li>Example: temperature by day</li></ul>
+          </article>
+          <div class="versus" aria-hidden="true">VS</div>
+          <article class="compare-panel">
+            <canvas class="actual-chart" data-chart="scatter" role="img" aria-label="Scatter plot of study hours and quiz scores for five students"></canvas>
+            <h3>Scatter plot</h3>
+            <ul><li>Compares two numerical variables</li><li>Each point is one paired observation</li><li>Points are not connected in time order</li></ul>
+          </article>
+        </div>
+        <p class="memory-line"><strong>Decision test:</strong> Does order connect the observations, or does each point pair two numerical values?</p>
+      </div>
+    </section>
+
+    <section class="slide warm" data-title="Quick check" aria-labelledby="title-6">
+      <div class="slide-inner">
+        <p class="kicker">Quick check</p>
+        <h2 id="title-6">Name that graph.</h2>
+        <p class="lead">Say your answer first. Then reveal it.</p>
+        <div class="quiz-grid">
+          <article class="quiz-card" data-correct="Histogram"><p>A teacher groups quiz scores into 50–59, 60–69, 70–79, 80–89, and 90–99. Which graph best reveals the distribution?</p><div class="quiz-options"><button type="button" data-choice="Column chart">Column chart</button><button type="button" data-choice="Histogram">Histogram</button><button type="button" data-choice="Pie chart">Pie chart</button></div><p class="quiz-answer" aria-live="polite"></p></article>
+          <article class="quiz-card" data-correct="Scatter plot"><p>You have study hours and quiz scores for each student. Which graph best investigates whether the two variables are related?</p><div class="quiz-options"><button type="button" data-choice="Line chart">Line chart</button><button type="button" data-choice="Scatter plot">Scatter plot</button><button type="button" data-choice="Stacked bars">Stacked bars</button></div><p class="quiz-answer" aria-live="polite"></p></article>
+          <article class="quiz-card" data-correct="Line chart"><p>You recorded the temperature each day from Monday through Friday. Which graph best shows how it changed in time order?</p><div class="quiz-options"><button type="button" data-choice="Scatter plot">Scatter plot</button><button type="button" data-choice="Column chart">Column chart</button><button type="button" data-choice="Line chart">Line chart</button></div><p class="quiz-answer" aria-live="polite"></p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide dark" data-title="Mission" aria-labelledby="title-7">
+      <div class="slide-inner mission-layout">
+        <div>
+          <p class="kicker">Summative #5 · Chart Presentation</p>
+          <h2 id="title-7">Your mission: choose, build, and explain one graph in one minute.</h2>
+          <ul class="mission-list">
+            <li>Choose the graph that matches the data and investigation question.</li>
+            <li>Show the final graph created in Canva.</li>
+            <li>Name both variables and units.</li>
+            <li>Explain the pattern and one comparison.</li>
+            <li>Identify the valid outlier.</li>
+            <li>State the correlation and its limitation.</li>
+            <li>Answer one question using chart evidence.</li>
+          </ul>
+          <p class="warning"><strong>Do not choose by appearance.</strong> Identify the data structure and the question first; then justify your graph choice.</p>
+        </div>
+        <div class="minute" aria-label="One minute presentation limit"><div><strong>1:00</strong><span>maximum</span></div></div>
+      </div>
+    </section>
+
+    <section class="slide alt" data-title="Anatomy" aria-labelledby="title-8">
+      <div class="slide-inner">
+        <p class="kicker">Practice-only worked example</p>
+        <h2 id="title-8">Read this similar example without copying its answer.</h2>
+        <div class="anatomy">
+          <canvas class="actual-chart large" data-chart="summative" role="img" aria-label="Example scatter plot with nine labeled IDs, an upward pattern, and one red outlier"></canvas>
+          <div class="anatomy-list">
+            <div><strong>Notice:</strong> two numerical variables are paired</div>
+            <div><strong>Check:</strong> title, variables, labels, and units</div>
+            <div><strong>Verify:</strong> all nine IDs and their positions</div>
+            <div><strong>Transfer:</strong> use your assigned data—not these values</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="slide warm" data-title="Evidence" aria-labelledby="title-9">
+      <div class="slide-inner">
+        <p class="kicker">Tell the evidence story</p>
+        <h2 id="title-9">Pattern. Comparison. Outlier. Conclusion.</h2>
+        <div class="evidence-grid">
+          <article class="evidence-card"><span>1</span><h3>Pattern</h3><p>Name both variables, the direction, and numerical evidence.</p><p class="frame">“As ___ changes from ___ to ___, ___ generally…”</p></article>
+          <article class="evidence-card"><span>2</span><h3>Comparison</h3><p>Name two different IDs and give accurate values for both.</p><p class="frame">“ID ___ has ___ and ___, while ID ___ has…”</p></article>
+          <article class="evidence-card"><span>3</span><h3>Outlier</h3><p>Name the valid outlier, both values, and how it differs.</p><p class="frame">“ID ___ is unusual because…”</p></article>
+          <article class="evidence-card"><span>4</span><h3>Conclusion</h3><p>State the relationship, correlation direction, and limitation.</p><p class="frame">“The chart suggests ___ correlation, but…”</p></article>
+        </div>
+        <p class="warning">Correlation can suggest a relationship. It cannot prove that one variable caused the other.</p>
+      </div>
+    </section>
+
+    <section class="slide alt" data-title="One minute" aria-labelledby="title-10">
+      <div class="slide-inner">
+        <p class="kicker">Organize the presentation</p>
+        <h2 id="title-10">A clear minute has four moves.</h2>
+        <div class="timeline">
+          <article class="time-step"><span class="seconds">0–10 sec</span><h3>Introduce</h3><p>Give the title and explain the data context. Name both variables and units.</p></article>
+          <article class="time-step"><span class="seconds">10–30 sec</span><h3>Read the pattern</h3><p>Describe the direction and compare two IDs using exact values.</p></article>
+          <article class="time-step"><span class="seconds">30–45 sec</span><h3>Explain the outlier</h3><p>Name it, give both values, and explain why it is away from the pattern.</p></article>
+          <article class="time-step"><span class="seconds">45–60 sec</span><h3>Conclude</h3><p>State the correlation and say that it cannot prove causation.</p></article>
+        </div>
+        <p class="memory-line">Practice aloud with the chart on screen. Do not read a paragraph from the slide.</p>
+      </div>
+    </section>
+
+    <section class="slide warm" data-title="Rubric" aria-labelledby="title-11">
+      <div class="slide-inner">
+        <p class="kicker">Know where the 40 points are</p>
+        <h2 id="title-11">Accuracy and explanation carry the score.</h2>
+        <div class="score-grid">
+          <article class="score-card"><span class="points">1</span><div><h3>Student details</h3><p>Name, class, and date</p></div></article>
+          <article class="score-card"><span class="points">7</span><div><h3>Chart display</h3><p>Correct, complete, and readable graph</p></div></article>
+          <article class="score-card"><span class="points">7</span><div><h3>Organization</h3><p>Title, context, Canva graph, conclusion, one minute</p></div></article>
+          <article class="score-card"><span class="points">7</span><div><h3>Pattern + comparison</h3><p>Accurate direction, IDs, values, and English</p></div></article>
+          <article class="score-card"><span class="points">7</span><div><h3>Outlier + limitation</h3><p>Accurate evidence, correlation, no causation claim</p></div></article>
+          <article class="score-card"><span class="points">7</span><div><h3>Delivery + question</h3><p>Understandable speech, chart reference, response</p></div></article>
+          <article class="score-card"><span class="points">4</span><div><h3>Readiness + respect</h3><p>On time, prepared, careful, focused</p></div></article>
+        </div>
+        <p class="memory-line"><strong>Total: 40 points.</strong> Exact numbers + clear English + visible chart evidence.</p>
+      </div>
+    </section>
+
+    <section class="slide dark" data-title="Ready" aria-labelledby="title-12">
+      <div class="slide-inner">
+        <p class="kicker">Final self-check</p>
+        <h2 id="title-12">Can you prove you are ready?</h2>
+        <div class="checklist" id="readyChecklist">
+          <label><input type="checkbox" /> I can choose the right graph for a question.</label>
+          <label><input type="checkbox" /> My graph choice matches the data question.</label>
+          <label><input type="checkbox" /> I can explain a pattern with exact numbers.</label>
+          <label><input type="checkbox" /> I can compare two IDs and their values.</label>
+          <label><input type="checkbox" /> I can identify and explain the valid outlier.</label>
+          <label><input type="checkbox" /> I can say why correlation is not causation.</label>
+          <label><input type="checkbox" /> I can present clearly in one minute.</label>
+          <label><input type="checkbox" /> I am ready to answer one evidence question.</label>
+        </div>
+        <p class="ready-line" id="readyLine" aria-live="polite">Check each box as a class.</p>
+        <p class="lead">Next step: open the full Chart Practice or rehearse your presentation with a partner.</p>
+      </div>
+    </section>
+  </main>
+
+  <nav class="dots" id="dots" aria-label="Slides"></nav>
+  <div class="controls" aria-label="Presentation controls">
+    <button id="previous" type="button" aria-label="Previous slide">←</button>
+    <button id="next" type="button" aria-label="Next slide">→</button>
+  </div>
+  <p class="sr-only" id="slideAnnouncer" aria-live="polite"></p>
+
+  <script>
+    (() => {
+      const slides = [...document.querySelectorAll('.slide')];
+      const previous = document.querySelector('#previous');
+      const next = document.querySelector('#next');
+      const count = document.querySelector('#slideCount');
+      const progress = document.querySelector('#progressBar');
+      const dots = document.querySelector('#dots');
+      const announcer = document.querySelector('#slideAnnouncer');
+      let current = Math.max(0, Math.min(slides.length - 1, Number(location.hash.replace('#slide-', '')) - 1 || 0));
+
+      slides.forEach((slide, index) => {
+        slide.setAttribute('aria-hidden', index === current ? 'false' : 'true');
+        const dot = document.createElement('button');
+        dot.type = 'button';
+        dot.setAttribute('aria-label', `Go to slide ${index + 1}: ${slide.dataset.title}`);
+        dot.addEventListener('click', () => show(index));
+        dots.append(dot);
+      });
+
+      function show(index, updateHash = true) {
+        current = Math.max(0, Math.min(slides.length - 1, index));
+        slides.forEach((slide, i) => {
+          const active = i === current;
+          slide.classList.toggle('is-active', active);
+          slide.setAttribute('aria-hidden', active ? 'false' : 'true');
+          dots.children[i].classList.toggle('active', active);
+        });
+        const display = String(current + 1).padStart(2, '0');
+        count.textContent = `${display} / ${String(slides.length).padStart(2, '0')}`;
+        progress.style.width = `${((current + 1) / slides.length) * 100}%`;
+        previous.disabled = current === 0;
+        next.disabled = current === slides.length - 1;
+        announcer.textContent = `Slide ${current + 1} of ${slides.length}: ${slides[current].dataset.title}`;
+        if (updateHash) history.replaceState(null, '', `#slide-${current + 1}`);
+        slides[current].scrollTop = 0;
+      }
+
+      previous.addEventListener('click', () => show(current - 1));
+      next.addEventListener('click', () => show(current + 1));
+      document.addEventListener('keydown', event => {
+        if (event.target.matches('button, input, a')) return;
+        if (['ArrowRight', 'PageDown', ' '].includes(event.key)) { event.preventDefault(); show(current + 1); }
+        if (['ArrowLeft', 'PageUp'].includes(event.key)) { event.preventDefault(); show(current - 1); }
+        if (event.key === 'Home') { event.preventDefault(); show(0); }
+        if (event.key === 'End') { event.preventDefault(); show(slides.length - 1); }
+      });
+      addEventListener('hashchange', () => {
+        const requested = Number(location.hash.replace('#slide-', '')) - 1;
+        if (Number.isInteger(requested)) show(requested, false);
+      });
+
+      document.querySelectorAll('.quiz-card').forEach(card => {
+        const answer = card.querySelector('.quiz-answer');
+        card.querySelectorAll('[data-choice]').forEach(button => {
+          button.addEventListener('click', () => {
+            const correct = button.dataset.choice === card.dataset.correct;
+            card.querySelectorAll('[data-choice]').forEach(option => option.classList.remove('correct', 'incorrect'));
+            button.classList.add(correct ? 'correct' : 'incorrect');
+            answer.textContent = correct
+              ? `Correct — ${card.dataset.correct} fits the question and the data structure.`
+              : 'Try again. Ask: categories, numerical ranges, one whole, time order, or paired numerical variables?';
+          });
+        });
+      });
+
+      const palette = { ink: '#18314f', grid: '#dbe3ec', blue: '#2864dc', gold: '#f2b544', coral: '#ed6a5a', green: '#2d8b72', muted: '#5e6f82' };
+
+      function prepareCanvas(canvas) {
+        const rect = canvas.getBoundingClientRect();
+        if (!rect.width || !rect.height) return null;
+        const ratio = Math.min(window.devicePixelRatio || 1, 2);
+        canvas.width = Math.round(rect.width * ratio);
+        canvas.height = Math.round(rect.height * ratio);
+        const context = canvas.getContext('2d');
+        context.setTransform(ratio, 0, 0, ratio, 0, 0);
+        context.clearRect(0, 0, rect.width, rect.height);
+        context.lineCap = 'round';
+        context.lineJoin = 'round';
+        return { context, width: rect.width, height: rect.height };
+      }
+
+      function text(context, value, x, y, options = {}) {
+        context.fillStyle = options.color || palette.ink;
+        context.font = `${options.weight || 650} ${options.size || 10}px Inter, system-ui, sans-serif`;
+        context.textAlign = options.align || 'left';
+        context.textBaseline = options.baseline || 'alphabetic';
+        context.fillText(value, x, y);
+      }
+
+      function axes(context, width, height, options = {}) {
+        const area = { left: options.left || 42, right: width - 12, top: 27, bottom: height - 31 };
+        context.strokeStyle = palette.grid;
+        context.lineWidth = 1;
+        for (let i = 0; i <= 4; i += 1) {
+          const y = area.top + (area.bottom - area.top) * i / 4;
+          context.beginPath(); context.moveTo(area.left, y); context.lineTo(area.right, y); context.stroke();
+        }
+        context.strokeStyle = palette.ink;
+        context.lineWidth = 1.5;
+        context.beginPath(); context.moveTo(area.left, area.top); context.lineTo(area.left, area.bottom); context.lineTo(area.right, area.bottom); context.stroke();
+        if (options.title) text(context, options.title, 10, 16, { size: 10, weight: 850 });
+        if (options.xLabel) text(context, options.xLabel, (area.left + area.right) / 2, height - 5, { size: 8, align: 'center', color: palette.muted });
+        return area;
+      }
+
+      function verticalBars(context, width, height, config) {
+        const area = axes(context, width, height, config);
+        const max = config.max || Math.max(...config.values) * 1.12;
+        const slot = (area.right - area.left) / config.values.length;
+        config.values.forEach((value, index) => {
+          const barWidth = slot * (config.touching ? 1 : .58);
+          const x = area.left + slot * index + (slot - barWidth) / 2;
+          const barHeight = (value / max) * (area.bottom - area.top);
+          context.fillStyle = config.colors?.[index] || palette.blue;
+          context.fillRect(x, area.bottom - barHeight, barWidth, barHeight);
+          text(context, config.labels[index], x + barWidth / 2, area.bottom + 13, { size: 8, align: 'center', color: palette.muted });
+        });
+      }
+
+      function horizontalBars(context, width, height) {
+        const labels = ['Robotics', 'Art', 'Chess', 'Drama'];
+        const values = [24, 19, 14, 9];
+        const left = 60, right = width - 14, top = 30, bottom = height - 22;
+        text(context, 'Most popular clubs', 10, 16, { size: 10, weight: 850 });
+        const slot = (bottom - top) / values.length;
+        values.forEach((value, index) => {
+          const y = top + index * slot + 3;
+          text(context, labels[index], left - 5, y + 8, { size: 7.5, align: 'right', color: palette.muted });
+          context.fillStyle = palette.blue;
+          context.fillRect(left, y, (right - left) * value / 25, slot - 7);
+        });
+        context.strokeStyle = palette.ink; context.lineWidth = 1.5;
+        context.beginPath(); context.moveTo(left, top); context.lineTo(left, bottom); context.lineTo(right, bottom); context.stroke();
+        text(context, 'Students', (left + right) / 2, height - 5, { size: 8, align: 'center', color: palette.muted });
+      }
+
+      function stackedBars(context, width, height) {
+        const area = axes(context, width, height, { title: 'Project tasks by group', xLabel: 'Group' });
+        const complete = [12, 15, 18], remaining = [8, 5, 2], labels = ['A', 'B', 'C'];
+        const slot = (area.right - area.left) / 3;
+        complete.forEach((value, index) => {
+          const barWidth = slot * .52, x = area.left + index * slot + slot * .24;
+          const first = value / 22 * (area.bottom - area.top), second = remaining[index] / 22 * (area.bottom - area.top);
+          context.fillStyle = palette.blue; context.fillRect(x, area.bottom - first, barWidth, first);
+          context.fillStyle = palette.gold; context.fillRect(x, area.bottom - first - second, barWidth, second);
+          text(context, labels[index], x + barWidth / 2, area.bottom + 13, { size: 8, align: 'center', color: palette.muted });
+        });
+        context.fillStyle = palette.blue; context.fillRect(width - 89, 7, 8, 8); text(context, 'Done', width - 77, 14, { size: 7, color: palette.muted });
+        context.fillStyle = palette.gold; context.fillRect(width - 43, 7, 8, 8); text(context, 'Left', width - 31, 14, { size: 7, color: palette.muted });
+      }
+
+      function pieChart(context, width, height) {
+        text(context, 'How class time is used', 10, 16, { size: 10, weight: 850 });
+        const values = [50, 30, 20], labels = ['Practice 50%', 'Discussion 30%', 'Reflection 20%'];
+        const colors = [palette.blue, palette.gold, palette.coral];
+        const cx = width * .35, cy = height * .53, radius = Math.min(62, height * .34, width * .23);
+        let start = -Math.PI / 2;
+        values.forEach((value, index) => {
+          const end = start + Math.PI * 2 * value / 100;
+          context.beginPath(); context.moveTo(cx, cy); context.arc(cx, cy, radius, start, end); context.closePath(); context.fillStyle = colors[index]; context.fill();
+          start = end;
+        });
+        labels.forEach((label, index) => {
+          const y = height * .35 + index * 25;
+          context.fillStyle = colors[index]; context.fillRect(width * .62, y - 8, 10, 10);
+          text(context, label, width * .62 + 16, y, { size: 8, color: palette.muted });
+        });
+      }
+
+      function lineChart(context, width, height) {
+        const area = axes(context, width, height, { title: 'Temperature by day', xLabel: 'Day' });
+        const labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'], values = [22, 24, 23, 27, 29];
+        const x = index => area.left + (area.right - area.left) * index / (values.length - 1);
+        const y = value => area.bottom - (value - 20) / 10 * (area.bottom - area.top);
+        context.strokeStyle = palette.coral; context.lineWidth = 3; context.beginPath();
+        values.forEach((value, index) => index ? context.lineTo(x(index), y(value)) : context.moveTo(x(index), y(value)));
+        context.stroke();
+        values.forEach((value, index) => {
+          context.beginPath(); context.arc(x(index), y(value), 4.5, 0, Math.PI * 2); context.fillStyle = palette.blue; context.fill();
+          text(context, labels[index], x(index), area.bottom + 13, { size: 8, align: 'center', color: palette.muted });
+        });
+        text(context, '°C', 8, area.top + 3, { size: 8, color: palette.muted });
+      }
+
+      function scatterChart(context, width, height, large = false) {
+        const config = large
+          ? { title: 'Prototype revisions and challenge score', xLabel: 'Prototype revisions completed (count)', yLabel: 'Challenge score', xs: [1,2,3,4,5,6,7,8,9], ys: [55,60,64,69,73,78,58,87,92], ids: ['A','B','C','D','E','F','G','H','I'], minY: 45, maxY: 100, outlier: 6 }
+          : { title: 'Study time and quiz score', xLabel: 'Study hours', yLabel: 'Score', xs: [1,2,3,4,5], ys: [60,68,75,82,90], ids: [], minY: 50, maxY: 100, outlier: -1 };
+        const left = large ? 64 : 42;
+        const area = axes(context, width, height, { title: config.title, xLabel: config.xLabel, left });
+        const x = value => area.left + (value - 1) / (Math.max(...config.xs) - 1) * (area.right - area.left);
+        const y = value => area.bottom - (value - config.minY) / (config.maxY - config.minY) * (area.bottom - area.top);
+        config.xs.forEach((value, index) => {
+          context.beginPath(); context.arc(x(value), y(config.ys[index]), large ? 7 : 4.5, 0, Math.PI * 2);
+          context.fillStyle = index === config.outlier ? palette.coral : palette.blue; context.fill();
+          if (large) text(context, config.ids[index], x(value) + 10, y(config.ys[index]) - 7, { size: 10, weight: 850, color: index === config.outlier ? palette.coral : palette.ink });
+          text(context, String(value), x(value), area.bottom + 13, { size: 8, align: 'center', color: palette.muted });
+        });
+        context.save(); context.translate(13, (area.top + area.bottom) / 2); context.rotate(-Math.PI / 2);
+        text(context, config.yLabel, 0, 0, { size: large ? 10 : 8, align: 'center', color: palette.muted }); context.restore();
+      }
+
+      function drawChart(canvas) {
+        const prepared = prepareCanvas(canvas);
+        if (!prepared) return;
+        const { context, width, height } = prepared;
+        const type = canvas.dataset.chart;
+        if (type === 'column') verticalBars(context, width, height, { title: 'Books read by class', xLabel: 'Class', labels: ['9A','9B','9C','9D'], values: [12,18,16,22], max: 25 });
+        else if (type === 'horizontal') horizontalBars(context, width, height);
+        else if (type === 'stacked') stackedBars(context, width, height);
+        else if (type === 'histogram') verticalBars(context, width, height, { title: 'Quiz score distribution', xLabel: 'Score range', labels: ['50s','60s','70s','80s','90s'], values: [2,5,8,6,3], max: 9, touching: true });
+        else if (type === 'pie') pieChart(context, width, height);
+        else if (type === 'line') lineChart(context, width, height);
+        else if (type === 'scatter') scatterChart(context, width, height);
+        else if (type === 'summative') scatterChart(context, width, height, true);
+      }
+
+      const canvases = [...document.querySelectorAll('[data-chart]')];
+      const drawAllCharts = () => canvases.forEach(drawChart);
+      drawAllCharts();
+      if ('ResizeObserver' in window) {
+        const chartObserver = new ResizeObserver(entries => entries.forEach(entry => drawChart(entry.target)));
+        canvases.forEach(canvas => chartObserver.observe(canvas));
+      } else {
+        addEventListener('resize', drawAllCharts);
+      }
+
+      const checklist = document.querySelector('#readyChecklist');
+      const readyLine = document.querySelector('#readyLine');
+      checklist.addEventListener('change', () => {
+        const checked = checklist.querySelectorAll('input:checked').length;
+        readyLine.textContent = checked === 8 ? 'Ready: chart first, evidence second. You’ve got this.' : `${checked} of 8 ready checks complete.`;
+      });
+
+      show(current, false);
+    })();
+  </script>
+</body>
+</html>
