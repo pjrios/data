@@ -65,7 +65,6 @@ const assessmentSection = document.querySelector("#assessmentSection");
 const stageHost = document.querySelector("#stageHost");
 const stageMessage = document.querySelector("#stageMessage");
 const stageActions = document.querySelector("#stageActions");
-const lockDialog = document.querySelector("#lockDialog");
 const studentDialog = document.querySelector("#studentDialog");
 
 function createInitialState() {
@@ -73,7 +72,6 @@ function createInitialState() {
     version: 4,
     introComplete: false,
     currentStage: 1,
-    lockedAt: {},
     dataset: {
       id: "",
       fileName: "",
@@ -134,7 +132,6 @@ function restoreState() {
   state = createInitialState();
   state.introComplete = Boolean(saved.introComplete);
   state.currentStage = saved.currentStage;
-  state.lockedAt = saved.lockedAt && typeof saved.lockedAt === "object" ? saved.lockedAt : {};
   if (acceptedDatasetIds.has(saved.dataset?.id) && validRows && validHeaders) {
     state.dataset = {
       id: saved.dataset.id,
@@ -209,18 +206,19 @@ function renderStage() {
   stageMessage.textContent = "";
   stageMessage.className = "result";
   stageHost.innerHTML = stageRenderers[stage]();
-  stageActions.hidden = stage === 5;
-  if (stage < 5) document.querySelector("#lockStageBtn").textContent = stageButtonLabel(stage);
+  document.querySelector("#backStageBtn").hidden = stage === 1;
+  document.querySelector("#continueStageBtn").hidden = stage === 5;
+  if (stage < 5) document.querySelector("#continueStageBtn").textContent = stageButtonLabel(stage);
   bindStageEvents(stage);
   renderVisibleChart(stage);
 }
 
 function stageButtonLabel(stage) {
   return {
-    1: "Lock dataset verification and continue",
-    2: "Lock chart and continue",
-    3: "Lock pattern and comparison",
-    4: "Lock final analysis and continue"
+    1: "Save and continue to chart",
+    2: "Save and continue to analysis",
+    3: "Save and continue to conclusion",
+    4: "Save and continue to review"
   }[stage];
 }
 
@@ -233,12 +231,12 @@ const stageRenderers = {
         <span class="hint">Use the downloaded Dataset A, B, C, or D file.</span>
         <input id="datasetFile" type="file" accept=".csv,text/csv" />
       </label>
-      <div class="rules"><strong>Before locking:</strong> Check the dataset letter, filename, column names, and all nine records. After this stage is locked, the file cannot be replaced.</div>
+      <div class="rules"><strong>Before continuing:</strong> Check the dataset letter, filename, column names, and all nine records. You may return later and replace the file if needed.</div>
     </div>
     <div id="importPreview" aria-live="polite">${renderImportPreview()}</div>`,
 
   2: () => `
-    ${renderDatasetIdentity("Imported dataset is locked")}
+    ${renderDatasetIdentity("Imported dataset is saved")}
     ${renderDatasetContext()}
     <p class="stage-intro">Build the chart yourself. Select the required chart type, assign the two numerical variables to the correct axes, and write a clear English title and axis labels. Use the column titles and units from the table, and make the finished chart easy to read.</p>
     ${renderDatasetTable()}
@@ -280,10 +278,10 @@ const stageRenderers = {
     </section>`,
 
   3: () => `
-    ${renderDatasetIdentity("Dataset and chart are locked")}
+    ${renderDatasetIdentity("Dataset and chart are saved")}
     ${renderDatasetContext()}
-    <p class="stage-intro">Use your locked chart and exact dataset values. Both sentences should be complete and supported by evidence.</p>
-    ${renderLockedChart()}
+    <p class="stage-intro">Use your saved chart and exact dataset values. Both sentences should be complete and supported by evidence.</p>
+    ${renderReferenceChart()}
     <div class="analysis-grid">
       <section class="analysis-card">
         <h3>1. Pattern</h3>
@@ -315,10 +313,10 @@ const stageRenderers = {
     </div>`,
 
   4: () => `
-    ${renderDatasetIdentity("Earlier evidence is locked")}
+    ${renderDatasetIdentity("Earlier evidence is saved")}
     ${renderDatasetContext()}
     <p class="stage-intro">Identify the value that does not follow the overall pattern, then write a careful conclusion about possible correlation.</p>
-    ${renderLockedChart()}
+    ${renderReferenceChart()}
     <div class="analysis-grid">
       <section class="analysis-card">
         <h3>3. Outlier or limitation</h3>
@@ -354,7 +352,7 @@ const stageRenderers = {
     </div>`,
 
   5: () => `
-    <p class="stage-intro">All evidence stages are locked. Review the complete submission, then download the PDF and upload it to Google Classroom.</p>
+    <p class="stage-intro">Review the complete submission. Use Back to revise any stage, or download the PDF and upload it to Google Classroom.</p>
     ${renderFinalSummary()}
     <div class="submission-note">
       <strong>Submit your work</strong>
@@ -379,7 +377,7 @@ function renderDatasetContext() {
 
 function renderImportPreview() {
   if (!state.dataset.id || !state.dataset.rows.length) {
-    return `<div class="rules"><strong>No file imported yet.</strong> The full table will appear here before you lock it.</div>`;
+    return `<div class="rules"><strong>No file imported yet.</strong> The full table will appear here after you choose your assigned CSV.</div>`;
   }
   return `${renderDatasetIdentity("Ready to verify")}${renderDatasetContext()}${renderDatasetTable()}${renderDatasetVerification()}`;
 }
@@ -432,12 +430,12 @@ function renderDatasetVerification() {
   </section>`;
 }
 
-function renderLockedChart() {
-  return `<section class="locked-evidence" aria-labelledby="lockedChartTitle">
-    <h3 id="lockedChartTitle">Locked chart</h3>
+function renderReferenceChart() {
+  return `<section class="saved-evidence" aria-labelledby="referenceChartTitle">
+    <h3 id="referenceChartTitle">Chart reference</h3>
     <p class="chart-interaction-hint"><strong>Point labels:</strong> <span data-point-label>the dataset ID column (A–I)</span>. Hover over a point to see its full ID and exact values. Keyboard users can focus the chart and use the arrow keys.</p>
     <div class="chart-canvas-wrap"><div class="interactive-chart">
-      <canvas id="lockedChartCanvas" class="summary-chart" width="900" height="500" role="img" tabindex="0" aria-label="Interactive locked chart"></canvas>
+      <canvas id="referenceChartCanvas" class="summary-chart" width="900" height="500" role="img" tabindex="0" aria-label="Interactive chart reference"></canvas>
       <div class="chart-tooltip" role="tooltip" hidden></div>
     </div></div>
   </section>`;
@@ -445,10 +443,10 @@ function renderLockedChart() {
 
 function renderFinalSummary() {
   return `
-    ${renderDatasetIdentity("All evidence is locked")}
+    ${renderDatasetIdentity("All evidence is saved")}
     ${renderDatasetContext()}
-    <section class="locked-evidence"><h3>Imported dataset</h3>${renderDatasetTable()}</section>
-    <section class="locked-evidence">
+    <section class="saved-evidence"><h3>Imported dataset</h3>${renderDatasetTable()}</section>
+    <section class="saved-evidence">
       <h3>Dataset verification responses</h3>
       <dl class="evidence-list">
         <div><dt>What one row represents</dt><dd>${escapeHtml(verificationAnswer(state.verification.rowMeaning))}</dd></div>
@@ -459,8 +457,8 @@ function renderFinalSummary() {
         <div><dt>Column 3 unit</dt><dd>${escapeHtml(verificationAnswer(state.verification.thirdUnit))}</dd></div>
       </dl>
     </section>
-    ${renderLockedChart()}
-    <section class="locked-evidence">
+    ${renderReferenceChart()}
+    <section class="saved-evidence">
       <h3>Chart decisions</h3>
       <dl class="evidence-list">
         <div><dt>Chart type</dt><dd>${escapeHtml(chartTypeLabel(state.chart.type))}</dd></div>
@@ -471,7 +469,7 @@ function renderFinalSummary() {
         <div><dt>Vertical label</dt><dd>${escapeHtml(state.chart.yLabel)}</dd></div>
       </dl>
     </section>
-    <section class="locked-evidence">
+    <section class="saved-evidence">
       <h3>Four interpretation sentences</h3>
       <dl class="evidence-list">
         <div><dt>Pattern</dt><dd>${escapeHtml(state.analysis.patternSentence)}</dd></div>
@@ -480,7 +478,7 @@ function renderFinalSummary() {
         <div><dt>Conclusion</dt><dd>${escapeHtml(state.analysis.conclusion)}</dd></div>
       </dl>
     </section>
-    <section class="locked-evidence">
+    <section class="saved-evidence">
       <h3>Analysis selections</h3>
       <dl class="evidence-list">
         <div><dt>Pattern direction</dt><dd>${escapeHtml(directionLabel(state.analysis.patternDirection))}</dd></div>
@@ -723,7 +721,7 @@ function renderVisibleChart(stage) {
   const canvas = stage === 2
     ? document.querySelector("#chartCanvas")
     : stage >= 3
-      ? document.querySelector("#lockedChartCanvas")
+      ? document.querySelector("#referenceChartCanvas")
       : null;
   if (canvas) renderChartInto(canvas);
 }
@@ -1021,7 +1019,7 @@ function validateStage(stage) {
     return "Upload the CSV file assigned to you and review the full nine-record preview.";
   }
   if (stage === 1 && Object.values(state.verification).some(value => !value)) {
-    return "Complete all six dataset-verification selections before locking Stage 1.";
+    return "Complete all six dataset-verification selections before continuing.";
   }
   if (stage === 2) {
     if (state.chart.title.trim().length < 6) return "Write a clear chart title before continuing.";
@@ -1055,35 +1053,21 @@ function completeEvidenceSentence(value) {
   return text.length >= 25 && numbers.length >= 2;
 }
 
-function openLockDialog() {
+function continueToNextStage() {
   const error = validateStage(state.currentStage);
   if (error) return showMessage(error, "warning");
-  document.querySelector("#lockDialogTitle").textContent = `Lock Stage ${state.currentStage}?`;
-  document.querySelector("#lockDialogText").textContent = `You are about to finish “${stageNames[state.currentStage - 1]}.” Check every choice and sentence now.`;
-  document.querySelector("#lockDialogWarning").textContent = lockWarning(state.currentStage);
-  lockDialog.showModal();
-}
-
-function lockWarning(stage) {
-  return {
-    1: "The imported dataset and all six verification responses will be saved and cannot be changed after you continue.",
-    2: "The chart type, title, variables, axis labels, and chart image cannot be changed after you continue.",
-    3: "Your pattern and comparison choices and sentences cannot be changed after you continue.",
-    4: "Your outlier, correlation, limitation, and final sentences cannot be changed after you continue."
-  }[stage];
-}
-
-function confirmStageLock() {
-  const stage = state.currentStage;
-  const error = validateStage(stage);
-  if (error) {
-    lockDialog.close();
-    return showMessage(error, "warning");
-  }
-  state.lockedAt[String(stage)] = new Date().toISOString();
-  state.currentStage = Math.min(5, stage + 1);
+  state.currentStage = Math.min(5, state.currentStage + 1);
   persistState();
-  lockDialog.close();
+  window.history.replaceState({ assessment: true, stage: state.currentStage }, "", `${window.location.pathname}${window.location.search}#assessment`);
+  renderStage();
+  document.querySelector("#stageTitle").focus({ preventScroll: true });
+  assessmentSection.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function returnToPreviousStage() {
+  if (state.currentStage <= 1) return;
+  state.currentStage -= 1;
+  persistState();
   window.history.replaceState({ assessment: true, stage: state.currentStage }, "", `${window.location.pathname}${window.location.search}#assessment`);
   renderStage();
   document.querySelector("#stageTitle").focus({ preventScroll: true });
@@ -1115,8 +1099,9 @@ function submitStudentDetails(event) {
 }
 
 function downloadPdf() {
-  if (state.currentStage !== 5 || Object.keys(state.lockedAt).length < 4) {
-    return showMessage("Complete and lock every evidence stage before downloading.", "warning");
+  for (let stage = 1; stage <= 4; stage += 1) {
+    const error = validateStage(stage);
+    if (error) return showMessage(`Stage ${stage}: ${error}`, "warning");
   }
   if (!window.jspdf?.jsPDF) {
     return showMessage("The PDF tool could not load. Check your connection and try again.", "warning");
@@ -1221,7 +1206,7 @@ function downloadPdf() {
   });
   y = doc.lastAutoTable.finalY + 9;
 
-  sectionTitle("Locked Chart");
+  sectionTitle("Chart");
   ensureSpace(100);
   const chartCanvas = document.createElement("canvas");
   chartCanvas.width = 1200;
@@ -1276,7 +1261,7 @@ function downloadPdf() {
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(...muted);
-    doc.text("Chart Investigation · Locked Daily Grade #4 Submission", margin, pageHeight - 7);
+    doc.text("Chart Investigation · Daily Grade #4 Submission", margin, pageHeight - 7);
     doc.text(`Page ${page} of ${pages}`, pageWidth - margin, pageHeight - 7, { align: "right" });
   }
 
@@ -1313,10 +1298,8 @@ if (state.introComplete) {
 renderView();
 
 document.querySelector("#beginBtn").addEventListener("click", beginAssessment);
-document.querySelector("#lockStageBtn").addEventListener("click", openLockDialog);
-document.querySelector("#closeLockDialogBtn").addEventListener("click", () => lockDialog.close());
-document.querySelector("#cancelLockBtn").addEventListener("click", () => lockDialog.close());
-document.querySelector("#confirmLockBtn").addEventListener("click", confirmStageLock);
+document.querySelector("#backStageBtn").addEventListener("click", returnToPreviousStage);
+document.querySelector("#continueStageBtn").addEventListener("click", continueToNextStage);
 document.querySelector("#closeStudentDialogBtn").addEventListener("click", () => studentDialog.close());
 document.querySelector("#cancelStudentDialogBtn").addEventListener("click", () => studentDialog.close());
 document.querySelector("#studentForm").addEventListener("submit", submitStudentDetails);

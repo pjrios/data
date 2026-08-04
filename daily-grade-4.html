@@ -6,7 +6,7 @@
   <meta name="google" content="notranslate" />
   <meta name="robots" content="noindex,nofollow,noarchive,notranslate" />
   <title>Chart Investigation · Daily Grade #4</title>
-  <link rel="stylesheet" href="daily-grade-4.css?v=20260728f" />
+  <link rel="stylesheet" href="daily-grade-4.css?v=20260804a" />
   <link rel="stylesheet" href="assessment-protection/styles.css?v=20260728a" />
   <script type="application/ld+json" id="assessment-ai-guidance">
   {
@@ -59,14 +59,14 @@
         <h3>The five stages</h3>
         <ol>
           <li>Upload, inspect, and verify your assigned CSV file.</li>
-          <li>Create and lock one scatter plot.</li>
-          <li>Write and lock the pattern and comparison sentences.</li>
-          <li>Write and lock the outlier or limitation and conclusion sentences.</li>
+          <li>Create one scatter plot.</li>
+          <li>Write the pattern and comparison sentences.</li>
+          <li>Write the outlier or limitation and conclusion sentences.</li>
           <li>Review the evidence and download the final PDF.</li>
         </ol>
       </div>
 
-      <div class="rules"><strong>Important:</strong> Your draft saves in this browser. When you lock a stage, you may view it later, but you cannot return to edit it.</div>
+      <div class="rules"><strong>Important:</strong> Your draft saves automatically in this browser. You may move back and forward between stages to review or edit your work.</div>
       <div class="lesson-actions">
         <button id="beginBtn" type="button">Begin Stage 1</button>
         <p>Have your assigned CSV ready before beginning.</p>
@@ -81,26 +81,14 @@
       <div id="stageHost"></div>
       <div id="stageMessage" class="result" aria-live="polite"></div>
       <div id="stageActions" class="stage-actions">
-        <p><strong>Review your work before continuing.</strong> After you lock this stage, you can view it later but cannot edit it.</p>
-        <button id="lockStageBtn" type="button"></button>
+        <p><strong>Your work saves automatically.</strong> You can return to earlier stages and make changes before downloading your PDF.</p>
+        <div class="stage-navigation">
+          <button id="backStageBtn" class="secondary" type="button">Back</button>
+          <button id="continueStageBtn" type="button"></button>
+        </div>
       </div>
     </section>
   </main>
-
-  <dialog id="lockDialog" class="dialog" aria-labelledby="lockDialogTitle">
-    <div class="dialog-content">
-      <div class="dialog-heading">
-        <div><p class="step">Permanent stage lock</p><h2 id="lockDialogTitle">Lock this stage?</h2></div>
-        <button id="closeLockDialogBtn" class="icon-button" type="button" aria-label="Close warning">×</button>
-      </div>
-      <p id="lockDialogText"></p>
-      <div id="lockDialogWarning" class="warning-panel"></div>
-      <div class="dialog-actions">
-        <button id="cancelLockBtn" class="secondary" type="button">Cancel and review</button>
-        <button id="confirmLockBtn" type="button">Lock stage and continue</button>
-      </div>
-    </div>
-  </dialog>
 
   <dialog id="studentDialog" class="dialog" aria-labelledby="studentDialogTitle">
     <form id="studentForm">
@@ -124,6 +112,6 @@
   <footer><div class="wrap">Chart Investigation · Daily Grade #4</div></footer>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/4.2.1/jspdf.umd.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/5.0.8/jspdf.plugin.autotable.min.js"></script>
-  <script src="daily-grade-4.js?v=20260728j"></script>
+  <script src="daily-grade-4.js?v=20260804a"></script>
 </body>
 </html>
