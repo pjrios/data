@@ -50,7 +50,7 @@
     .practice-link { color: var(--white); text-decoration: none; font-weight: 700; font-size: .9rem; }
     .slide-count { color: #c9d6e6; font-variant-numeric: tabular-nums; font-size: .9rem; }
     .progress { position: fixed; z-index: 21; top: 58px; left: 0; width: 100%; height: 5px; background: #cad3dc; }
-    .progress span { display: block; height: 100%; width: 8.33%; background: var(--gold); transition: width .25s ease; }
+    .progress span { display: block; height: 100%; width: 9.09%; background: var(--gold); transition: width .25s ease; }
 
     .deck { position: relative; height: 100svh; padding-top: 63px; }
     .slide {
@@ -126,7 +126,12 @@
     .mini.line::after { content: ""; position: absolute; left: 9%; bottom: 18%; width: 86%; height: 4px; border-radius: 4px; background: var(--coral); transform: rotate(-23deg); transform-origin: left center; }
     .actual-chart { display: block; width: 100%; height: 150px; margin: 0 0 16px; border-radius: 12px; background: #fff; }
     .compare-panel .actual-chart { height: 190px; }
+    .compare-panel .correlation-chart { height: clamp(250px, 35vh, 320px); }
+    .correlation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 26px; }
+    .correlation-grid .compare-panel { padding: 20px; }
+    .correlation-grid .correlation-chart { height: clamp(220px, 30vh, 275px); }
     .actual-chart.large { height: min(46vh, 390px); min-height: 300px; margin: 0; border-radius: 18px; box-shadow: 0 8px 24px rgba(16,37,63,.08); }
+    .correlation-note { margin: 14px 0 0; padding: 12px 14px; border-radius: 12px; color: var(--ink); background: #eef4ff; font-weight: 750; line-height: 1.4; }
 
     .compare { display: grid; grid-template-columns: 1fr auto 1fr; gap: 24px; align-items: stretch; margin-top: 30px; }
     .versus { align-self: center; width: 64px; height: 64px; display: grid; place-items: center; border-radius: 50%; color: var(--white); background: var(--navy); font-weight: 900; }
@@ -201,6 +206,7 @@
       .hero-layout, .mission-layout, .anatomy { grid-template-columns: 1fr; }
       .hero-card, .minute { max-width: 420px; }
       .card-grid, .card-grid.four, .quiz-grid, .score-grid { grid-template-columns: repeat(2, 1fr); }
+      .correlation-grid { grid-template-columns: 1fr; }
       .compare { grid-template-columns: 1fr; }
       .versus { margin: -10px auto; }
       .timeline { grid-template-columns: 1fr 1fr; gap: 10px; }
@@ -230,7 +236,7 @@
 <body>
   <header class="topbar">
     <div class="brand"><span class="brand-mark" aria-hidden="true"></span> Chart Review</div>
-    <div class="top-actions"><a class="practice-link" href="charts.html">Open full practice</a><span class="slide-count" id="slideCount">01 / 12</span></div>
+    <div class="top-actions"><a class="practice-link" href="charts.html">Open full practice</a><span class="slide-count" id="slideCount">01 / 11</span></div>
   </header>
   <div class="progress" aria-hidden="true"><span id="progressBar"></span></div>
 
@@ -321,43 +327,84 @@
       </div>
     </section>
 
-    <section class="slide warm" data-title="Quick check" aria-labelledby="title-6">
+    <section class="slide warm" data-title="Direction" aria-labelledby="title-6">
       <div class="slide-inner">
-        <p class="kicker">Quick check</p>
-        <h2 id="title-6">Name that graph.</h2>
-        <p class="lead">Say your answer first. Then reveal it.</p>
-        <div class="quiz-grid">
-          <article class="quiz-card" data-correct="Histogram"><p>A teacher groups quiz scores into 50–59, 60–69, 70–79, 80–89, and 90–99. Which graph best reveals the distribution?</p><div class="quiz-options"><button type="button" data-choice="Column chart">Column chart</button><button type="button" data-choice="Histogram">Histogram</button><button type="button" data-choice="Pie chart">Pie chart</button></div><p class="quiz-answer" aria-live="polite"></p></article>
-          <article class="quiz-card" data-correct="Scatter plot"><p>You have study hours and quiz scores for each student. Which graph best investigates whether the two variables are related?</p><div class="quiz-options"><button type="button" data-choice="Line chart">Line chart</button><button type="button" data-choice="Scatter plot">Scatter plot</button><button type="button" data-choice="Stacked bars">Stacked bars</button></div><p class="quiz-answer" aria-live="polite"></p></article>
-          <article class="quiz-card" data-correct="Line chart"><p>You recorded the temperature each day from Monday through Friday. Which graph best shows how it changed in time order?</p><div class="quiz-options"><button type="button" data-choice="Scatter plot">Scatter plot</button><button type="button" data-choice="Column chart">Column chart</button><button type="button" data-choice="Line chart">Line chart</button></div><p class="quiz-answer" aria-live="polite"></p></article>
+        <p class="kicker">Correlation · Direction</p>
+        <h2 id="title-6">Positive, negative, or none: which way do the points move?</h2>
+        <div class="correlation-grid">
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-positive" role="img" aria-label="Scatter plot showing positive correlation with points rising from left to right"></canvas>
+            <h3>Positive correlation</h3>
+            <p>As X increases, Y generally increases too.</p>
+            <p class="correlation-note">Rises from left to right: X ↑, Y generally ↑.</p>
+          </article>
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-negative" role="img" aria-label="Scatter plot showing negative correlation with points falling from left to right"></canvas>
+            <h3>Negative correlation</h3>
+            <p>As X increases, Y generally decreases.</p>
+            <p class="correlation-note">Falls from left to right: X ↑, Y generally ↓.</p>
+          </article>
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-none" role="img" aria-label="Scatter plot showing no clear correlation with no consistent direction"></canvas>
+            <h3>No clear correlation</h3>
+            <p>As X changes, Y shows no consistent direction.</p>
+            <p class="correlation-note">No clear rise or fall: correlation is near zero.</p>
+          </article>
         </div>
+        <p class="memory-line"><strong>Direction, not judgment:</strong> positive does not mean “good,” negative does not mean “bad,” and “no clear correlation” is more precise than “neutral.”</p>
       </div>
     </section>
 
-    <section class="slide dark" data-title="Mission" aria-labelledby="title-7">
-      <div class="slide-inner mission-layout">
-        <div>
-          <p class="kicker">Summative #5 · Chart Presentation</p>
-          <h2 id="title-7">Your mission: choose, build, and explain one graph in one minute.</h2>
-          <ul class="mission-list">
-            <li>Choose the graph that matches the data and investigation question.</li>
-            <li>Show the final graph created in Canva.</li>
-            <li>Name both variables and units.</li>
-            <li>Explain the pattern and one comparison.</li>
-            <li>Identify the valid outlier.</li>
-            <li>State the correlation and its limitation.</li>
-            <li>Answer one question using chart evidence.</li>
-          </ul>
-          <p class="warning"><strong>Do not choose by appearance.</strong> Identify the data structure and the question first; then justify your graph choice.</p>
+    <section class="slide alt" data-title="Positive strength" aria-labelledby="title-7">
+      <div class="slide-inner">
+        <p class="kicker">Positive correlation · Strength</p>
+        <h2 id="title-7">Both rise—but one relationship is stronger.</h2>
+        <div class="compare">
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-pos-high" role="img" aria-label="Scatter plot showing high positive correlation with points close to an upward pattern"></canvas>
+            <h3>High positive · strong</h3>
+            <p>The points stay close to a clear upward direction.</p>
+            <p class="correlation-note">Tight rising pattern = high positive correlation.</p>
+          </article>
+          <div class="versus" aria-hidden="true">VS</div>
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-pos-low" role="img" aria-label="Scatter plot showing low positive correlation with widely scattered points"></canvas>
+            <h3>Low positive · weak</h3>
+            <p>The points are widely scattered, but a slight rise remains.</p>
+            <p class="correlation-note">Scattered slight rise = low positive correlation.</p>
+          </article>
         </div>
-        <div class="minute" aria-label="One minute presentation limit"><div><strong>1:00</strong><span>maximum</span></div></div>
+        <p class="memory-line"><strong>Same direction, different strength:</strong> both are positive because they rise; the tighter pattern is stronger.</p>
       </div>
     </section>
 
-    <section class="slide alt" data-title="Anatomy" aria-labelledby="title-8">
+    <section class="slide warm" data-title="Negative strength" aria-labelledby="title-8">
+      <div class="slide-inner">
+        <p class="kicker">Negative correlation · Strength</p>
+        <h2 id="title-8">Both fall—but one relationship is stronger.</h2>
+        <div class="compare">
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-neg-high" role="img" aria-label="Scatter plot showing high negative correlation with points close to a downward pattern"></canvas>
+            <h3>High negative · strong</h3>
+            <p>The points stay close to a clear downward direction.</p>
+            <p class="correlation-note">Tight falling pattern = high negative correlation.</p>
+          </article>
+          <div class="versus" aria-hidden="true">VS</div>
+          <article class="compare-panel">
+            <canvas class="actual-chart correlation-chart" data-chart="corr-neg-low" role="img" aria-label="Scatter plot showing low negative correlation with widely scattered points"></canvas>
+            <h3>Low negative · weak</h3>
+            <p>The points are widely scattered, but a slight fall remains.</p>
+            <p class="correlation-note">Scattered slight fall = low negative correlation.</p>
+          </article>
+        </div>
+        <p class="memory-line"><strong>Complete description:</strong> state direction and strength—for example, “high negative correlation.”</p>
+      </div>
+    </section>
+
+    <section class="slide alt" data-title="Anatomy" aria-labelledby="title-9">
       <div class="slide-inner">
         <p class="kicker">Practice-only worked example</p>
-        <h2 id="title-8">Read this similar example without copying its answer.</h2>
+        <h2 id="title-9">Read this similar example without copying its answer.</h2>
         <div class="anatomy">
           <canvas class="actual-chart large" data-chart="summative" role="img" aria-label="Example scatter plot with nine labeled IDs, an upward pattern, and one red outlier"></canvas>
           <div class="anatomy-list">
@@ -370,10 +417,10 @@
       </div>
     </section>
 
-    <section class="slide warm" data-title="Evidence" aria-labelledby="title-9">
+    <section class="slide warm" data-title="Evidence" aria-labelledby="title-10">
       <div class="slide-inner">
         <p class="kicker">Tell the evidence story</p>
-        <h2 id="title-9">Pattern. Comparison. Outlier. Conclusion.</h2>
+        <h2 id="title-10">Pattern. Comparison. Outlier. Conclusion.</h2>
         <div class="evidence-grid">
           <article class="evidence-card"><span>1</span><h3>Pattern</h3><p>Name both variables, the direction, and numerical evidence.</p><p class="frame">“As ___ changes from ___ to ___, ___ generally…”</p></article>
           <article class="evidence-card"><span>2</span><h3>Comparison</h3><p>Name two different IDs and give accurate values for both.</p><p class="frame">“ID ___ has ___ and ___, while ID ___ has…”</p></article>
@@ -384,10 +431,10 @@
       </div>
     </section>
 
-    <section class="slide alt" data-title="One minute" aria-labelledby="title-10">
+    <section class="slide alt" data-title="One minute" aria-labelledby="title-11">
       <div class="slide-inner">
         <p class="kicker">Organize the presentation</p>
-        <h2 id="title-10">A clear minute has four moves.</h2>
+        <h2 id="title-11">A clear minute has four moves.</h2>
         <div class="timeline">
           <article class="time-step"><span class="seconds">0–10 sec</span><h3>Introduce</h3><p>Give the title and explain the data context. Name both variables and units.</p></article>
           <article class="time-step"><span class="seconds">10–30 sec</span><h3>Read the pattern</h3><p>Describe the direction and compare two IDs using exact values.</p></article>
@@ -398,41 +445,6 @@
       </div>
     </section>
 
-    <section class="slide warm" data-title="Rubric" aria-labelledby="title-11">
-      <div class="slide-inner">
-        <p class="kicker">Know where the 40 points are</p>
-        <h2 id="title-11">Accuracy and explanation carry the score.</h2>
-        <div class="score-grid">
-          <article class="score-card"><span class="points">1</span><div><h3>Student details</h3><p>Name, class, and date</p></div></article>
-          <article class="score-card"><span class="points">7</span><div><h3>Chart display</h3><p>Correct, complete, and readable graph</p></div></article>
-          <article class="score-card"><span class="points">7</span><div><h3>Organization</h3><p>Title, context, Canva graph, conclusion, one minute</p></div></article>
-          <article class="score-card"><span class="points">7</span><div><h3>Pattern + comparison</h3><p>Accurate direction, IDs, values, and English</p></div></article>
-          <article class="score-card"><span class="points">7</span><div><h3>Outlier + limitation</h3><p>Accurate evidence, correlation, no causation claim</p></div></article>
-          <article class="score-card"><span class="points">7</span><div><h3>Delivery + question</h3><p>Understandable speech, chart reference, response</p></div></article>
-          <article class="score-card"><span class="points">4</span><div><h3>Readiness + respect</h3><p>On time, prepared, careful, focused</p></div></article>
-        </div>
-        <p class="memory-line"><strong>Total: 40 points.</strong> Exact numbers + clear English + visible chart evidence.</p>
-      </div>
-    </section>
-
-    <section class="slide dark" data-title="Ready" aria-labelledby="title-12">
-      <div class="slide-inner">
-        <p class="kicker">Final self-check</p>
-        <h2 id="title-12">Can you prove you are ready?</h2>
-        <div class="checklist" id="readyChecklist">
-          <label><input type="checkbox" /> I can choose the right graph for a question.</label>
-          <label><input type="checkbox" /> My graph choice matches the data question.</label>
-          <label><input type="checkbox" /> I can explain a pattern with exact numbers.</label>
-          <label><input type="checkbox" /> I can compare two IDs and their values.</label>
-          <label><input type="checkbox" /> I can identify and explain the valid outlier.</label>
-          <label><input type="checkbox" /> I can say why correlation is not causation.</label>
-          <label><input type="checkbox" /> I can present clearly in one minute.</label>
-          <label><input type="checkbox" /> I am ready to answer one evidence question.</label>
-        </div>
-        <p class="ready-line" id="readyLine" aria-live="polite">Check each box as a class.</p>
-        <p class="lead">Next step: open the full Chart Practice or rehearse your presentation with a partner.</p>
-      </div>
-    </section>
   </main>
 
   <nav class="dots" id="dots" aria-label="Slides"></nav>
@@ -492,20 +504,6 @@
       addEventListener('hashchange', () => {
         const requested = Number(location.hash.replace('#slide-', '')) - 1;
         if (Number.isInteger(requested)) show(requested, false);
-      });
-
-      document.querySelectorAll('.quiz-card').forEach(card => {
-        const answer = card.querySelector('.quiz-answer');
-        card.querySelectorAll('[data-choice]').forEach(button => {
-          button.addEventListener('click', () => {
-            const correct = button.dataset.choice === card.dataset.correct;
-            card.querySelectorAll('[data-choice]').forEach(option => option.classList.remove('correct', 'incorrect'));
-            button.classList.add(correct ? 'correct' : 'incorrect');
-            answer.textContent = correct
-              ? `Correct — ${card.dataset.correct} fits the question and the data structure.`
-              : 'Try again. Ask: categories, numerical ranges, one whole, time order, or paired numerical variables?';
-          });
-        });
       });
 
       const palette = { ink: '#18314f', grid: '#dbe3ec', blue: '#2864dc', gold: '#f2b544', coral: '#ed6a5a', green: '#2d8b72', muted: '#5e6f82' };
@@ -645,6 +643,34 @@
         text(context, config.yLabel, 0, 0, { size: large ? 10 : 8, align: 'center', color: palette.muted }); context.restore();
       }
 
+      function correlationChart(context, width, height, type) {
+        const examples = {
+          'corr-positive': { title: 'Positive direction', ys: [2.0, 3.1, 3.6, 4.8, 5.3, 6.7, 7.2, 8.5] },
+          'corr-negative': { title: 'Negative direction', ys: [8.7, 8.0, 7.4, 6.1, 5.4, 4.1, 3.3, 2.0] },
+          'corr-none': { title: 'No clear linear correlation', ys: [3, 7, 4, 2, 6, 8, 1, 5] },
+          'corr-pos-high': { title: 'High positive correlation', ys: [1.8, 2.9, 3.7, 4.9, 5.8, 6.9, 7.7, 8.8] },
+          'corr-pos-low': { title: 'Low positive correlation', ys: [4.5, 7.8, 2.3, 6.9, 3.5, 8.6, 4.2, 6.4] },
+          'corr-neg-high': { title: 'High negative correlation', ys: [8.8, 7.9, 7.1, 5.8, 5.0, 4.1, 2.9, 1.8] },
+          'corr-neg-low': { title: 'Low negative correlation', ys: [6.4, 4.2, 8.6, 3.5, 6.9, 2.3, 7.8, 4.5] }
+        };
+        const example = examples[type];
+        const xs = [1,2,3,4,5,6,7,8];
+        const area = axes(context, width, height, { title: example.title, xLabel: 'Horizontal variable (X)', left: 46 });
+        const x = value => area.left + (value - 1) / 7 * (area.right - area.left);
+        const y = value => area.bottom - (value - 1) / 8 * (area.bottom - area.top);
+        example.ys.forEach((value, index) => {
+          context.beginPath();
+          context.arc(x(xs[index]), y(value), 5.5, 0, Math.PI * 2);
+          context.fillStyle = type.includes('negative') || type.includes('neg-') ? palette.coral : type === 'corr-none' ? palette.green : palette.blue;
+          context.fill();
+        });
+        context.save();
+        context.translate(13, (area.top + area.bottom) / 2);
+        context.rotate(-Math.PI / 2);
+        text(context, 'Vertical variable (Y)', 0, 0, { size: 8, align: 'center', color: palette.muted });
+        context.restore();
+      }
+
       function drawChart(canvas) {
         const prepared = prepareCanvas(canvas);
         if (!prepared) return;
@@ -658,6 +684,7 @@
         else if (type === 'line') lineChart(context, width, height);
         else if (type === 'scatter') scatterChart(context, width, height);
         else if (type === 'summative') scatterChart(context, width, height, true);
+        else if (type.startsWith('corr-')) correlationChart(context, width, height, type);
       }
 
       const canvases = [...document.querySelectorAll('[data-chart]')];
@@ -670,14 +697,7 @@
         addEventListener('resize', drawAllCharts);
       }
 
-      const checklist = document.querySelector('#readyChecklist');
-      const readyLine = document.querySelector('#readyLine');
-      checklist.addEventListener('change', () => {
-        const checked = checklist.querySelectorAll('input:checked').length;
-        readyLine.textContent = checked === 8 ? 'Ready: chart first, evidence second. You’ve got this.' : `${checked} of 8 ready checks complete.`;
-      });
-
-      show(current, false);
+      show(current);
     })();
   </script>
 </body>
